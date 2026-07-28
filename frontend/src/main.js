@@ -23,6 +23,7 @@ import { renderDoctors, initDoctors } from './features/doctors/index.js';
 import { renderDoctorDetail, initDoctorDetail } from './features/doctors/detail.js';
 import { renderCreateDoctor, initCreateDoctor } from './features/doctors/create.js';
 import { renderDoctorSchedule, initDoctorSchedule } from './features/doctors/schedule.js';
+import { renderDoctorProfile, initDoctorProfile } from './features/doctors/profile.js';
 
 // Appointment management (admin/doctor layout)
 import { renderAppointmentsManage, initAppointmentsManage } from './features/appointments/manage.js';
@@ -116,6 +117,24 @@ registerRoute('/doctors/:id/schedule', {
     render: renderDoctorSchedule,
     init: initDoctorSchedule,
     layout: 'admin',
+});
+
+// ── Doctor Self-Profile Route (doctor layout) ──
+registerRoute('/doctor/profile', {
+    render: renderDoctorProfile,
+    init: initDoctorProfile,
+    layout: 'doctor',
+});
+
+registerRoute('/doctor/schedule', {
+    render: renderDoctorSchedule,
+    init: () => {
+        const id = sessionStorage.getItem('doctor_id');
+        if (!id) { window.location.hash = '#/doctor/profile'; return; }
+        window.__routeParams = { id };
+        initDoctorSchedule();
+    },
+    layout: 'doctor',
 });
 
 registerRoute('/doctors/:id/edit', {
