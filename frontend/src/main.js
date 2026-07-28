@@ -190,12 +190,6 @@ registerRoute('/notifications', {
     init: initNotifications,
 });
 
-// ── Reports Route ──
-registerRoute('/reports', {
-    render: renderReports,
-    init: initReports,
-});
-
 // Default route — redirect based on auth state
 registerRoute('/', {
     render: () => {
