@@ -20,7 +20,7 @@ class AuthResource extends JsonResource
         return [
             'user' => new UserResource($user),
             'token' => $token,
-            'abilities' => $user->getRoleNames(),
+            'abilities' => $user->tyroRoleSlugs(),
         ];
     }
 }

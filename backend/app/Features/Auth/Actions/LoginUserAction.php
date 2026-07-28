@@ -36,7 +36,7 @@ class LoginUserAction
             'last_login_ip' => request()->ip(),
         ]);
 
-        $abilities = $user->getRoleNames()->toArray();
+        $abilities = $user->tyroRoleSlugs();
 
         $token = $user->createToken('auth-token', $abilities)->plainTextToken;
 
