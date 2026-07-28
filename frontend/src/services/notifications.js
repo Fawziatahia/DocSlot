@@ -2,8 +2,7 @@ import { api } from './api.js';
 
 export const notificationsService = {
     async list(params = {}) {
-        const res = await api.get('/notifications', { params });
-        return res.data;
+        return api.get('/notifications', { params });
     },
 
     async unreadCount() {
