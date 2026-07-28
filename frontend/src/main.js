@@ -24,6 +24,12 @@ import { renderDoctorDetail, initDoctorDetail } from './features/doctors/detail.
 import { renderCreateDoctor, initCreateDoctor } from './features/doctors/create.js';
 import { renderDoctorSchedule, initDoctorSchedule } from './features/doctors/schedule.js';
 
+// Patient routes
+import { renderPatientDashboard, initPatientDashboard } from './features/patients/dashboard/index.js';
+import { renderAppointmentHistory, initAppointmentHistory } from './features/patients/appointments/history.js';
+import { renderBookAppointment, initBookAppointment } from './features/patients/appointments/book.js';
+import { renderPatientPrescriptions, initPatientPrescriptions } from './features/patients/prescriptions/index.js';
+
 registerRoute('/login', {
     render: renderLogin,
     init: initLogin,
@@ -102,6 +108,31 @@ registerRoute('/doctors/:id/edit', {
     render: renderCreateDoctor,
     init: initCreateDoctor,
     layout: 'admin',
+});
+
+// ── Patient Routes ──
+registerRoute('/dashboard', {
+    render: renderPatientDashboard,
+    init: initPatientDashboard,
+    layout: 'patient',
+});
+
+registerRoute('/appointments', {
+    render: renderAppointmentHistory,
+    init: initAppointmentHistory,
+    layout: 'patient',
+});
+
+registerRoute('/appointments/book', {
+    render: renderBookAppointment,
+    init: initBookAppointment,
+    layout: 'patient',
+});
+
+registerRoute('/prescriptions', {
+    render: renderPatientPrescriptions,
+    init: initPatientPrescriptions,
+    layout: 'patient',
 });
 
 // Default route — redirect based on auth state
