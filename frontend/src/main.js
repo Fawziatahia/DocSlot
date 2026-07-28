@@ -35,6 +35,9 @@ import { renderCreatePrescription, initCreatePrescription } from './features/pre
 import { renderMedicalRecords, initMedicalRecords } from './features/medical-records/index.js';
 import { renderCreateMedicalRecord, initCreateMedicalRecord } from './features/medical-records/create.js';
 
+// Notifications
+import { renderNotifications, initNotifications } from './features/notifications/index.js';
+
 // Patient routes
 import { renderPatientDashboard, initPatientDashboard } from './features/patients/dashboard/index.js';
 import { renderAppointmentHistory, initAppointmentHistory } from './features/patients/appointments/history.js';
@@ -176,6 +179,12 @@ registerRoute('/medical-records/create', {
     render: renderCreateMedicalRecord,
     init: initCreateMedicalRecord,
     layout: 'admin',
+});
+
+// ── Notifications Route ──
+registerRoute('/notifications', {
+    render: renderNotifications,
+    init: initNotifications,
 });
 
 // Default route — redirect based on auth state
