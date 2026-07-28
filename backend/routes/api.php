@@ -1,6 +1,14 @@
 <?php
 
+use App\Features\Admin\Controllers\AuditLogController;
+use App\Features\Admin\Controllers\DepartmentController;
+use App\Features\Admin\Controllers\SettingsController;
+use App\Features\Admin\Controllers\SpecializationController;
+use App\Features\Admin\Controllers\UserManagementController;
 use App\Features\Auth\Controllers\AuthController;
+use App\Features\Dashboard\Controllers\AdminDashboardController;
+use App\Features\Dashboard\Controllers\DoctorDashboardController;
+use App\Features\Dashboard\Controllers\PatientDashboardController;
 use App\Features\Doctors\Controllers\DoctorController;
 use App\Features\Doctors\Controllers\DoctorScheduleController;
 use App\Features\Patients\Controllers\PatientController;
@@ -11,8 +19,7 @@ use Illuminate\Support\Facades\Route;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Feature-based route groups. Each group is rate-limited and
-| authenticated as appropriate.
+| Feature-based route groups.
 |
 */
 
@@ -38,27 +45,20 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('auth')->group(func
 // Doctor Routes
 // ──────────────────────────────────────────
 Route::prefix('doctors')->group(function () {
-    // Public search/list (patients & admins)
     Route::get('/', [DoctorController::class, 'index']);
-
-    // Doctor detail (all authenticated users)
     Route::get('/{id}', [DoctorController::class, 'show']);
-
-    // Admin-only mutations
     Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         Route::post('/', [DoctorController::class, 'store']);
         Route::put('/{id}', [DoctorController::class, 'update']);
         Route::delete('/{id}', [DoctorController::class, 'destroy']);
         Route::patch('/{id}/status', [DoctorController::class, 'toggleStatus']);
-
-        // Schedule (admin or doctor owner)
         Route::get('/{id}/schedule', [DoctorScheduleController::class, 'show']);
         Route::put('/{id}/schedule', [DoctorScheduleController::class, 'update']);
     });
 });
 
 // ──────────────────────────────────────────
-// Patient Routes
+// Patient Routes (admin & doctor)
 // ──────────────────────────────────────────
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('patients')->group(function () {
     Route::get('/', [PatientController::class, 'index']);
@@ -69,61 +69,54 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('patients')->group(
 });
 
 // ──────────────────────────────────────────
-// Appointments — TODO: implement in next phase
+// Admin Routes (admin-only, role-checked in controllers)
 // ──────────────────────────────────────────
-// Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('appointments')->group(function () {
-//     Route::get('/', [AppointmentController::class, 'index']);
-//     Route::post('/', [AppointmentController::class, 'store']);
-//     Route::get('/my', [PatientAppointmentController::class, 'myAppointments']);
-//     Route::get('/my/upcoming', [PatientAppointmentController::class, 'upcoming']);
-//     Route::get('/my/history', [PatientAppointmentController::class, 'history']);
-//     Route::get('/available-slots', [AppointmentController::class, 'availableSlots']);
-//     Route::get('/{id}', [AppointmentController::class, 'show']);
-//     Route::patch('/{id}/status', [AppointmentController::class, 'updateStatus']);
-//     Route::post('/{id}/reschedule', [AppointmentController::class, 'reschedule']);
-// });
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('admin')->group(function () {
+    // User management
+    Route::get('users', [UserManagementController::class, 'index']);
+    Route::get('users/{id}', [UserManagementController::class, 'show']);
+    Route::patch('users/{id}/status', [UserManagementController::class, 'toggleStatus']);
+    Route::delete('users/{id}', [UserManagementController::class, 'destroy']);
+
+    // Settings
+    Route::get('settings', [SettingsController::class, 'index']);
+    Route::put('settings', [SettingsController::class, 'update']);
+});
 
 // ──────────────────────────────────────────
-// Prescriptions — TODO: implement in next phase
+// Departments & Specializations
 // ──────────────────────────────────────────
-// Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('prescriptions')->group(function () {
-//     // ...
-// });
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('departments')->group(function () {
+    Route::get('/', [DepartmentController::class, 'index']);
+    Route::get('/{id}', [DepartmentController::class, 'show']);
+    Route::post('/', [DepartmentController::class, 'store']);
+    Route::put('/{id}', [DepartmentController::class, 'update']);
+    Route::delete('/{id}', [DepartmentController::class, 'destroy']);
+    Route::patch('/{id}/status', [DepartmentController::class, 'toggleStatus']);
+});
+
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('specializations')->group(function () {
+    Route::get('/', [SpecializationController::class, 'index']);
+    Route::get('/{id}', [SpecializationController::class, 'show']);
+    Route::post('/', [SpecializationController::class, 'store']);
+    Route::put('/{id}', [SpecializationController::class, 'update']);
+    Route::delete('/{id}', [SpecializationController::class, 'destroy']);
+    Route::patch('/{id}/status', [SpecializationController::class, 'toggleStatus']);
+});
 
 // ──────────────────────────────────────────
-// Medical Records — TODO: implement in next phase
+// Audit Logs (admin-only)
 // ──────────────────────────────────────────
-// Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('medical-records')->group(function () {
-//     // ...
-// });
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('audit-logs')->group(function () {
+    Route::get('/', [AuditLogController::class, 'index']);
+    Route::get('/{id}', [AuditLogController::class, 'show']);
+});
 
 // ──────────────────────────────────────────
-// Notifications — TODO: implement in next phase
+// Dashboard
 // ──────────────────────────────────────────
-// Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('notifications')->group(function () {
-//     // ...
-// });
-
-// ──────────────────────────────────────────
-// Dashboard — TODO: implement in next phase
-// ──────────────────────────────────────────
-// Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('dashboard')->group(function () {
-//     // ...
-// });
-
-// ──────────────────────────────────────────
-// Reports — TODO: implement in next phase
-// ──────────────────────────────────────────
-// Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('reports')->group(function () {
-//     // ...
-// });
-
-// ──────────────────────────────────────────
-// Departments & Specializations — TODO: implement in next phase
-// ──────────────────────────────────────────
-// Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('departments')->group(function () {
-//     // ...
-// });
-// Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('specializations')->group(function () {
-//     // ...
-// });
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('dashboard')->group(function () {
+    Route::get('admin', AdminDashboardController::class);
+    Route::get('doctor', DoctorDashboardController::class);
+    Route::get('patient', PatientDashboardController::class);
+});
