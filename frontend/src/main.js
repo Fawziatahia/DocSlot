@@ -31,6 +31,10 @@ import { renderAppointmentsManage, initAppointmentsManage } from './features/app
 import { renderPrescriptions, initPrescriptions } from './features/prescriptions/index.js';
 import { renderCreatePrescription, initCreatePrescription } from './features/prescriptions/create.js';
 
+// Medical records (admin/doctor layout)
+import { renderMedicalRecords, initMedicalRecords } from './features/medical-records/index.js';
+import { renderCreateMedicalRecord, initCreateMedicalRecord } from './features/medical-records/create.js';
+
 // Patient routes
 import { renderPatientDashboard, initPatientDashboard } from './features/patients/dashboard/index.js';
 import { renderAppointmentHistory, initAppointmentHistory } from './features/patients/appointments/history.js';
@@ -158,6 +162,19 @@ registerRoute('/prescriptions/manage', {
 registerRoute('/prescriptions/create', {
     render: renderCreatePrescription,
     init: initCreatePrescription,
+    layout: 'admin',
+});
+
+// ── Medical Record Routes (admin/doctor) ──
+registerRoute('/medical-records/manage', {
+    render: renderMedicalRecords,
+    init: initMedicalRecords,
+    layout: 'admin',
+});
+
+registerRoute('/medical-records/create', {
+    render: renderCreateMedicalRecord,
+    init: initCreateMedicalRecord,
     layout: 'admin',
 });
 
