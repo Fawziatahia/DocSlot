@@ -2,13 +2,11 @@ import { api } from './api.js';
 
 export const appointmentsService = {
     async list(params = {}) {
-        const res = await api.get('/appointments', { params });
-        return res.data;
+        return api.get('/appointments', { params });
     },
 
     async myAppointments(params = {}) {
-        const res = await api.get('/appointments/my', { params });
-        return res.data;
+        return api.get('/appointments/my', { params });
     },
 
     async show(id) {
