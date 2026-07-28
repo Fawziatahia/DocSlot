@@ -1,0 +1,15 @@
+# PRD / internal docs
+prd.md
+
+# Local tooling
+.commandcode/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.idea/
+.vscode/
+*.log
