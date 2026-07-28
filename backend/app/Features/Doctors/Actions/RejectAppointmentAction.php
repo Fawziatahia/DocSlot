@@ -2,7 +2,17 @@
 
 namespace App\Features\Doctors\Actions;
 
+use App\Features\Appointments\Services\AppointmentService;
+use App\Models\Appointment;
+
 class RejectAppointmentAction
 {
-    // TODO: Implement when Appointments feature is built
+    public function __construct(
+        private readonly AppointmentService $appointmentService,
+    ) {}
+
+    public function execute(Appointment $appointment, ?string $reason = null): Appointment
+    {
+        return $this->appointmentService->cancelAppointment($appointment, $reason);
+    }
 }

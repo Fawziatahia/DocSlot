@@ -2,6 +2,8 @@
 
 namespace App\Features\Doctors\Controllers;
 
+use App\Features\Appointments\Repositories\AppointmentRepository;
+use App\Features\Appointments\Resources\AppointmentResource;
 use App\Features\Doctors\Actions\CreateDoctorAction;
 use App\Features\Doctors\Actions\UpdateDoctorAction;
 use App\Features\Doctors\DTOs\DoctorData;
@@ -25,6 +27,7 @@ class DoctorController
         private readonly DoctorService $doctorService,
         private readonly CreateDoctorAction $createDoctorAction,
         private readonly UpdateDoctorAction $updateDoctorAction,
+        private readonly AppointmentRepository $appointmentRepository,
     ) {}
 
     /**
@@ -173,10 +176,13 @@ class DoctorController
      */
     public function appointments(Request $request, int $id): JsonResponse
     {
-        // TODO: Full implementation when Appointments feature is built
-        return $this->success([
-            'doctor_id' => $id,
-            'message' => 'Appointments listing — to be implemented with Appointments feature.',
-        ]);
+        $doctor = $this->doctorRepository->findOrFail($id);
+        $perPage = (int) $request->input('per_page', 15);
+        $appointments = $this->appointmentRepository->getDoctorAppointments(
+            $doctor->id,
+            $request->input('status'),
+        );
+
+        return $this->paginated($appointments, AppointmentResource::class);
     }
 }
