@@ -5,13 +5,18 @@ use App\Features\Admin\Controllers\DepartmentController;
 use App\Features\Admin\Controllers\SettingsController;
 use App\Features\Admin\Controllers\SpecializationController;
 use App\Features\Admin\Controllers\UserManagementController;
+use App\Features\Appointments\Controllers\AppointmentController;
 use App\Features\Auth\Controllers\AuthController;
 use App\Features\Dashboard\Controllers\AdminDashboardController;
 use App\Features\Dashboard\Controllers\DoctorDashboardController;
 use App\Features\Dashboard\Controllers\PatientDashboardController;
 use App\Features\Doctors\Controllers\DoctorController;
 use App\Features\Doctors\Controllers\DoctorScheduleController;
+use App\Features\MedicalRecords\Controllers\MedicalRecordController;
+use App\Features\Notifications\Controllers\NotificationController;
 use App\Features\Patients\Controllers\PatientController;
+use App\Features\Prescriptions\Controllers\PrescriptionController;
+use App\Features\Reports\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -106,6 +111,66 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('specializations')-
     Route::put('/{id}', [SpecializationController::class, 'update']);
     Route::delete('/{id}', [SpecializationController::class, 'destroy']);
     Route::patch('/{id}/status', [SpecializationController::class, 'toggleStatus']);
+});
+
+// ──────────────────────────────────────────
+// Appointments
+// ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('appointments')->group(function () {
+    Route::get('/', [AppointmentController::class, 'index']);
+    Route::get('my', [AppointmentController::class, 'myAppointments']);
+    Route::get('/{id}', [AppointmentController::class, 'show']);
+    Route::post('/', [AppointmentController::class, 'store']);
+    Route::post('/{id}/cancel', [AppointmentController::class, 'cancel']);
+    Route::post('/{id}/confirm', [AppointmentController::class, 'confirm']);
+    Route::post('/{id}/complete', [AppointmentController::class, 'complete']);
+    Route::post('/{id}/reschedule', [AppointmentController::class, 'reschedule']);
+});
+
+// ──────────────────────────────────────────
+// Prescriptions
+// ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('prescriptions')->group(function () {
+    Route::get('/', [PrescriptionController::class, 'index']);
+    Route::get('my', [PrescriptionController::class, 'myPrescriptions']);
+    Route::get('/{id}', [PrescriptionController::class, 'show']);
+    Route::post('/', [PrescriptionController::class, 'store']);
+    Route::put('/{id}', [PrescriptionController::class, 'update']);
+    Route::delete('/{id}', [PrescriptionController::class, 'destroy']);
+});
+
+// ──────────────────────────────────────────
+// Medical Records
+// ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('medical-records')->group(function () {
+    Route::get('/', [MedicalRecordController::class, 'index']);
+    Route::get('my', [MedicalRecordController::class, 'myRecords']);
+    Route::get('/{id}', [MedicalRecordController::class, 'show']);
+    Route::post('/', [MedicalRecordController::class, 'store']);
+    Route::put('/{id}', [MedicalRecordController::class, 'update']);
+    Route::delete('/{id}', [MedicalRecordController::class, 'destroy']);
+});
+
+// ──────────────────────────────────────────
+// Notifications
+// ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::get('/{id}', [NotificationController::class, 'show']);
+    Route::post('/{id}/read', [NotificationController::class, 'markAsRead']);
+});
+
+// ──────────────────────────────────────────
+// Reports
+// ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('reports')->group(function () {
+    Route::get('appointments', [ReportController::class, 'appointments']);
+    Route::get('revenue', [ReportController::class, 'revenue']);
+    Route::get('doctors', [ReportController::class, 'doctors']);
+    Route::get('patients', [ReportController::class, 'patients']);
+    Route::get('prescriptions', [ReportController::class, 'prescriptions']);
 });
 
 // ──────────────────────────────────────────

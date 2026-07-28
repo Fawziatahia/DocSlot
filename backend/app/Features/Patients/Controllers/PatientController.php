@@ -2,12 +2,16 @@
 
 namespace App\Features\Patients\Controllers;
 
+use App\Features\MedicalRecords\Repositories\MedicalRecordRepository;
+use App\Features\MedicalRecords\Resources\MedicalRecordResource;
 use App\Features\Patients\Policies\PatientPolicy;
 use App\Features\Patients\Repositories\PatientRepository;
 use App\Features\Patients\Requests\StorePatientRequest;
 use App\Features\Patients\Requests\UpdatePatientRequest;
 use App\Features\Patients\Resources\PatientDetailResource;
 use App\Features\Patients\Resources\PatientResource;
+use App\Features\Prescriptions\Repositories\PrescriptionRepository;
+use App\Features\Prescriptions\Resources\PrescriptionResource;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +23,8 @@ class PatientController
     public function __construct(
         private readonly PatientRepository $patientRepository,
         private readonly PatientPolicy $policy,
+        private readonly MedicalRecordRepository $medicalRecordRepository,
+        private readonly PrescriptionRepository $prescriptionRepository,
     ) {}
 
     /**
@@ -107,41 +113,42 @@ class PatientController
      * View medical history.
      * GET /api/patients/{id}/medical-history
      */
-    public function medicalHistory(int $id): JsonResponse
+    public function medicalHistory(Request $request, int $id): JsonResponse
     {
         $patient = $this->patientRepository->findOrFail($id);
-        $user = request()->user();
+        $user = $request->user();
 
         if (!$this->policy->viewMedicalHistory($user, $patient)) {
             return $this->error('Forbidden.', 403);
         }
 
-        // TODO: Return actual medical records when MedicalRecords feature is built
-        return $this->success([
-            'patient_id' => $id,
-            'records' => [],
-            'message' => 'Medical records — to be implemented with MedicalRecords feature.',
-        ]);
+        $records = $this->medicalRecordRepository->getPatientRecords(
+            $patient->id,
+            $request->input('record_type'),
+            (int) $request->input('per_page', 15),
+        );
+
+        return $this->paginated($records, MedicalRecordResource::class);
     }
 
     /**
      * View prescriptions.
      * GET /api/patients/{id}/prescriptions
      */
-    public function prescriptions(int $id): JsonResponse
+    public function prescriptions(Request $request, int $id): JsonResponse
     {
         $patient = $this->patientRepository->findOrFail($id);
-        $user = request()->user();
+        $user = $request->user();
 
         if (!$this->policy->viewPrescriptions($user, $patient)) {
             return $this->error('Forbidden.', 403);
         }
 
-        // TODO: Return actual prescriptions when Prescriptions feature is built
-        return $this->success([
-            'patient_id' => $id,
-            'prescriptions' => [],
-            'message' => 'Prescriptions — to be implemented with Prescriptions feature.',
-        ]);
+        $prescriptions = $this->prescriptionRepository->getPatientPrescriptions(
+            $patient->id,
+            (int) $request->input('per_page', 15),
+        );
+
+        return $this->paginated($prescriptions, PrescriptionResource::class);
     }
 }

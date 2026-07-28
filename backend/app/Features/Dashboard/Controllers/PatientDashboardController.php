@@ -2,6 +2,7 @@
 
 namespace App\Features\Dashboard\Controllers;
 
+use App\Features\Dashboard\Services\DashboardService;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -9,6 +10,10 @@ use Illuminate\Http\Request;
 class PatientDashboardController
 {
     use ApiResponseTrait;
+
+    public function __construct(
+        private readonly DashboardService $dashboardService,
+    ) {}
 
     public function __invoke(Request $request): JsonResponse
     {
@@ -18,12 +23,6 @@ class PatientDashboardController
             return $this->error('Patient profile not found.', 404);
         }
 
-        // TODO: Add appointment counts when Appointments feature is built
-        return $this->success([
-            'patient_id' => $patient->id,
-            'upcoming_appointments' => 0,
-            'total_appointments' => 0,
-            'message' => 'Patient dashboard — to be fully implemented.',
-        ]);
+        return $this->success($this->dashboardService->patientStats($patient->id));
     }
 }
