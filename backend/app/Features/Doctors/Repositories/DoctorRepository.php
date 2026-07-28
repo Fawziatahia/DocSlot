@@ -23,12 +23,17 @@ class DoctorRepository implements RepositoryInterface
 
     public function find(int $id, array $columns = ['*']): ?Model
     {
-        return Doctor::with(['user', 'specialization', 'department', 'schedules'])->find($id, $columns);
+        return Doctor::with(['user', 'specialization', 'department'])->find($id, $columns);
     }
 
     public function findOrFail(int $id, array $columns = ['*']): Model
     {
-        return Doctor::with(['user', 'specialization', 'department', 'schedules'])->findOrFail($id, $columns);
+        return Doctor::with(['user', 'specialization', 'department'])->findOrFail($id, $columns);
+    }
+
+    public function findWithSchedules(int $id): Model
+    {
+        return Doctor::with(['user', 'specialization', 'department', 'schedules'])->findOrFail($id);
     }
 
     public function create(array $data): Model
