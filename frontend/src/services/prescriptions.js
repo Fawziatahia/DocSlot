@@ -2,13 +2,11 @@ import { api } from './api.js';
 
 export const prescriptionsService = {
     async list(params = {}) {
-        const res = await api.get('/prescriptions', { params });
-        return res.data;
+        return api.get('/prescriptions', { params });
     },
 
     async myPrescriptions(params = {}) {
-        const res = await api.get('/prescriptions/my', { params });
-        return res.data;
+        return api.get('/prescriptions/my', { params });
     },
 
     async show(id) {
