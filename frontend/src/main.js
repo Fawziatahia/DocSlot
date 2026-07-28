@@ -35,11 +35,17 @@ import { renderCreatePrescription, initCreatePrescription } from './features/pre
 import { renderMedicalRecords, initMedicalRecords } from './features/medical-records/index.js';
 import { renderCreateMedicalRecord, initCreateMedicalRecord } from './features/medical-records/create.js';
 
+// Notifications
+import { renderNotifications, initNotifications } from './features/notifications/index.js';
+
 // Patient routes
 import { renderPatientDashboard, initPatientDashboard } from './features/patients/dashboard/index.js';
 import { renderAppointmentHistory, initAppointmentHistory } from './features/patients/appointments/history.js';
 import { renderBookAppointment, initBookAppointment } from './features/patients/appointments/book.js';
 import { renderPatientPrescriptions, initPatientPrescriptions } from './features/patients/prescriptions/index.js';
+
+// Reports
+import { renderReports, initReports } from './features/reports/index.js';
 
 registerRoute('/login', {
     render: renderLogin,
@@ -176,6 +182,18 @@ registerRoute('/medical-records/create', {
     render: renderCreateMedicalRecord,
     init: initCreateMedicalRecord,
     layout: 'admin',
+});
+
+// ── Notifications Route ──
+registerRoute('/notifications', {
+    render: renderNotifications,
+    init: initNotifications,
+});
+
+// ── Reports Route ──
+registerRoute('/reports', {
+    render: renderReports,
+    init: initReports,
 });
 
 // Default route — redirect based on auth state
