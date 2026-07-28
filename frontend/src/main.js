@@ -38,8 +38,8 @@ import { renderCreateMedicalRecord, initCreateMedicalRecord } from './features/m
 // Notifications
 import { renderNotifications, initNotifications } from './features/notifications/index.js';
 
-// Patient routes
-import { renderPatientDashboard, initPatientDashboard } from './features/patients/dashboard/index.js';
+// Dashboard (role-aware)
+import { renderDashboard, initDashboard } from './features/dashboard/index.js';
 import { renderAppointmentHistory, initAppointmentHistory } from './features/patients/appointments/history.js';
 import { renderBookAppointment, initBookAppointment } from './features/patients/appointments/book.js';
 import { renderPatientPrescriptions, initPatientPrescriptions } from './features/patients/prescriptions/index.js';
@@ -124,11 +124,10 @@ registerRoute('/doctors/:id/edit', {
     layout: 'admin',
 });
 
-// ── Patient Routes ──
+// ── Dashboard Route ──
 registerRoute('/dashboard', {
-    render: renderPatientDashboard,
-    init: initPatientDashboard,
-    layout: 'patient',
+    render: renderDashboard,
+    init: initDashboard,
 });
 
 registerRoute('/appointments', {
