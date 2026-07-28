@@ -18,6 +18,12 @@ import { renderDepartments, initDepartments } from './features/admin/departments
 import { renderSpecializations, initSpecializations } from './features/admin/specializations.js';
 import { renderSettings, initSettings } from './features/admin/settings.js';
 
+// Doctor routes
+import { renderDoctors, initDoctors } from './features/doctors/index.js';
+import { renderDoctorDetail, initDoctorDetail } from './features/doctors/detail.js';
+import { renderCreateDoctor, initCreateDoctor } from './features/doctors/create.js';
+import { renderDoctorSchedule, initDoctorSchedule } from './features/doctors/schedule.js';
+
 registerRoute('/login', {
     render: renderLogin,
     init: initLogin,
@@ -64,6 +70,37 @@ registerRoute('/admin/specializations', {
 registerRoute('/admin/settings', {
     render: renderSettings,
     init: initSettings,
+    layout: 'admin',
+});
+
+// ── Doctor Routes ──
+registerRoute('/doctors', {
+    render: renderDoctors,
+    init: initDoctors,
+    layout: 'admin',
+});
+
+registerRoute('/doctors/create', {
+    render: renderCreateDoctor,
+    init: initCreateDoctor,
+    layout: 'admin',
+});
+
+registerRoute('/doctors/:id', {
+    render: renderDoctorDetail,
+    init: initDoctorDetail,
+    layout: 'admin',
+});
+
+registerRoute('/doctors/:id/schedule', {
+    render: renderDoctorSchedule,
+    init: initDoctorSchedule,
+    layout: 'admin',
+});
+
+registerRoute('/doctors/:id/edit', {
+    render: renderCreateDoctor,
+    init: initCreateDoctor,
     layout: 'admin',
 });
 
