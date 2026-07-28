@@ -27,6 +27,10 @@ import { renderDoctorSchedule, initDoctorSchedule } from './features/doctors/sch
 // Appointment management (admin/doctor layout)
 import { renderAppointmentsManage, initAppointmentsManage } from './features/appointments/manage.js';
 
+// Prescription management (admin/doctor layout)
+import { renderPrescriptions, initPrescriptions } from './features/prescriptions/index.js';
+import { renderCreatePrescription, initCreatePrescription } from './features/prescriptions/create.js';
+
 // Patient routes
 import { renderPatientDashboard, initPatientDashboard } from './features/patients/dashboard/index.js';
 import { renderAppointmentHistory, initAppointmentHistory } from './features/patients/appointments/history.js';
@@ -142,6 +146,19 @@ registerRoute('/prescriptions', {
     render: renderPatientPrescriptions,
     init: initPatientPrescriptions,
     layout: 'patient',
+});
+
+// ── Prescription Management Routes (admin/doctor) ──
+registerRoute('/prescriptions/manage', {
+    render: renderPrescriptions,
+    init: initPrescriptions,
+    layout: 'admin',
+});
+
+registerRoute('/prescriptions/create', {
+    render: renderCreatePrescription,
+    init: initCreatePrescription,
+    layout: 'admin',
 });
 
 // Default route — redirect based on auth state
