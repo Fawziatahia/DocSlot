@@ -12,6 +12,12 @@ import { renderRegister, initRegister } from './features/auth/register.js';
 import { renderForgotPassword, initForgotPassword } from './features/auth/forgot-password.js';
 import { renderResetPassword, initResetPassword } from './features/auth/reset-password.js';
 
+// Admin routes (admin layout)
+import { renderUsers, initUsers } from './features/admin/users.js';
+import { renderDepartments, initDepartments } from './features/admin/departments.js';
+import { renderSpecializations, initSpecializations } from './features/admin/specializations.js';
+import { renderSettings, initSettings } from './features/admin/settings.js';
+
 registerRoute('/login', {
     render: renderLogin,
     init: initLogin,
@@ -34,6 +40,31 @@ registerRoute('/reset-password', {
     render: renderResetPassword,
     init: initResetPassword,
     layout: 'guest',
+});
+
+// ── Admin Routes ──
+registerRoute('/admin/users', {
+    render: renderUsers,
+    init: initUsers,
+    layout: 'admin',
+});
+
+registerRoute('/admin/departments', {
+    render: renderDepartments,
+    init: initDepartments,
+    layout: 'admin',
+});
+
+registerRoute('/admin/specializations', {
+    render: renderSpecializations,
+    init: initSpecializations,
+    layout: 'admin',
+});
+
+registerRoute('/admin/settings', {
+    render: renderSettings,
+    init: initSettings,
+    layout: 'admin',
 });
 
 // Default route — redirect based on auth state
@@ -80,7 +111,13 @@ document.addEventListener('click', async (e) => {
 // ── Set layout based on auth state ──
 if (authService.isAuthenticated()) {
     const user = authService.getUser();
-    setCurrentLayout(user?.role === 'doctor' ? 'doctor' : 'patient');
+    if (user?.role === 'admin') {
+        setCurrentLayout('admin');
+    } else if (user?.role === 'doctor') {
+        setCurrentLayout('doctor');
+    } else {
+        setCurrentLayout('patient');
+    }
 } else {
     setCurrentLayout('guest');
 }
