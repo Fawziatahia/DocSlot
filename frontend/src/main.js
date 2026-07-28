@@ -44,6 +44,9 @@ import { renderAppointmentHistory, initAppointmentHistory } from './features/pat
 import { renderBookAppointment, initBookAppointment } from './features/patients/appointments/book.js';
 import { renderPatientPrescriptions, initPatientPrescriptions } from './features/patients/prescriptions/index.js';
 
+// Reports
+import { renderReports, initReports } from './features/reports/index.js';
+
 registerRoute('/login', {
     render: renderLogin,
     init: initLogin,
