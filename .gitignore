@@ -4,6 +4,9 @@ prd.md
 # Local tooling
 .commandcode/
 
+# Local setup instructions (contains admin credentials)
+setup.txt
+
 # OS files
 .DS_Store
 Thumbs.db
