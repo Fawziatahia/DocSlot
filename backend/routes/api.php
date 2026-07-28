@@ -52,6 +52,8 @@ Route::prefix('doctors')->group(function () {
         Route::put('/{id}', [DoctorController::class, 'update']);
         Route::delete('/{id}', [DoctorController::class, 'destroy']);
         Route::patch('/{id}/status', [DoctorController::class, 'toggleStatus']);
+        Route::get('/{id}/appointments', [DoctorController::class, 'appointments']);
+        Route::get('/{id}/slots', [DoctorController::class, 'slots']);
         Route::get('/{id}/schedule', [DoctorScheduleController::class, 'show']);
         Route::put('/{id}/schedule', [DoctorScheduleController::class, 'update']);
     });
