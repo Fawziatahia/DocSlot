@@ -5,6 +5,7 @@ namespace App\Features\Auth\Actions;
 use App\Features\Auth\DTOs\AuthData;
 use App\Models\Patient;
 use App\Models\User;
+use HasinHayder\Tyro\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -27,7 +28,7 @@ class RegisterUserAction
                 'phone' => $data->phone,
             ]);
 
-            $user->assignRole('patient');
+            $user->assignRole(Role::findRole('patient'));
 
             Patient::create([
                 'user_id' => $user->id,

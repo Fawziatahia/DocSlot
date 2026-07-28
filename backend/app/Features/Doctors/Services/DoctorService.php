@@ -7,6 +7,7 @@ use App\Features\Doctors\Repositories\DoctorRepository;
 use App\Features\Doctors\Repositories\DoctorScheduleRepository;
 use App\Models\Doctor;
 use App\Models\User;
+use HasinHayder\Tyro\Models\Role;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -36,7 +37,7 @@ class DoctorService
                 'phone' => $data['phone'] ?? null,
             ]);
 
-            $user->assignRole('doctor');
+            $user->assignRole(Role::findRole('doctor'));
 
             return $this->doctorRepository->create([
                 'user_id' => $user->id,
