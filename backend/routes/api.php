@@ -68,6 +68,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('patients')->group(
     Route::put('/{id}', [PatientController::class, 'update']);
     Route::delete('/{id}', [PatientController::class, 'destroy']);
     Route::patch('/{id}/status', [PatientController::class, 'toggleStatus']);
+    Route::get('/{id}/medical-history', [PatientController::class, 'medicalHistory']);
+    Route::get('/{id}/prescriptions', [PatientController::class, 'prescriptions']);
 });
 
 // ──────────────────────────────────────────
