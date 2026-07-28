@@ -24,6 +24,9 @@ import { renderDoctorDetail, initDoctorDetail } from './features/doctors/detail.
 import { renderCreateDoctor, initCreateDoctor } from './features/doctors/create.js';
 import { renderDoctorSchedule, initDoctorSchedule } from './features/doctors/schedule.js';
 
+// Appointment management (admin/doctor layout)
+import { renderAppointmentsManage, initAppointmentsManage } from './features/appointments/manage.js';
+
 // Patient routes
 import { renderPatientDashboard, initPatientDashboard } from './features/patients/dashboard/index.js';
 import { renderAppointmentHistory, initAppointmentHistory } from './features/patients/appointments/history.js';
@@ -127,6 +130,12 @@ registerRoute('/appointments/book', {
     render: renderBookAppointment,
     init: initBookAppointment,
     layout: 'patient',
+});
+
+registerRoute('/appointments/manage', {
+    render: renderAppointmentsManage,
+    init: initAppointmentsManage,
+    layout: 'admin',
 });
 
 registerRoute('/prescriptions', {
