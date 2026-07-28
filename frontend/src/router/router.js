@@ -12,11 +12,13 @@ let currentLayout = 'guest';
 import guestLayout from '../layouts/guest.js';
 import patientLayout from '../layouts/patient.js';
 import doctorLayout from '../layouts/doctor.js';
+import adminLayout from '../layouts/admin.js';
 
 const layouts = {
     guest: guestLayout,
     patient: patientLayout,
     doctor: doctorLayout,
+    admin: adminLayout,
 };
 
 export function registerRoute(hash, config) {
