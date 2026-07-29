@@ -56,7 +56,7 @@ export async function initBookAppointment() {
         const res = await patientsService.listDoctors({ per_page: 100 });
         const doctors = res?.data || [];
         doctorSelect.innerHTML = '<option value="">Choose a doctor...</option>' +
-            doctors.map(d => `<option value="${d.id}">${d.user?.name || 'Dr. Unknown'} — ${d.specialization?.name || '—'} ($${d.consultation_fee?.toFixed(2) || '0'})</option>`).join('');
+            doctors.map(d => `<option value="${d.id}">${d.user?.name || 'Dr. Unknown'} — ${d.specialization?.name || '—'} (৳${d.consultation_fee?.toFixed(2) || '0'})</option>`).join('');
     } catch {
         doctorSelect.innerHTML = '<option value="">Failed to load doctors</option>';
     }

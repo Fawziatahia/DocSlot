@@ -1,3 +1,6 @@
+import { doctorsService } from '../../services/doctors.js';
+import { renderLoadingSpinner } from '../../components/loading-spinner.js';
+
 export function renderLanding() {
     return `
     <section class="hero-section">
@@ -9,17 +12,17 @@ export function renderLanding() {
                 access medical records — all in one place.
             </p>
             <div class="hero-actions">
-                <a href="/register" class="btn btn-primary btn-lg">Get Started</a>
-                <a href="/login" class="btn btn-outline btn-lg">Sign In</a>
+                <a href="#/register" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="#/login" class="btn btn-outline btn-lg">Sign In</a>
             </div>
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <span class="hero-stat-value">6+</span>
+                    <span class="hero-stat-value">10+</span>
                     <span class="hero-stat-label">Specialists</span>
                 </div>
                 <div class="hero-stat">
-                    <span class="hero-stat-value">8+</span>
-                    <span class="hero-stat-label">Departments</span>
+                    <span class="hero-stat-value">50+</span>
+                    <span class="hero-stat-label">Doctors</span>
                 </div>
                 <div class="hero-stat">
                     <span class="hero-stat-value">24/7</span>
@@ -43,6 +46,15 @@ export function renderLanding() {
                 </div>
                 <div class="illo-circle"></div>
             </div>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <h2 class="section-title">Our Doctors</h2>
+        <p class="section-desc">Meet our team of experienced healthcare professionals.</p>
+        <div id="landing-doctors-list" class="doctors-grid">${renderLoadingSpinner()}</div>
+        <div style="text-align:center;margin-top:2rem">
+            <a href="#/login" class="btn btn-outline btn-lg">View All Doctors</a>
         </div>
     </section>
 
@@ -87,7 +99,7 @@ export function renderLanding() {
         <div class="cta-card">
             <h2>Ready to get started?</h2>
             <p>Join DocSlot today and take control of your healthcare.</p>
-            <a href="/register" class="btn btn-primary btn-lg">Create Free Account</a>
+            <a href="#/register" class="btn btn-primary btn-lg">Create Free Account</a>
         </div>
     </section>
 
@@ -96,4 +108,31 @@ export function renderLanding() {
     </footer>`;
 }
 
-export function initLanding() {}
+export async function initLanding() {
+    const container = document.getElementById('landing-doctors-list');
+    if (!container) return;
+
+    try {
+        const res = await doctorsService.list({ per_page: 8 });
+        const items = res.data || [];
+
+        if (!items.length) {
+            container.innerHTML = '<div class="empty-state"><p>No doctors available yet.</p></div>';
+            return;
+        }
+
+        container.innerHTML = items.map(d => `
+            <div class="doctor-card">
+                <div class="doctor-card-avatar">${(d.user?.name || 'Dr.')?.charAt(0)}</div>
+                <h4>${d.user?.name || 'Unknown'}</h4>
+                <p class="doctor-card-spec">${d.specialization?.name || '—'}</p>
+                <p class="doctor-card-dept">${d.department?.name || ''}</p>
+                <p class="doctor-card-qual">${d.qualifications ? d.qualifications.substring(0, 80) : ''}</p>
+                <p class="doctor-card-fee"><strong>Fee:</strong> ৳${d.consultation_fee?.toFixed(2) || '0.00'}</p>
+                <a href="#/doctors/${d.id}" class="btn btn-sm btn-outline">View Profile</a>
+            </div>
+        `).join('');
+    } catch {
+        container.innerHTML = '<div class="empty-state"><p>Could not load doctors. Please try again later.</p></div>';
+    }
+}

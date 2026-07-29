@@ -37,7 +37,7 @@ export async function initDoctorDetail() {
                     </div>
                     <div>
                         <p><strong>License:</strong> ${d.license_number || '—'}</p>
-                        <p><strong>Fee:</strong> \$${d.consultation_fee?.toFixed(2) || '0.00'}</p>
+                        <p><strong>Fee:</strong> ৳${d.consultation_fee?.toFixed(2) || '0.00'}</p>
                         <p><strong>Rating:</strong> ${d.avg_rating ? d.avg_rating.toFixed(1) + ' / 5 (' + d.total_reviews + ' reviews)' : 'No ratings yet'}</p>
                     </div>
                 </div>

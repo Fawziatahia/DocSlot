@@ -76,7 +76,7 @@ export async function initDashboard() {
                     <div class="stat-card"><div class="stat-value">${s.pending_appointments || 0}</div><div class="stat-label">Pending</div></div>
                     <div class="stat-card"><div class="stat-value">${s.completed_appointments || 0}</div><div class="stat-label">Completed</div></div>
                     <div class="stat-card"><div class="stat-value">${s.total_prescriptions || 0}</div><div class="stat-label">Prescriptions</div></div>
-                    <div class="stat-card"><div class="stat-value">$${(s.total_revenue || 0).toFixed(2)}</div><div class="stat-label">Revenue</div></div>
+                    <div class="stat-card"><div class="stat-value">৳${(s.total_revenue || 0).toFixed(2)}</div><div class="stat-label">Revenue</div></div>
                 </div>`;
         } else if (role === 'doctor') {
             statsEl.innerHTML = `

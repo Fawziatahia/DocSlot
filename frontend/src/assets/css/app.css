@@ -551,9 +551,10 @@ th {
 }
 
 /* ── Doctors ── */
-.doctor-grid {
+.doctor-grid,
+.doctors-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1rem;
 }
 
@@ -563,19 +564,60 @@ th {
     border-radius: var(--radius-lg);
     padding: 1.25rem;
     box-shadow: var(--shadow);
+    text-align: center;
 }
 
-.doctor-card h3 {
+.doctor-card h3,
+.doctor-card h4 {
     margin-bottom: .5rem;
 }
 
 .doctor-card .doctor-meta {
     font-size: .8125rem;
     color: var(--color-text-secondary);
+    text-align: left;
 }
 
 .doctor-card .doctor-meta p {
     margin-bottom: .25rem;
+}
+
+.doctor-card-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto .75rem;
+}
+
+.doctor-card-spec {
+    font-size: .8125rem;
+    color: var(--color-primary);
+    font-weight: 500;
+    margin-bottom: .25rem;
+}
+
+.doctor-card-dept {
+    font-size: .75rem;
+    color: var(--color-text-secondary);
+    margin-bottom: .25rem;
+}
+
+.doctor-card-qual {
+    font-size: .75rem;
+    color: var(--color-text-secondary);
+    margin-bottom: .5rem;
+}
+
+.doctor-card-fee {
+    font-size: .875rem;
+    margin-bottom: .75rem;
 }
 
 /* ── Page Title ── */
