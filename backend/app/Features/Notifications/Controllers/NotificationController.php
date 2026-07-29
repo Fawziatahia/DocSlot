@@ -31,9 +31,13 @@ class NotificationController
         return $this->paginated($notifications, NotificationResource::class);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $notification = $this->notificationRepository->findOrFail($id);
+
+        if ($notification->user_id !== $request->user()->id) {
+            return $this->error('Forbidden.', 403);
+        }
 
         return $this->success(new NotificationResource($notification));
     }

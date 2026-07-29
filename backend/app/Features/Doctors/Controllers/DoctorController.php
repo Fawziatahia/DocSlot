@@ -177,6 +177,12 @@ class DoctorController
     public function appointments(Request $request, int $id): JsonResponse
     {
         $doctor = $this->doctorRepository->findOrFail($id);
+        $user = $request->user();
+
+        if (!$user->isAdmin() && !($user->isDoctor() && $user->doctor->id === $doctor->id)) {
+            return $this->error('Forbidden.', 403);
+        }
+
         $perPage = (int) $request->input('per_page', 15);
         $appointments = $this->appointmentRepository->getDoctorAppointments(
             $doctor->id,

@@ -32,9 +32,10 @@ class AppointmentController
         return $this->paginated($appointments, AppointmentResource::class);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
+        $this->authorizeAction($request->user(), $appointment);
 
         return $this->success(new AppointmentDetailResource($appointment));
     }
@@ -77,6 +78,7 @@ class AppointmentController
     public function confirm(Request $request, int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
+        $this->authorizeDoctorAction($request->user(), $appointment);
         $appointment = $this->appointmentService->confirmAppointment($appointment);
 
         return $this->success(
@@ -88,6 +90,7 @@ class AppointmentController
     public function complete(Request $request, int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
+        $this->authorizeDoctorAction($request->user(), $appointment);
         $appointment = $this->appointmentService->completeAppointment($appointment);
 
         return $this->success(
@@ -99,6 +102,7 @@ class AppointmentController
     public function reschedule(RescheduleAppointmentRequest $request, int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
+        $this->authorizeAction($request->user(), $appointment);
         $data = RescheduleData::fromArray($request->validated());
 
         $appointment = $this->appointmentService->rescheduleAppointment(
@@ -144,6 +148,16 @@ class AppointmentController
         $isAdmin = $user->isAdmin();
 
         if (!$isDoctor && !$isPatient && !$isAdmin) {
+            abort(403, 'This action is not allowed.');
+        }
+    }
+
+    private function authorizeDoctorAction($user, $appointment): void
+    {
+        $isDoctor = $user->isDoctor() && $user->doctor->id === $appointment->doctor_id;
+        $isAdmin = $user->isAdmin();
+
+        if (!$isDoctor && !$isAdmin) {
             abort(403, 'This action is not allowed.');
         }
     }
