@@ -48,6 +48,9 @@ import { renderPatientPrescriptions, initPatientPrescriptions } from './features
 // Reports
 import { renderReports, initReports } from './features/reports/index.js';
 
+// Landing page
+import { renderLanding, initLanding } from './features/landing/index.js';
+
 registerRoute('/login', {
     render: renderLogin,
     init: initLogin,
@@ -208,17 +211,10 @@ registerRoute('/notifications', {
     init: initNotifications,
 });
 
-// Default route — redirect based on auth state
+// Default route — landing page
 registerRoute('/', {
-    render: () => {
-        if (authService.isAuthenticated()) {
-            window.location.hash = '#/dashboard';
-            return '';
-        }
-        window.location.hash = '#/login';
-        return '';
-    },
-    init: () => {},
+    render: renderLanding,
+    init: initLanding,
     layout: 'guest',
 });
 
