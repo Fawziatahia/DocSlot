@@ -29,9 +29,10 @@ class PrescriptionController
         return $this->paginated($prescriptions, PrescriptionResource::class);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $prescription = $this->prescriptionRepository->findOrFail($id);
+        $this->authorizeView($request->user(), $prescription);
 
         return $this->success(new PrescriptionResource($prescription));
     }
@@ -57,6 +58,7 @@ class PrescriptionController
     public function update(UpdatePrescriptionRequest $request, int $id): JsonResponse
     {
         $prescription = $this->prescriptionRepository->findOrFail($id);
+        $this->authorizeEdit($request->user(), $prescription);
         $this->prescriptionRepository->update($prescription, $request->validated());
 
         return $this->success(
@@ -92,5 +94,26 @@ class PrescriptionController
         }
 
         return $this->paginated($prescriptions, PrescriptionResource::class);
+    }
+
+    private function authorizeView($user, $prescription): void
+    {
+        $isDoctor = $user->isDoctor() && $user->doctor->id === $prescription->doctor_id;
+        $isPatient = $user->isPatient() && $user->patient->id === $prescription->patient_id;
+        $isAdmin = $user->isAdmin();
+
+        if (!$isDoctor && !$isPatient && !$isAdmin) {
+            abort(403, 'This action is not allowed.');
+        }
+    }
+
+    private function authorizeEdit($user, $prescription): void
+    {
+        $isDoctor = $user->isDoctor() && $user->doctor->id === $prescription->doctor_id;
+        $isAdmin = $user->isAdmin();
+
+        if (!$isDoctor && !$isAdmin) {
+            abort(403, 'This action is not allowed.');
+        }
     }
 }

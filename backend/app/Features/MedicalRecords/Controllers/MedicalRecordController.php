@@ -28,9 +28,10 @@ class MedicalRecordController
         return $this->paginated($records, MedicalRecordResource::class);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $record = $this->medicalRecordRepository->findOrFail($id);
+        $this->authorizeView($request->user(), $record);
 
         return $this->success(new MedicalRecordResource($record));
     }
@@ -55,6 +56,7 @@ class MedicalRecordController
     public function update(UpdateMedicalRecordRequest $request, int $id): JsonResponse
     {
         $record = $this->medicalRecordRepository->findOrFail($id);
+        $this->authorizeEdit($request->user(), $record);
         $this->medicalRecordRepository->update($record, $request->validated());
 
         return $this->success(
@@ -86,5 +88,26 @@ class MedicalRecordController
         }
 
         return $this->paginated($records, MedicalRecordResource::class);
+    }
+
+    private function authorizeView($user, $record): void
+    {
+        $isDoctor = $user->isDoctor() && $user->doctor->id === $record->doctor_id;
+        $isPatient = $user->isPatient() && $user->patient->id === $record->patient_id;
+        $isAdmin = $user->isAdmin();
+
+        if (!$isDoctor && !$isPatient && !$isAdmin) {
+            abort(403, 'This action is not allowed.');
+        }
+    }
+
+    private function authorizeEdit($user, $record): void
+    {
+        $isDoctor = $user->isDoctor() && $user->doctor->id === $record->doctor_id;
+        $isAdmin = $user->isAdmin();
+
+        if (!$isDoctor && !$isAdmin) {
+            abort(403, 'This action is not allowed.');
+        }
     }
 }
