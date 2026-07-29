@@ -83,7 +83,7 @@ export async function initDoctors() {
                             <div class="doctor-meta">
                                 <p>${d.specialization?.name || '—'} ${d.department?.name ? '· ' + d.department.name : ''}</p>
                                 <p>${d.qualifications ? d.qualifications.substring(0, 120) : ''}</p>
-                                <p><strong>Fee:</strong> \$${d.consultation_fee?.toFixed(2) || '0.00'}</p>
+                                <p><strong>Fee:</strong> ৳${d.consultation_fee?.toFixed(2) || '0.00'}</p>
                                 <p><strong>Rating:</strong> ${d.avg_rating ? d.avg_rating.toFixed(1) + ' (' + d.total_reviews + ' reviews)' : 'No ratings'}</p>
                                 <p><span class="badge ${d.status === 'active' ? 'badge-success' : 'badge-secondary'}">${d.status}</span></p>
                             </div>

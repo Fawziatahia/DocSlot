@@ -85,7 +85,7 @@ export async function initReports() {
                     return `
                         <h3>Revenue Report</h3>
                         <div class="stats-grid" style="margin-top:1rem">
-                            <div class="stat-card"><div class="stat-value">$${(d?.total_revenue || 0).toFixed(2)}</div><div class="stat-label">Total Revenue</div></div>
+                            <div class="stat-card"><div class="stat-value">৳${(d?.total_revenue || 0).toFixed(2)}</div><div class="stat-label">Total Revenue</div></div>
                             <div class="stat-card"><div class="stat-value">${d?.total_completed_appointments || 0}</div><div class="stat-label">Completed Appointments</div></div>
                         </div>
                         ${renderPeriod(d?.period)}

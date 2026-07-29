@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use HasinHayder\Tyro\Models\Role;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +17,37 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create roles
+        $adminRole = Role::firstOrCreate(
+            ['slug' => 'admin'],
+            ['name' => 'Admin'],
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        Role::firstOrCreate(
+            ['slug' => 'patient'],
+            ['name' => 'Patient'],
+        );
+
+        Role::firstOrCreate(
+            ['slug' => 'doctor'],
+            ['name' => 'Doctor'],
+        );
+
+        // Create admin user
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('123456'),
+            ]
+        );
+
+        if (! $admin->hasRole('admin')) {
+            $admin->assignRole($adminRole);
+        }
+
+        $this->call([
+            DoctorSeeder::class,
         ]);
     }
 }
