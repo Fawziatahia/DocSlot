@@ -21,6 +21,9 @@ class UserManagementController
                     ->orWhere('email', 'like', "%{$q}%");
             });
         }
+        if ($role = $request->input('role')) {
+            $query->whereHas('roles', fn ($qry) => $qry->where('slug', $role));
+        }
         $users = $query->latest()->paginate((int) $request->input('per_page', 15));
         return $this->paginated($users, UserListResource::class);
     }

@@ -1,8 +1,0 @@
-/* Component-specific overrides and addons go here. */
-
-/* Report tabs */
-.report-tab.active {
-    background: var(--color-primary);
-    color: #fff;
-    border-color: var(--color-primary);
-}
