@@ -1,26 +1,38 @@
+import { icon } from '../../components/icons.js';
+import { renderAuthSidePanel, renderPasswordField, bindPasswordToggles } from './auth-shell.js';
+
 export function renderLogin() {
     return `
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1>DocSlot</h1>
-                <p>Sign in to your account</p>
-            </div>
-            <form id="login-form" class="auth-form">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-control" required placeholder="your@email.com" />
+    <div class="auth-page">
+        ${renderAuthSidePanel({
+            title: 'Welcome back.',
+            subtitle: 'Sign in to manage your appointments and records.',
+            features: [
+                '500+ verified specialists',
+                'Instant appointment booking',
+                'Real-time booking notifications',
+                'Your data stays private and secure',
+            ],
+        })}
+        <div class="auth-form-panel">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1>Sign In</h1>
+                    <p>New to DocSlot? <a href="#/register">Create a free account &rarr;</a></p>
                 </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" required placeholder="Enter your password" />
-                </div>
-                <div id="login-error" class="alert alert-danger" style="display:none"></div>
-                <button type="submit" id="login-btn" class="btn btn-primary btn-block">Sign In</button>
-            </form>
-            <div class="auth-footer">
-                <p>Don't have an account? <a href="#/register">Register</a></p>
-                <p><a href="#/forgot-password">Forgot your password?</a></p>
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" class="form-control" required placeholder="your@email.com" />
+                    </div>
+                    ${renderPasswordField({ id: 'password', label: 'Password', placeholder: 'Enter your password' })}
+                    <div class="auth-form-links">
+                        <a href="#/forgot-password">Forgot password?</a>
+                    </div>
+                    <div id="login-error" class="alert alert-danger" style="display:none"></div>
+                    <button type="submit" id="login-btn" class="btn btn-primary btn-block btn-lg">Sign In to DocSlot</button>
+                </form>
+                <p class="auth-secure-note">${icon('lock', { size: 13 })} Secure, encrypted sign-in</p>
             </div>
         </div>
     </div>`;
@@ -30,6 +42,8 @@ export function initLogin() {
     const form = document.getElementById('login-form');
     const errorEl = document.getElementById('login-error');
     const btn = document.getElementById('login-btn');
+
+    bindPasswordToggles(form);
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -52,7 +66,7 @@ export function initLogin() {
             errorEl.style.display = 'block';
         } finally {
             btn.disabled = false;
-            btn.textContent = 'Sign In';
+            btn.textContent = 'Sign In to DocSlot';
         }
     });
 }

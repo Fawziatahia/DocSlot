@@ -1,36 +1,86 @@
 import { doctorsService } from '../../services/doctors.js';
 import { renderPagination } from '../../components/pagination.js';
-import { renderLoadingSpinner } from '../../components/loading-spinner.js';
 import { authService } from '../../services/auth.js';
+import { icon } from '../../components/icons.js';
+import { consumeDoctorSearchIntent } from '../../utils/doctor-search-intent.js';
+
+function initials(name = '') {
+    return name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+}
+
+function specialtyIcon(name = '') {
+    const n = name.toLowerCase();
+    if (n.includes('cardio')) return 'heart';
+    if (n.includes('neuro')) return 'activity';
+    if (n.includes('derma') || n.includes('skin')) return 'droplet';
+    if (n.includes('ophthal') || n.includes('eye')) return 'eye';
+    if (n.includes('ortho') || n.includes('bone')) return 'bone';
+    if (n.includes('pulmo') || n.includes('respirat') || n.includes('lung')) return 'wind';
+    return 'stethoscope';
+}
+
+function renderStars(rating, size = 14) {
+    const filled = Math.round(rating || 0);
+    return Array.from({ length: 5 }, (_, i) =>
+        icon('star', { size, className: i < filled ? 'star-filled' : 'star-empty' })
+    ).join('');
+}
+
+function renderCardSkeletons(count = 6) {
+    return `<div class="doctor-grid">${Array.from({ length: count }, () => `
+        <div class="doctor-card-skeleton">
+            <div class="skel-row">
+                <div class="skel-circle"></div>
+                <div style="flex:1">
+                    <div class="skel-bar" style="width:70%;height:14px;margin-bottom:.5rem"></div>
+                    <div class="skel-bar" style="width:45%;height:11px"></div>
+                </div>
+            </div>
+            <div class="skel-bar" style="width:100%;height:11px;margin-bottom:.5rem"></div>
+            <div class="skel-bar" style="width:60%;height:11px"></div>
+        </div>
+    `).join('')}</div>`;
+}
 
 export function renderDoctors() {
     const user = authService.getUser();
     const isAdmin = user?.role === 'admin';
 
     return `
-    <div class="page-title">
-        <h1>Doctors</h1>
-        <p>${isAdmin ? 'Manage all doctors' : 'Find and view doctors'}</p>
-    </div>
-    <div class="card">
-        <div class="card-header" style="flex-wrap:wrap;gap:.5rem">
-            <input type="text" id="doctor-search" class="form-control" style="max-width:240px" placeholder="Search name..." />
-            <select id="doctor-specialization" class="form-control" style="max-width:200px">
-                <option value="">All Specializations</option>
-            </select>
-            <select id="doctor-department" class="form-control" style="max-width:200px">
-                <option value="">All Departments</option>
-            </select>
-            <input type="number" id="doctor-min-fee" class="form-control" style="max-width:110px" placeholder="Min ৳" min="0" />
-            <input type="number" id="doctor-max-fee" class="form-control" style="max-width:110px" placeholder="Max ৳" min="0" />
-            ${isAdmin ? '<button id="add-doctor-btn" class="btn btn-primary">+ Add Doctor</button>' : ''}
+    <div class="doctors-page">
+        <div class="page-title">
+            <h1>${icon('stethoscope', { size: 22, className: 'page-title-icon' })} Doctors</h1>
+            <p>${isAdmin ? 'Manage all doctors' : 'Find and view doctors'}</p>
         </div>
-        <div id="doctors-list">${renderLoadingSpinner()}</div>
+        <div class="card doctors-filters-card">
+            <div class="doctors-toolbar">
+                <div class="search-box-sm">
+                    ${icon('search', { size: 16 })}
+                    <input type="text" id="doctor-search" placeholder="Search by name..." />
+                </div>
+                <select id="doctor-specialization" class="form-control">
+                    <option value="">All Specializations</option>
+                </select>
+                <select id="doctor-department" class="form-control">
+                    <option value="">All Departments</option>
+                </select>
+                <div class="fee-range-group">
+                    ${icon('tag', { size: 14 })}
+                    <input type="number" id="doctor-min-fee" placeholder="Min" min="0" />
+                    <span>–</span>
+                    <input type="number" id="doctor-max-fee" placeholder="Max" min="0" />
+                </div>
+                ${isAdmin ? '<div class="doctors-toolbar-actions"><button id="add-doctor-btn" class="btn btn-primary">+ Add Doctor</button></div>' : ''}
+            </div>
+        </div>
+        <div class="doctors-results-meta" id="doctors-results-meta"></div>
+        <div id="doctors-list">${renderCardSkeletons()}</div>
     </div>`;
 }
 
 export async function initDoctors() {
     const container = document.getElementById('doctors-list');
+    const resultsMeta = document.getElementById('doctors-results-meta');
     const searchInput = document.getElementById('doctor-search');
     const specSelect = document.getElementById('doctor-specialization');
     const deptSelect = document.getElementById('doctor-department');
@@ -59,7 +109,8 @@ export async function initDoctors() {
     }
 
     async function loadDoctors(page = 1) {
-        container.innerHTML = renderLoadingSpinner();
+        container.innerHTML = renderCardSkeletons();
+        if (resultsMeta) resultsMeta.textContent = '';
         try {
             const params = { page };
             const q = searchInput?.value?.trim();
@@ -74,8 +125,14 @@ export async function initDoctors() {
             const meta = res.meta;
 
             if (!items.length) {
-                container.innerHTML = '<div class="empty-state"><p>No doctors found.</p></div>';
+                container.innerHTML = '<div class="card empty-state"><p>No doctors found.</p></div>';
                 return;
+            }
+
+            if (resultsMeta) {
+                resultsMeta.innerHTML = meta?.total != null
+                    ? `<strong>${meta.total}</strong> doctor${meta.total === 1 ? '' : 's'} found`
+                    : '';
             }
 
             const baseHash = '#/doctors';
@@ -83,24 +140,36 @@ export async function initDoctors() {
                 <div class="doctor-grid">
                     ${items.map(d => `
                         <div class="doctor-card">
-                            <h3>
-                                <a href="#/doctors/${d.id}">${d.user?.name || 'Unknown'}</a>
-                            </h3>
-                            <div class="doctor-meta">
-                                <p>${d.specialization?.name || '—'} ${d.department?.name ? '· ' + d.department.name : ''}</p>
-                                <p>${d.qualifications ? d.qualifications.substring(0, 120) : ''}</p>
-                                <p><strong>Fee:</strong> ৳${d.consultation_fee?.toFixed(2) || '0.00'}</p>
-                                <p><strong>Rating:</strong> ${d.avg_rating ? d.avg_rating.toFixed(1) + ' (' + d.total_reviews + ' reviews)' : 'No ratings'}</p>
-                                <p><span class="badge ${d.status === 'active' ? 'badge-success' : 'badge-secondary'}">${d.status}</span></p>
+                            ${d.avg_rating >= 4.5 ? '<div class="doctor-card-badges"><span class="badge-pill badge-pill-top">Top Rated</span></div>' : ''}
+                            <div class="doctor-card-top">
+                                <div class="doctor-avatar">${initials(d.user?.name)}</div>
+                                <div class="doctor-card-heading">
+                                    <h3>
+                                        <a href="#/doctors/${d.id}">${d.user?.name || 'Unknown'}</a>
+                                    </h3>
+                                    <p class="doctor-spec">
+                                        ${icon(specialtyIcon(d.specialization?.name), { size: 14 })}
+                                        ${d.specialization?.name || '—'}${d.department?.name ? ' · ' + d.department.name : ''}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="doctor-rating">
+                                ${renderStars(d.avg_rating)}
+                                <span>${d.avg_rating ? d.avg_rating.toFixed(1) + ' (' + d.total_reviews + ')' : 'No ratings'}</span>
+                            </div>
+                            ${d.qualifications ? `<p class="doctor-qual">${d.qualifications.substring(0, 100)}</p>` : ''}
+                            <div class="doctor-card-meta-row">
+                                <span class="doctor-fee">${icon('tag', { size: 14 })} ৳${d.consultation_fee?.toFixed(2) || '0.00'}</span>
+                                <span class="badge ${d.status === 'active' ? 'badge-success' : 'badge-secondary'}">${d.status}</span>
                             </div>
                             ${isAdmin ? `
-                            <div style="margin-top:.75rem;display:flex;gap:.5rem">
+                            <div class="doctor-card-actions">
                                 <a href="#/doctors/${d.id}/edit" class="btn btn-sm btn-outline">Edit</a>
                                 <button class="btn btn-sm btn-outline toggle-doctor-status" data-id="${d.id}" data-status="${d.status}">${d.status === 'active' ? 'Suspend' : 'Activate'}</button>
                                 <button class="btn btn-sm btn-danger delete-doctor" data-id="${d.id}" data-name="${d.user?.name}">Delete</button>
                             </div>` : `
-                            <div style="margin-top:.75rem">
-                                <a href="#/doctors/${d.id}" class="btn btn-sm btn-primary">View Profile</a>
+                            <div class="doctor-card-actions">
+                                <a href="#/doctors/${d.id}" class="btn btn-primary">View Profile</a>
                             </div>`}
                         </div>
                     `).join('')}
@@ -153,6 +222,11 @@ export async function initDoctors() {
     addBtn?.addEventListener('click', () => { window.location.hash = '#/doctors/create'; });
 
     await loadFilters();
+
+    const intent = consumeDoctorSearchIntent();
+    if (intent?.q && searchInput) searchInput.value = intent.q;
+    if (intent?.specialization_id && specSelect) specSelect.value = intent.specialization_id;
+
     await loadDoctors(1);
 }
 
