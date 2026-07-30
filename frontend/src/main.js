@@ -1,8 +1,9 @@
 import './assets/css/app.css';
 import './assets/css/components.css';
-import { initRouter, registerRoute, setCurrentLayout } from './router/router.js';
+import { initRouter, registerRoute } from './router/router.js';
 import { authService } from './services/auth.js';
 import { storage } from './utils/storage.js';
+import { syncLayoutFromAuth } from './utils/layout.js';
 
 // ── Route Registrations ──
 
@@ -104,7 +105,6 @@ registerRoute('/admin/settings', {
 registerRoute('/doctors', {
     render: renderDoctors,
     init: initDoctors,
-    layout: 'admin',
 });
 
 registerRoute('/doctors/create', {
@@ -116,13 +116,11 @@ registerRoute('/doctors/create', {
 registerRoute('/doctors/:id', {
     render: renderDoctorDetail,
     init: initDoctorDetail,
-    layout: 'admin',
 });
 
 registerRoute('/doctors/:id/schedule', {
     render: renderDoctorSchedule,
     init: initDoctorSchedule,
-    layout: 'admin',
 });
 
 // ── Doctor Self-Profile Route (doctor layout) ──
@@ -242,22 +240,12 @@ document.addEventListener('click', async (e) => {
         // Even if the API call fails, clear local state
         storage?.clearAuth();
     }
+    syncLayoutFromAuth();
     window.location.hash = '#/login';
 });
 
 // ── Set layout based on auth state ──
-if (authService.isAuthenticated()) {
-    const user = authService.getUser();
-    if (user?.role === 'admin') {
-        setCurrentLayout('admin');
-    } else if (user?.role === 'doctor') {
-        setCurrentLayout('doctor');
-    } else {
-        setCurrentLayout('patient');
-    }
-} else {
-    setCurrentLayout('guest');
-}
+syncLayoutFromAuth();
 
 // ── Boot the router ──
 initRouter();

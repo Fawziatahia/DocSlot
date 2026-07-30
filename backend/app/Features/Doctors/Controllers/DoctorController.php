@@ -48,9 +48,16 @@ class DoctorController
      * Get doctor details with schedule.
      * GET /api/doctors/{id}
      */
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $doctor = $this->doctorRepository->findWithSchedules($id);
+
+        $user = $request->user('sanctum');
+        $isOwnerOrAdmin = $user && ($user->isAdmin() || ($user->isDoctor() && $user->doctor?->id === $doctor->id));
+
+        if (! $doctor->isPubliclyVisible() && ! $isOwnerOrAdmin) {
+            return $this->error('Doctor not found.', 404);
+        }
 
         return $this->success(new DoctorDetailResource($doctor));
     }
@@ -125,6 +132,11 @@ class DoctorController
         ]);
 
         $doctor = $this->doctorRepository->findOrFail($id);
+
+        if (! $doctor->isPubliclyVisible()) {
+            return $this->success([], 'This doctor is not currently accepting appointments.');
+        }
+
         $date = $request->input('date');
         $dayOfWeek = (int) \Carbon\Carbon::parse($date)->format('w');
 

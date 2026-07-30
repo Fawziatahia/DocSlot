@@ -75,6 +75,7 @@ export function initRegister() {
 
         try {
             const { authService } = await import('../../services/auth.js');
+            const { syncLayoutFromAuth } = await import('../../utils/layout.js');
             await authService.register({
                 name: form.name.value,
                 email: form.email.value,
@@ -86,6 +87,7 @@ export function initRegister() {
                 address: form.address.value || undefined,
             });
 
+            syncLayoutFromAuth();
             window.location.hash = '#/dashboard';
         } catch (err) {
             errorEl.textContent = err.message;

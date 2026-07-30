@@ -64,7 +64,10 @@ class DoctorRepository implements RepositoryInterface
     public function search(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         $query = Doctor::with(['user', 'specialization', 'department'])
-            ->where('status', 'active');
+            ->where('status', 'active')
+            ->whereHas('user', function ($qry) {
+                $qry->where('is_active', true);
+            });
 
         if (! empty($filters['q'])) {
             $q = $filters['q'];
