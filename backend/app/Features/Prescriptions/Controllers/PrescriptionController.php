@@ -98,7 +98,9 @@ class PrescriptionController
 
     private function authorizeView($user, $prescription): void
     {
-        $isDoctor = $user->isDoctor() && $user->doctor->id === $prescription->doctor_id;
+        // Any doctor may view any prescription (consistent with the patient
+        // medical-history/prescriptions list endpoints, which already allow this).
+        $isDoctor = $user->isDoctor();
         $isPatient = $user->isPatient() && $user->patient->id === $prescription->patient_id;
         $isAdmin = $user->isAdmin();
 

@@ -7,6 +7,7 @@ readonly class DoctorData
     public function __construct(
         public string $name,
         public string $email,
+        public string $password,
         public ?string $phone,
         public int $specializationId,
         public int $departmentId,
@@ -21,6 +22,7 @@ readonly class DoctorData
         return new self(
             name: $data['name'],
             email: $data['email'],
+            password: $data['password'],
             phone: $data['phone'] ?? null,
             specializationId: (int) $data['specialization_id'],
             departmentId: (int) $data['department_id'],

@@ -1,7 +1,7 @@
 export function clearFormErrors(form) {
   form.querySelectorAll(".is-invalid").forEach((el) => el.classList.remove("is-invalid"));
   form.querySelectorAll(".invalid-feedback[data-server]").forEach((el) => (el.textContent = ""));
-  const alert = form.querySelector("[data-form-alert]");
+  const alert = document.querySelector("[data-form-alert]");
   if (alert) {
     alert.classList.add("d-none");
     alert.textContent = "";
@@ -9,7 +9,7 @@ export function clearFormErrors(form) {
 }
 
 export function applyFormErrors(form, error) {
-  const alert = form.querySelector("[data-form-alert]");
+  const alert = document.querySelector("[data-form-alert]");
 
   if (error.errors) {
     Object.entries(error.errors).forEach(([field, messages]) => {

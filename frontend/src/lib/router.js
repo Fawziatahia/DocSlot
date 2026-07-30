@@ -1,4 +1,4 @@
-import { isAuthenticated, hasRole } from "./api.js";
+import { isAuthenticated, hasRole, getUser } from "./api.js";
 
 const routes = [];
 const appEl = () => document.querySelector("#app");
@@ -52,6 +52,9 @@ async function render() {
 
   if (matchedRoute.auth && !isAuthenticated()) {
     return navigate("/login", true);
+  }
+  if (matchedRoute.auth && getUser()?.must_change_password && pathname !== "/change-password") {
+    return navigate("/change-password", true);
   }
   if (matchedRoute.roles && !hasRole(...matchedRoute.roles)) {
     return navigate("/dashboard", true);

@@ -35,6 +35,7 @@ class DoctorDetailResource extends JsonResource
             'consultation_fee' => (float) $this->consultation_fee,
             'avg_rating' => (float) $this->avg_rating,
             'total_reviews' => $this->total_reviews,
+            'reviews_enabled' => $this->reviews_enabled,
             'status' => $this->status,
             'schedules' => DoctorScheduleResource::collection($this->whenLoaded('schedules')),
             'created_at' => $this->created_at,

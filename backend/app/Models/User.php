@@ -26,6 +26,7 @@ class User extends Authenticatable
         'phone',
         'avatar',
         'is_active',
+        'must_change_password',
         'last_login_at',
         'last_login_ip',
     ];
@@ -41,6 +42,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
             'last_login_at' => 'datetime',
         ];
     }

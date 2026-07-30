@@ -10,5 +10,6 @@ enum NotificationTypeEnum: string
     case AppointmentReminder = 'appointment_reminder';
     case PrescriptionIssued = 'prescription_issued';
     case NewPatient = 'new_patient';
+    case PatientReferral = 'patient_referral';
     case System = 'system';
 }

@@ -21,6 +21,7 @@ class AppointmentDetailResource extends JsonResource
                 'id' => $this->doctor->id,
                 'name' => $this->doctor->user->name,
                 'specialization' => $this->doctor->specialization?->name,
+                'reviews_enabled' => $this->doctor->reviews_enabled,
             ]),
             'appointment_date' => $this->appointment_date?->format('Y-m-d'),
             'start_time' => $this->start_time,

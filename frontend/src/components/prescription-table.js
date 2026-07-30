@@ -9,7 +9,7 @@ export function renderPrescriptionsTable(prescriptions, { showPatient = false, s
     .map(
       (p) => `
         <tr>
-          ${showPatient ? `<td>${p.patient?.name || ""}</td>` : ""}
+          ${showPatient ? `<td>${p.patient?.id ? `<a href="/patients/${p.patient.id}" data-link>${p.patient.name}</a>` : p.patient?.name || ""}</td>` : ""}
           ${showDoctor ? `<td>${p.doctor?.name || ""}</td>` : ""}
           <td>${p.diagnosis}</td>
           <td>${p.medications?.length ?? "—"}</td>

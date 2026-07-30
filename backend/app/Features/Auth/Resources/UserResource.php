@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             'avatar' => $this->avatar,
             'role' => $this->tyroRoleSlugs()[0] ?? null,
             'is_active' => $this->is_active,
+            'must_change_password' => $this->must_change_password,
             'created_at' => $this->created_at,
         ];
     }

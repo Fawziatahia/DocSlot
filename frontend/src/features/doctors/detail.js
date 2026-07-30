@@ -5,10 +5,10 @@ import { renderStarDisplay } from "../../components/star-rating.js";
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export async function renderDoctorDetail({ id }) {
-  const [{ data: doctor }, { data: ratings }] = await Promise.all([
-    api.get(`/doctors/${id}`),
-    api.get(`/doctors/${id}/ratings`, { per_page: 10 }),
-  ]);
+  const { data: doctor } = await api.get(`/doctors/${id}`);
+  const { data: ratings } = doctor.reviews_enabled
+    ? await api.get(`/doctors/${id}/ratings`, { per_page: 10 })
+    : { data: [] };
   const user = getUser();
   const isOwner = hasRole("doctor") && user && doctor.user.id === user.id;
   const canManage = hasRole("admin") || isOwner;
@@ -39,8 +39,12 @@ export async function renderDoctorDetail({ id }) {
             <div>
               <h1 class="h4 mb-1">${doctor.user.name}</h1>
               <p class="text-muted mb-1">${doctor.specialization?.name || ""} &middot; ${doctor.department?.name || ""}</p>
-              <span class="badge ${statusBadgeClass(doctor.status)}">${doctor.status}</span>
-              <span class="ms-2 small align-middle">${renderStarDisplay(doctor.avg_rating)} ${Number(doctor.avg_rating).toFixed(1)} (${doctor.total_reviews} reviews)</span>
+              ${hasRole("admin") || hasRole("doctor") ? `<span class="badge ${statusBadgeClass(doctor.status)}">${doctor.status}</span>` : ""}
+              ${
+                doctor.reviews_enabled
+                  ? `<span class="ms-2 small align-middle">${renderStarDisplay(doctor.avg_rating)} ${Number(doctor.avg_rating).toFixed(1)} (${doctor.total_reviews} reviews)</span>`
+                  : ""
+              }
             </div>
           </div>
           <div class="col-md-4 text-md-end">
@@ -70,29 +74,41 @@ export async function renderDoctorDetail({ id }) {
         </div>
       </div>
 
-      <div class="section-card mt-4">
-        <h2 class="h5 mb-3">Patient Reviews (${doctor.total_reviews})</h2>
-        ${
-          ratings.length
-            ? ratings
-                .map(
-                  (r) => `
-              <div class="review-item">
-                <div class="d-flex justify-content-between align-items-start gap-2">
-                  <div>
-                    <div class="fw-semibold">${r.patient?.name || "Anonymous"}</div>
-                    ${renderStarDisplay(r.score)}
+      ${
+        doctor.reviews_enabled
+          ? `
+        <div class="section-card mt-4">
+          <h2 class="h5 mb-3">Patient Reviews (${doctor.total_reviews})</h2>
+          ${
+            ratings.length
+              ? ratings
+                  .map(
+                    (r) => `
+                <div class="review-item">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                      <div class="fw-semibold">${r.patient?.name || "Anonymous"}</div>
+                      ${renderStarDisplay(r.score)}
+                    </div>
+                    <div class="text-muted small">${formatDate(r.created_at)}</div>
                   </div>
-                  <div class="text-muted small">${formatDate(r.created_at)}</div>
+                  ${r.comment ? `<p class="mb-0 mt-2">${r.comment}</p>` : ""}
                 </div>
-                ${r.comment ? `<p class="mb-0 mt-2">${r.comment}</p>` : ""}
-              </div>
-            `
-                )
-                .join("")
-            : `<p class="text-muted mb-0">No reviews yet.</p>`
-        }
-      </div>
+              `
+                  )
+                  .join("")
+              : `<p class="text-muted mb-0">No reviews yet.</p>`
+          }
+        </div>
+      `
+          : canManage
+            ? `
+        <div class="section-card mt-4">
+          <p class="text-muted mb-0"><i class="bi bi-eye-slash me-1"></i>Patient reviews are turned off for this profile.</p>
+        </div>
+      `
+            : ""
+      }
     </div>
   `;
 }

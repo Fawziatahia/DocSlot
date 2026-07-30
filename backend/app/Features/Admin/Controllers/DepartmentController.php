@@ -8,14 +8,22 @@ use App\Features\Admin\Requests\UpdateDepartmentRequest;
 use App\Features\Admin\Resources\DepartmentResource;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class DepartmentController
 {
     use ApiResponseTrait;
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $departments = Department::withCount('doctors')->latest()->paginate(15);
+        $query = Department::withCount('doctors');
+
+        if (! $request->user('sanctum')?->hasRole('admin')) {
+            $query->where('is_active', true);
+        }
+
+        $departments = $query->latest()->paginate((int) $request->input('per_page', 15));
+
         return $this->paginated($departments, DepartmentResource::class);
     }
 

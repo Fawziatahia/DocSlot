@@ -45,7 +45,13 @@ export async function renderAppointmentsList() {
 
           return `
             <tr>
-              <td>${isPatientView ? a.doctor?.name || "" : a.patient?.name || ""}</td>
+              <td>${
+                isPatientView
+                  ? a.doctor?.name || ""
+                  : a.patient?.id
+                    ? `<a href="/patients/${a.patient.id}" data-link>${a.patient.name}</a>`
+                    : ""
+              }</td>
               <td>${formatDate(a.appointment_date)}</td>
               <td>${formatTime(a.start_time)} – ${formatTime(a.end_time)}</td>
               <td><span class="badge ${statusBadgeClass(a.status)}">${a.status.replace("_", " ")}</span></td>
