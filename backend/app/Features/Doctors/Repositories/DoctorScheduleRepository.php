@@ -45,7 +45,7 @@ class DoctorScheduleRepository
             ]);
         }
 
-        return collect($schedules);
+        return new Collection($schedules);
     }
 
     /**

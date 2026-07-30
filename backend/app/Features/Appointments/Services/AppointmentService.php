@@ -91,7 +91,7 @@ class AppointmentService
 
     public function cancelAppointment(Appointment $appointment, ?string $reason = null): Appointment
     {
-        if (!in_array($appointment->status, ['pending', 'confirmed'])) {
+        if (!in_array($appointment->status, [AppointmentStatusEnum::Pending, AppointmentStatusEnum::Confirmed], true)) {
             throw new \App\Features\Shared\Exceptions\ApiException('This appointment cannot be cancelled.', 409);
         }
 
@@ -107,7 +107,7 @@ class AppointmentService
 
     public function confirmAppointment(Appointment $appointment): Appointment
     {
-        if ($appointment->status !== AppointmentStatusEnum::Pending->value) {
+        if ($appointment->status !== AppointmentStatusEnum::Pending) {
             throw new \App\Features\Shared\Exceptions\ApiException('Only pending appointments can be confirmed.', 409);
         }
 
@@ -122,7 +122,7 @@ class AppointmentService
 
     public function completeAppointment(Appointment $appointment): Appointment
     {
-        if ($appointment->status !== AppointmentStatusEnum::Confirmed->value) {
+        if ($appointment->status !== AppointmentStatusEnum::Confirmed) {
             throw new \App\Features\Shared\Exceptions\ApiException('Only confirmed appointments can be completed.', 409);
         }
 

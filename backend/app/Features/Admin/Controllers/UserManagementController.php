@@ -38,6 +38,11 @@ class UserManagementController
     {
         $user = User::findOrFail($id);
         $user->update(['is_active' => !$user->is_active]);
+
+        if (! $user->is_active) {
+            $user->tokens()->delete();
+        }
+
         return $this->success(new UserListResource($user->fresh()), 'User status updated.');
     }
 
