@@ -39,18 +39,14 @@ export function initLogin() {
 
         try {
             const { authService } = await import('../../services/auth.js');
-            const data = await authService.login(
+            const { syncLayoutFromAuth } = await import('../../utils/layout.js');
+            await authService.login(
                 form.email.value,
                 form.password.value
             );
 
-            // Redirect based on role
-            const user = authService.getUser();
-            if (user?.role === 'patient' || user?.role === 'doctor') {
-                window.location.hash = '#/dashboard';
-            } else {
-                window.location.hash = '#/dashboard';
-            }
+            syncLayoutFromAuth();
+            window.location.hash = '#/dashboard';
         } catch (err) {
             errorEl.textContent = err.message;
             errorEl.style.display = 'block';

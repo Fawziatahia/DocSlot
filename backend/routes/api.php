@@ -98,11 +98,11 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->prefix('admi
 // ──────────────────────────────────────────
 // Departments & Specializations
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('departments')->group(function () {
+Route::prefix('departments')->group(function () {
     Route::get('/', [DepartmentController::class, 'index']);
     Route::get('/{id}', [DepartmentController::class, 'show']);
 
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->group(function () {
         Route::post('/', [DepartmentController::class, 'store']);
         Route::put('/{id}', [DepartmentController::class, 'update']);
         Route::delete('/{id}', [DepartmentController::class, 'destroy']);
@@ -110,11 +110,11 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('departments')->gro
     });
 });
 
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('specializations')->group(function () {
+Route::prefix('specializations')->group(function () {
     Route::get('/', [SpecializationController::class, 'index']);
     Route::get('/{id}', [SpecializationController::class, 'show']);
 
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->group(function () {
         Route::post('/', [SpecializationController::class, 'store']);
         Route::put('/{id}', [SpecializationController::class, 'update']);
         Route::delete('/{id}', [SpecializationController::class, 'destroy']);

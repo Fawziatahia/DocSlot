@@ -10,6 +10,7 @@ use App\Features\Appointments\Events\AppointmentRescheduled;
 use App\Features\Appointments\Events\AppointmentStatusChanged;
 use App\Features\Appointments\Repositories\AppointmentRepository;
 use App\Models\Appointment;
+use App\Models\Doctor;
 use App\Models\DoctorSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,12 @@ class AppointmentService
     public function bookAppointment(AppointmentData $data, int $patientId): Appointment
     {
         return DB::transaction(function () use ($data, $patientId) {
+            $doctor = Doctor::with('user')->findOrFail($data->doctorId);
+
+            if (! $doctor->isPubliclyVisible()) {
+                throw new \App\Features\Shared\Exceptions\ApiException('This doctor is not currently accepting appointments.', 422);
+            }
+
             $dayOfWeek = (int) Carbon::parse($data->appointmentDate)->format('w');
 
             // Verify schedule exists for this day

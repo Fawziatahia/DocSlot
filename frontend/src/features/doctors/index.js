@@ -21,6 +21,8 @@ export function renderDoctors() {
             <select id="doctor-department" class="form-control" style="max-width:200px">
                 <option value="">All Departments</option>
             </select>
+            <input type="number" id="doctor-min-fee" class="form-control" style="max-width:110px" placeholder="Min ৳" min="0" />
+            <input type="number" id="doctor-max-fee" class="form-control" style="max-width:110px" placeholder="Max ৳" min="0" />
             ${isAdmin ? '<button id="add-doctor-btn" class="btn btn-primary">+ Add Doctor</button>' : ''}
         </div>
         <div id="doctors-list">${renderLoadingSpinner()}</div>
@@ -32,6 +34,8 @@ export async function initDoctors() {
     const searchInput = document.getElementById('doctor-search');
     const specSelect = document.getElementById('doctor-specialization');
     const deptSelect = document.getElementById('doctor-department');
+    const minFeeInput = document.getElementById('doctor-min-fee');
+    const maxFeeInput = document.getElementById('doctor-max-fee');
     const addBtn = document.getElementById('add-doctor-btn');
     const user = authService.getUser();
     const isAdmin = user?.role === 'admin';
@@ -62,6 +66,8 @@ export async function initDoctors() {
             if (q) params.q = q;
             if (specSelect?.value) params.specialization_id = specSelect.value;
             if (deptSelect?.value) params.department_id = deptSelect.value;
+            if (minFeeInput?.value) params.min_fee = minFeeInput.value;
+            if (maxFeeInput?.value) params.max_fee = maxFeeInput.value;
 
             const res = await doctorsService.list(params);
             const items = res.data || [];
@@ -142,6 +148,8 @@ export async function initDoctors() {
     searchInput?.addEventListener('input', debouncedSearch);
     specSelect?.addEventListener('change', () => { currentPage = 1; loadDoctors(1); });
     deptSelect?.addEventListener('change', () => { currentPage = 1; loadDoctors(1); });
+    minFeeInput?.addEventListener('input', debouncedSearch);
+    maxFeeInput?.addEventListener('input', debouncedSearch);
     addBtn?.addEventListener('click', () => { window.location.hash = '#/doctors/create'; });
 
     await loadFilters();

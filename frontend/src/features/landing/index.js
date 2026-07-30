@@ -54,7 +54,7 @@ export function renderLanding() {
         <p class="section-desc">Meet our team of experienced healthcare professionals.</p>
         <div id="landing-doctors-list" class="doctors-grid">${renderLoadingSpinner()}</div>
         <div style="text-align:center;margin-top:2rem">
-            <a href="#/login" class="btn btn-outline btn-lg">View All Doctors</a>
+            <a href="#/doctors" class="btn btn-outline btn-lg">View All Doctors</a>
         </div>
     </section>
 

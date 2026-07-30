@@ -51,4 +51,13 @@ class Doctor extends Model
     {
         return $this->hasMany(DoctorSchedule::class);
     }
+
+    /**
+     * Whether this doctor should be visible/bookable by the public.
+     * False if the doctor profile is suspended or the underlying user account was deactivated.
+     */
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status === DoctorStatusEnum::Active && (bool) $this->user->is_active;
+    }
 }
