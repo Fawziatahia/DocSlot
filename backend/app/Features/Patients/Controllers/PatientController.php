@@ -102,9 +102,16 @@ class PatientController
 
         $patient = $this->patientRepository->findOrFail($id);
         $this->patientRepository->update($patient, ['status' => $request->input('status')]);
+        $patient = $patient->fresh()->load('user');
+
+        $isActive = $request->input('status') === 'active';
+        $patient->user->update(['is_active' => $isActive]);
+        if (! $isActive) {
+            $patient->user->tokens()->delete();
+        }
 
         return $this->success(
-            new PatientDetailResource($patient->fresh()->load('user')),
+            new PatientDetailResource($patient),
             'Patient status updated successfully.'
         );
     }

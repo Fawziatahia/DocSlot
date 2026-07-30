@@ -52,6 +52,11 @@ class Doctor extends Model
         return $this->hasMany(DoctorSchedule::class);
     }
 
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
+
     /**
      * Whether this doctor should be visible/bookable by the public.
      * False if the doctor profile is suspended or the underlying user account was deactivated.

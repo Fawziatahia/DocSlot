@@ -114,9 +114,16 @@ class DoctorController
 
         $doctor = $this->doctorRepository->findOrFail($id);
         $this->doctorRepository->update($doctor, ['status' => $request->input('status')]);
+        $doctor->load(['user', 'specialization', 'department']);
+
+        $isActive = $request->input('status') === 'active';
+        $doctor->user->update(['is_active' => $isActive]);
+        if (! $isActive) {
+            $doctor->user->tokens()->delete();
+        }
 
         return $this->success(
-            new DoctorResource($doctor->load(['user', 'specialization', 'department'])),
+            new DoctorResource($doctor),
             'Doctor status updated successfully.'
         );
     }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Features\Appointments\Enums\AppointmentStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Appointment extends Model
 {
@@ -39,5 +40,10 @@ class Appointment extends Model
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(Doctor::class);
+    }
+
+    public function rating(): HasOne
+    {
+        return $this->hasOne(Rating::class);
     }
 }

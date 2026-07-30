@@ -16,6 +16,7 @@ use App\Features\MedicalRecords\Controllers\MedicalRecordController;
 use App\Features\Notifications\Controllers\NotificationController;
 use App\Features\Patients\Controllers\PatientController;
 use App\Features\Prescriptions\Controllers\PrescriptionController;
+use App\Features\Ratings\Controllers\RatingController;
 use App\Features\Reports\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,7 +42,7 @@ Route::prefix('auth')->group(function () {
 // ──────────────────────────────────────────
 // Authenticated Auth Routes
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('auth')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->prefix('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
 });
@@ -52,7 +53,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('auth')->group(func
 Route::prefix('doctors')->group(function () {
     Route::get('/', [DoctorController::class, 'index']);
     Route::get('/{id}', [DoctorController::class, 'show']);
-    Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::get('/{id}/ratings', [RatingController::class, 'doctorRatings']);
+    Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->group(function () {
         Route::post('/', [DoctorController::class, 'store']);
         Route::put('/{id}', [DoctorController::class, 'update']);
         Route::get('/{id}/appointments', [DoctorController::class, 'appointments'])->middleware('roles:admin,doctor');
@@ -70,7 +72,7 @@ Route::prefix('doctors')->group(function () {
 // ──────────────────────────────────────────
 // Patient Routes (admin & doctor)
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('patients')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->prefix('patients')->group(function () {
     Route::get('/', [PatientController::class, 'index'])->middleware('role:admin');
     Route::get('/{id}', [PatientController::class, 'show']);
     Route::put('/{id}', [PatientController::class, 'update']);
@@ -83,7 +85,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('patients')->group(
 // ──────────────────────────────────────────
 // Admin Routes (admin-only, enforced via Tyro's `role` middleware)
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1', 'role:admin'])->prefix('admin')->group(function () {
     // User management
     Route::get('users', [UserManagementController::class, 'index']);
     Route::get('users/{id}', [UserManagementController::class, 'show']);
@@ -102,7 +104,7 @@ Route::prefix('departments')->group(function () {
     Route::get('/', [DepartmentController::class, 'index']);
     Route::get('/{id}', [DepartmentController::class, 'show']);
 
-    Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->group(function () {
+    Route::middleware(['auth:sanctum', 'active', 'throttle:60,1', 'role:admin'])->group(function () {
         Route::post('/', [DepartmentController::class, 'store']);
         Route::put('/{id}', [DepartmentController::class, 'update']);
         Route::delete('/{id}', [DepartmentController::class, 'destroy']);
@@ -114,7 +116,7 @@ Route::prefix('specializations')->group(function () {
     Route::get('/', [SpecializationController::class, 'index']);
     Route::get('/{id}', [SpecializationController::class, 'show']);
 
-    Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->group(function () {
+    Route::middleware(['auth:sanctum', 'active', 'throttle:60,1', 'role:admin'])->group(function () {
         Route::post('/', [SpecializationController::class, 'store']);
         Route::put('/{id}', [SpecializationController::class, 'update']);
         Route::delete('/{id}', [SpecializationController::class, 'destroy']);
@@ -125,7 +127,7 @@ Route::prefix('specializations')->group(function () {
 // ──────────────────────────────────────────
 // Appointments
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('appointments')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->prefix('appointments')->group(function () {
     Route::get('/', [AppointmentController::class, 'index'])->middleware('role:admin');
     Route::get('my', [AppointmentController::class, 'myAppointments']);
     Route::get('/{id}', [AppointmentController::class, 'show']);
@@ -134,12 +136,13 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('appointments')->gr
     Route::post('/{id}/confirm', [AppointmentController::class, 'confirm']);
     Route::post('/{id}/complete', [AppointmentController::class, 'complete']);
     Route::post('/{id}/reschedule', [AppointmentController::class, 'reschedule']);
+    Route::post('/{id}/rate', [RatingController::class, 'store'])->middleware('role:patient');
 });
 
 // ──────────────────────────────────────────
 // Prescriptions
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('prescriptions')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->prefix('prescriptions')->group(function () {
     Route::get('/', [PrescriptionController::class, 'index'])->middleware('role:admin');
     Route::get('my', [PrescriptionController::class, 'myPrescriptions']);
     Route::get('/{id}', [PrescriptionController::class, 'show']);
@@ -151,7 +154,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('prescriptions')->g
 // ──────────────────────────────────────────
 // Medical Records
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('medical-records')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->prefix('medical-records')->group(function () {
     Route::get('/', [MedicalRecordController::class, 'index'])->middleware('role:admin');
     Route::get('my', [MedicalRecordController::class, 'myRecords']);
     Route::get('/{id}', [MedicalRecordController::class, 'show']);
@@ -163,7 +166,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('medical-records')-
 // ──────────────────────────────────────────
 // Notifications
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('notifications')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->prefix('notifications')->group(function () {
     Route::get('/', [NotificationController::class, 'index']);
     Route::get('unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('mark-all-read', [NotificationController::class, 'markAllAsRead']);
@@ -174,7 +177,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('notifications')->g
 // ──────────────────────────────────────────
 // Reports
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->prefix('reports')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1', 'role:admin'])->prefix('reports')->group(function () {
     Route::get('appointments', [ReportController::class, 'appointments']);
     Route::get('revenue', [ReportController::class, 'revenue']);
     Route::get('doctors', [ReportController::class, 'doctors']);
@@ -185,7 +188,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->prefix('repo
 // ──────────────────────────────────────────
 // Audit Logs (admin-only)
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->prefix('audit-logs')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1', 'role:admin'])->prefix('audit-logs')->group(function () {
     Route::get('/', [AuditLogController::class, 'index']);
     Route::get('/{id}', [AuditLogController::class, 'show']);
 });
@@ -193,7 +196,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', 'role:admin'])->prefix('audi
 // ──────────────────────────────────────────
 // Dashboard
 // ──────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('dashboard')->group(function () {
+Route::middleware(['auth:sanctum', 'active', 'throttle:60,1'])->prefix('dashboard')->group(function () {
     Route::get('admin', AdminDashboardController::class)->middleware('role:admin');
     Route::get('doctor', DoctorDashboardController::class)->middleware('role:doctor');
     Route::get('patient', PatientDashboardController::class)->middleware('role:patient');

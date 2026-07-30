@@ -29,6 +29,7 @@ class AppointmentDetailResource extends JsonResource
             'status' => $this->status,
             'cancellation_reason' => $this->cancellation_reason,
             'reschedule_count' => $this->reschedule_count,
+            'rated' => (bool) $this->rating,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
