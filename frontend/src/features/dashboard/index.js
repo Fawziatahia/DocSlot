@@ -3,6 +3,7 @@ import { appointmentsService } from '../../services/appointments.js';
 import { renderLoadingSpinner } from '../../components/loading-spinner.js';
 import { statusBadge, formatDate, formatTime } from '../../utils/formatters.js';
 import { authService } from '../../services/auth.js';
+import { icon } from '../../components/icons.js';
 
 export function renderDashboard() {
     const user = authService.getUser();
@@ -10,44 +11,57 @@ export function renderDashboard() {
 
     const links = {
         admin: [
-            { href: '#/admin/users', label: 'User Management', class: 'btn btn-outline' },
-            { href: '#/admin/departments', label: 'Departments', class: 'btn btn-outline' },
-            { href: '#/admin/specializations', label: 'Specializations', class: 'btn btn-outline' },
-            { href: '#/doctors', label: 'Manage Doctors', class: 'btn btn-outline' },
-            { href: '#/appointments/manage', label: 'Appointments', class: 'btn btn-outline' },
-            { href: '#/reports', label: 'View Reports', class: 'btn btn-outline' },
+            { href: '#/admin/users', label: 'User Management', class: 'btn btn-outline', icon: 'users' },
+            { href: '#/admin/departments', label: 'Departments', class: 'btn btn-outline', icon: 'building' },
+            { href: '#/admin/specializations', label: 'Specializations', class: 'btn btn-outline', icon: 'flask' },
+            { href: '#/doctors', label: 'Manage Doctors', class: 'btn btn-outline', icon: 'stethoscope' },
+            { href: '#/appointments/manage', label: 'Appointments', class: 'btn btn-outline', icon: 'calendar' },
+            { href: '#/reports', label: 'View Reports', class: 'btn btn-outline', icon: 'chart-bar' },
         ],
         doctor: [
-            { href: '#/appointments/manage', label: 'My Appointments', class: 'btn btn-outline' },
-            { href: '#/prescriptions/create', label: 'New Prescription', class: 'btn btn-outline' },
-            { href: '#/medical-records/create', label: 'New Medical Record', class: 'btn btn-outline' },
+            { href: '#/appointments/manage', label: 'My Appointments', class: 'btn btn-outline', icon: 'calendar' },
+            { href: '#/prescriptions/create', label: 'New Prescription', class: 'btn btn-outline', icon: 'pill' },
+            { href: '#/medical-records/create', label: 'New Medical Record', class: 'btn btn-outline', icon: 'file-plus' },
         ],
         patient: [
-            { href: '#/appointments/book', label: 'Book Appointment', class: 'btn btn-primary' },
-            { href: '#/appointments', label: 'My Appointments', class: 'btn btn-outline' },
-            { href: '#/prescriptions', label: 'My Prescriptions', class: 'btn btn-outline' },
+            { href: '#/appointments/book', label: 'Book Appointment', class: 'btn btn-primary', icon: 'calendar-plus' },
+            { href: '#/appointments', label: 'My Appointments', class: 'btn btn-outline', icon: 'calendar' },
+            { href: '#/prescriptions', label: 'My Prescriptions', class: 'btn btn-outline', icon: 'pill' },
         ],
     };
 
     const roleName = { admin: 'Admin', doctor: 'Doctor', patient: 'Patient' }[role] || 'User';
 
     return `
-    <div class="page-title">
-        <h1>${roleName} Dashboard</h1>
-        <p>Welcome back, ${user?.name || 'User'}</p>
-    </div>
-    <div id="dashboard-stats">${renderLoadingSpinner()}</div>
-    <div class="card" style="margin-top:1.5rem">
-        <h3>Quick Actions</h3>
-        <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap">
-            ${(links[role] || []).map(l => `<a href="${l.href}" class="${l.class}">${l.label}</a>`).join('')}
+    <div class="dashboard-page">
+        <div class="page-title">
+            <h1>${roleName} Dashboard</h1>
+            <p>Welcome back, ${user?.name || 'User'}</p>
         </div>
-    </div>
-    ${role !== 'admin' ? `
-    <div class="card" style="margin-top:1rem">
-        <h3>Upcoming Appointments</h3>
-        <div id="upcoming-appointments">${renderLoadingSpinner()}</div>
-    </div>` : ''}`;
+        <div id="dashboard-stats">${renderLoadingSpinner()}</div>
+        <div class="dashboard-section card dashboard-section-card">
+            <h3>${icon('activity', { size: 17 })} Quick Actions</h3>
+            <div class="quick-actions-grid">
+                ${(links[role] || []).map(l => `<a href="${l.href}" class="${l.class}">${icon(l.icon, { size: 16 })} ${l.label}</a>`).join('')}
+            </div>
+        </div>
+        ${role !== 'admin' ? `
+        <div class="dashboard-section card dashboard-section-card">
+            <h3>${icon('calendar', { size: 17 })} Upcoming Appointments</h3>
+            <div id="upcoming-appointments">${renderLoadingSpinner()}</div>
+        </div>` : ''}
+    </div>`;
+}
+
+function statCard(iconName, value, label) {
+    return `
+        <div class="stat-card">
+            <div class="stat-card-icon">${icon(iconName, { size: 20 })}</div>
+            <div class="stat-card-body">
+                <div class="stat-value">${value}</div>
+                <div class="stat-label">${label}</div>
+            </div>
+        </div>`;
 }
 
 export async function initDashboard() {
@@ -68,32 +82,32 @@ export async function initDashboard() {
         if (role === 'admin') {
             statsEl.innerHTML = `
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-value">${s.total_doctors || 0}</div><div class="stat-label">Total Doctors</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.active_doctors || 0}</div><div class="stat-label">Active Doctors</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.total_patients || 0}</div><div class="stat-label">Total Patients</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.total_appointments || 0}</div><div class="stat-label">Total Appointments</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.today_appointments || 0}</div><div class="stat-label">Today</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.pending_appointments || 0}</div><div class="stat-label">Pending</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.completed_appointments || 0}</div><div class="stat-label">Completed</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.total_prescriptions || 0}</div><div class="stat-label">Prescriptions</div></div>
-                    <div class="stat-card"><div class="stat-value">৳${(s.total_revenue || 0).toFixed(2)}</div><div class="stat-label">Revenue</div></div>
+                    ${statCard('stethoscope', s.total_doctors || 0, 'Total Doctors')}
+                    ${statCard('check-circle', s.active_doctors || 0, 'Active Doctors')}
+                    ${statCard('users', s.total_patients || 0, 'Total Patients')}
+                    ${statCard('calendar', s.total_appointments || 0, 'Total Appointments')}
+                    ${statCard('clock', s.today_appointments || 0, 'Today')}
+                    ${statCard('activity', s.pending_appointments || 0, 'Pending')}
+                    ${statCard('check-circle', s.completed_appointments || 0, 'Completed')}
+                    ${statCard('pill', s.total_prescriptions || 0, 'Prescriptions')}
+                    ${statCard('tag', '৳' + (s.total_revenue || 0).toFixed(2), 'Revenue')}
                 </div>`;
         } else if (role === 'doctor') {
             statsEl.innerHTML = `
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-value">${s.total_appointments || 0}</div><div class="stat-label">Total Appointments</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.today_appointments || 0}</div><div class="stat-label">Today</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.pending_appointments || 0}</div><div class="stat-label">Pending</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.completed_appointments || 0}</div><div class="stat-label">Completed</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.total_prescriptions || 0}</div><div class="stat-label">Prescriptions Given</div></div>
+                    ${statCard('calendar', s.total_appointments || 0, 'Total Appointments')}
+                    ${statCard('clock', s.today_appointments || 0, 'Today')}
+                    ${statCard('activity', s.pending_appointments || 0, 'Pending')}
+                    ${statCard('check-circle', s.completed_appointments || 0, 'Completed')}
+                    ${statCard('pill', s.total_prescriptions || 0, 'Prescriptions Given')}
                 </div>`;
         } else {
             statsEl.innerHTML = `
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-value">${s.total_appointments || 0}</div><div class="stat-label">Total Appointments</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.upcoming_appointments || 0}</div><div class="stat-label">Upcoming</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.completed_appointments || 0}</div><div class="stat-label">Completed</div></div>
-                    <div class="stat-card"><div class="stat-value">${s.total_prescriptions || 0}</div><div class="stat-label">Prescriptions</div></div>
+                    ${statCard('calendar', s.total_appointments || 0, 'Total Appointments')}
+                    ${statCard('calendar-plus', s.upcoming_appointments || 0, 'Upcoming')}
+                    ${statCard('check-circle', s.completed_appointments || 0, 'Completed')}
+                    ${statCard('pill', s.total_prescriptions || 0, 'Prescriptions')}
                 </div>`;
         }
     } catch {

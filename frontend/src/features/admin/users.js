@@ -2,6 +2,19 @@ import { adminService } from '../../services/admin.js';
 import { renderPagination } from '../../components/pagination.js';
 import { renderLoadingSpinner } from '../../components/loading-spinner.js';
 
+const ROLE_TABS = [
+    { value: '', label: 'All' },
+    { value: 'patient', label: 'Patients' },
+    { value: 'doctor', label: 'Doctors' },
+    { value: 'admin', label: 'Admins' },
+];
+
+const ROLE_BADGE_CLASS = {
+    admin: 'badge-warning',
+    doctor: 'badge-primary',
+    patient: 'badge-info',
+};
+
 export function renderUsers() {
     return `
     <div class="page-title">
@@ -10,6 +23,9 @@ export function renderUsers() {
     </div>
     <div class="card">
         <div class="card-header">
+            <div class="role-tabs" id="user-role-tabs">
+                ${ROLE_TABS.map((r, i) => `<button type="button" class="role-tab${i === 0 ? ' active' : ''}" data-role="${r.value}">${r.label}</button>`).join('')}
+            </div>
             <input type="text" id="user-search" class="form-control" style="max-width:300px" placeholder="Search name or email..." />
         </div>
         <div id="users-list">${renderLoadingSpinner()}</div>
@@ -19,13 +35,15 @@ export function renderUsers() {
 export async function initUsers() {
     const container = document.getElementById('users-list');
     const searchInput = document.getElementById('user-search');
+    const roleTabsEl = document.getElementById('user-role-tabs');
     let currentPage = parseInt(new URLSearchParams(window.location.hash.split('?')[1]).get('page'), 10) || 1;
+    let currentRole = '';
 
     async function loadUsers(page = 1) {
         container.innerHTML = renderLoadingSpinner();
         const q = searchInput?.value || '';
         try {
-            const res = await adminService.listUsers({ page, q });
+            const res = await adminService.listUsers({ page, q, role: currentRole || undefined });
             const users = res.data || [];
             const meta = res.meta;
 
@@ -55,7 +73,7 @@ export async function initUsers() {
                                     <td><strong>${u.name}</strong></td>
                                     <td>${u.email}</td>
                                     <td>${u.phone || '—'}</td>
-                                    <td>${(u.roles || []).map(r => `<span class="badge badge-info">${r}</span>`).join(' ')}</td>
+                                    <td>${(u.roles || []).map(r => `<span class="badge ${ROLE_BADGE_CLASS[r] || 'badge-secondary'}">${r}</span>`).join(' ')}</td>
                                     <td>${u.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-secondary">Inactive</span>'}</td>
                                     <td>${new Date(u.created_at).toLocaleDateString()}</td>
                                     <td>
@@ -113,6 +131,16 @@ export async function initUsers() {
         currentPage = 1;
         loadUsers(1);
     }, 300));
+
+    roleTabsEl?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.role-tab');
+        if (!btn) return;
+        roleTabsEl.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentRole = btn.dataset.role;
+        currentPage = 1;
+        loadUsers(1);
+    });
 
     await loadUsers(currentPage);
 }
