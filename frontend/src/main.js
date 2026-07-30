@@ -1,3 +1,8 @@
+import "@fontsource/manrope/400.css";
+import "@fontsource/manrope/500.css";
+import "@fontsource/manrope/600.css";
+import "@fontsource/manrope/700.css";
+import "@fontsource/manrope/800.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -14,6 +19,7 @@ import { renderLanding } from "./features/landing/index.js";
 import { renderLogin, afterLogin } from "./features/auth/login.js";
 import { renderRegister, afterRegister } from "./features/auth/register.js";
 import { renderForgotPassword, afterForgotPassword } from "./features/auth/forgot-password.js";
+import { renderChangePassword, afterChangePassword } from "./features/auth/change-password.js";
 import { renderDashboard } from "./features/dashboard/index.js";
 import { renderDoctorsList, afterDoctorsList } from "./features/doctors/list.js";
 import { renderDoctorDetail } from "./features/doctors/detail.js";
@@ -24,7 +30,7 @@ import { renderAppointmentsList, afterAppointmentsList } from "./features/appoin
 import { renderAppointmentDetail, afterAppointmentDetail } from "./features/appointments/detail.js";
 import { renderBookAppointment, afterBookAppointment } from "./features/appointments/book.js";
 import { renderPatientsList, afterPatientsList } from "./features/patients/list.js";
-import { renderPatientDetail } from "./features/patients/detail.js";
+import { renderPatientDetail, afterPatientDetail } from "./features/patients/detail.js";
 import { renderPatientForm, afterPatientForm } from "./features/patients/form.js";
 import { renderPatientMedicalHistory, renderPatientPrescriptionsHistory } from "./features/patients/records.js";
 import { renderPrescriptionsList } from "./features/prescriptions/list.js";
@@ -58,6 +64,12 @@ route("/forgot-password", {
   layout: authLayout,
   render: () => renderForgotPassword(),
   after: afterForgotPassword,
+});
+route("/change-password", {
+  auth: true,
+  layout: authLayout,
+  render: () => renderChangePassword(),
+  after: afterChangePassword,
 });
 
 route("/dashboard", {
@@ -142,6 +154,7 @@ route("/patients/:id", {
   auth: true,
   layout: (content) => dashboardLayout(content, { title: "Patient Profile", activePath: "/patients" }),
   render: (params) => renderPatientDetail(params),
+  after: (params) => afterPatientDetail(params),
 });
 route("/patients", {
   auth: true,

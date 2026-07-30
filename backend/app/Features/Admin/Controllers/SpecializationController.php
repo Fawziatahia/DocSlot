@@ -8,14 +8,22 @@ use App\Features\Admin\Requests\UpdateSpecializationRequest;
 use App\Features\Admin\Resources\SpecializationResource;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class SpecializationController
 {
     use ApiResponseTrait;
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $specializations = Specialization::withCount('doctors')->latest()->paginate(15);
+        $query = Specialization::withCount('doctors');
+
+        if (! $request->user('sanctum')?->hasRole('admin')) {
+            $query->where('is_active', true);
+        }
+
+        $specializations = $query->latest()->paginate((int) $request->input('per_page', 15));
+
         return $this->paginated($specializations, SpecializationResource::class);
     }
 

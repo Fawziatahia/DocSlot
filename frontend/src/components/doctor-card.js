@@ -1,7 +1,9 @@
 import { formatCurrency } from "../lib/format.js";
+import { hasRole } from "../lib/api.js";
 
 export function renderDoctorCard(doctor) {
   const initial = (doctor.user.name || "?").charAt(0).toUpperCase();
+  const canSeeStatus = hasRole("admin") || hasRole("doctor");
 
   return `
     <div class="col-sm-6 col-lg-4">
@@ -15,11 +17,19 @@ export function renderDoctorCard(doctor) {
         </div>
         <div class="d-flex justify-content-between align-items-center small text-muted mb-2">
           <span><i class="bi bi-building me-1"></i>${doctor.department?.name || ""}</span>
-          <span><i class="bi bi-star-fill text-warning me-1"></i>${Number(doctor.avg_rating || 0).toFixed(1)} (${doctor.total_reviews})</span>
+          ${
+            doctor.reviews_enabled
+              ? `<span><i class="bi bi-star-fill text-warning me-1"></i>${Number(doctor.avg_rating || 0).toFixed(1)} (${doctor.total_reviews})</span>`
+              : ""
+          }
         </div>
         <div class="d-flex justify-content-between align-items-center">
           <span class="fw-semibold">${formatCurrency(doctor.consultation_fee)}</span>
-          <span class="badge ${doctor.status === "active" ? "bg-success-subtle text-success-emphasis" : "bg-danger-subtle text-danger-emphasis"}">${doctor.status}</span>
+          ${
+            canSeeStatus
+              ? `<span class="badge ${doctor.status === "active" ? "bg-success-subtle text-success-emphasis" : "bg-danger-subtle text-danger-emphasis"}">${doctor.status}</span>`
+              : ""
+          }
         </div>
       </a>
     </div>

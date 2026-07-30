@@ -32,6 +32,7 @@ class UpdateDoctorRequest extends FormRequest
             'qualifications' => ['nullable', 'string', 'max:1000'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'consultation_fee' => ['nullable', 'numeric', 'min:0'],
+            'reviews_enabled' => ['sometimes', 'boolean'],
         ];
     }
 }

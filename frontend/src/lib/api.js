@@ -17,6 +17,13 @@ export function setSession(token, user) {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
+export function updateStoredUser(partialUser) {
+  const user = getUser();
+  if (user) {
+    localStorage.setItem(USER_KEY, JSON.stringify({ ...user, ...partialUser }));
+  }
+}
+
 export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);

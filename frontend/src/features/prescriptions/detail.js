@@ -1,10 +1,11 @@
-import { api, hasRole, getUser } from "../../lib/api.js";
+import { api, hasRole } from "../../lib/api.js";
 import { formatDate, statusBadgeClass } from "../../lib/format.js";
+import { getMyDoctorId } from "../../lib/doctor.js";
 
 export async function renderPrescriptionDetail({ id }) {
   const { data: p } = await api.get(`/prescriptions/${id}`);
-  const user = getUser();
-  const canEdit = hasRole("admin") || (hasRole("doctor") && user);
+  const myDoctorId = hasRole("doctor") ? await getMyDoctorId() : null;
+  const canEdit = hasRole("admin") || (myDoctorId !== null && myDoctorId === p.doctor?.id);
 
   const medRows = (p.medications || [])
     .map(
@@ -24,7 +25,11 @@ export async function renderPrescriptionDetail({ id }) {
     <h2 class="h4 mb-3">Prescription</h2>
     <div class="section-card mb-3">
       <dl class="row mb-0">
-        <dt class="col-3">Patient</dt><dd class="col-9">${p.patient?.name || ""}</dd>
+        <dt class="col-3">Patient</dt><dd class="col-9">${
+          (hasRole("doctor") || hasRole("admin")) && p.patient?.id
+            ? `<a href="/patients/${p.patient.id}" data-link>${p.patient.name}</a>`
+            : p.patient?.name || ""
+        }</dd>
         <dt class="col-3">Doctor</dt><dd class="col-9">${p.doctor?.name || ""}</dd>
         <dt class="col-3">Diagnosis</dt><dd class="col-9">${p.diagnosis}</dd>
         <dt class="col-3">Notes</dt><dd class="col-9">${p.notes || "—"}</dd>

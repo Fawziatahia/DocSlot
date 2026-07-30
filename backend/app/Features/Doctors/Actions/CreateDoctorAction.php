@@ -17,6 +17,7 @@ class CreateDoctorAction
         return $this->doctorService->createDoctor([
             'name' => $data->name,
             'email' => $data->email,
+            'password' => $data->password,
             'phone' => $data->phone,
             'specialization_id' => $data->specializationId,
             'department_id' => $data->departmentId,

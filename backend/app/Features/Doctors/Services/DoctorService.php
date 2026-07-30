@@ -22,19 +22,18 @@ class DoctorService
     /**
      * Create a doctor user + profile in one transaction.
      *
-     * The doctor receives a random temporary password and the "doctor" role.
-     * They must use the forgot-password flow to set their own password.
+     * The admin sets the doctor's initial password; the doctor is required
+     * to change it the first time they log in.
      */
     public function createDoctor(array $data): Doctor
     {
         return DB::transaction(function () use ($data) {
-            $tempPassword = \Illuminate\Support\Str::random(16);
-
             $user = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
-                'password' => Hash::make($tempPassword),
+                'password' => Hash::make($data['password']),
                 'phone' => $data['phone'] ?? null,
+                'must_change_password' => true,
             ]);
 
             $user->assignRole(Role::findRole('doctor'));
@@ -68,8 +67,8 @@ class DoctorService
      * @param  array<string, mixed>  $filters
      * @return \Illuminate\Pagination\LengthAwarePaginator
      */
-    public function searchDoctors(array $filters)
+    public function searchDoctors(array $filters, int $perPage = 15)
     {
-        return $this->doctorRepository->search($filters);
+        return $this->doctorRepository->search($filters, $perPage);
     }
 }

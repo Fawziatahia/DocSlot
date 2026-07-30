@@ -29,6 +29,12 @@ class RatingService
             throw new ApiException('You have already rated this appointment.', 409);
         }
 
+        $doctor = Doctor::findOrFail($appointment->doctor_id);
+
+        if (! $doctor->reviews_enabled) {
+            throw new ApiException('This doctor is not accepting patient reviews.', 403);
+        }
+
         $rating = $this->ratingRepository->create([
             'doctor_id' => $appointment->doctor_id,
             'patient_id' => $patientId,
@@ -37,15 +43,13 @@ class RatingService
             'comment' => $data['comment'] ?? null,
         ]);
 
-        $this->recalculateDoctorRating($appointment->doctor_id);
+        $this->recalculateDoctorRating($doctor);
 
         return $rating->load('patient.user');
     }
 
-    private function recalculateDoctorRating(int $doctorId): void
+    private function recalculateDoctorRating(Doctor $doctor): void
     {
-        $doctor = Doctor::findOrFail($doctorId);
-
         $doctor->update([
             'avg_rating' => (float) $doctor->ratings()->avg('score') ?: 0,
             'total_reviews' => $doctor->ratings()->count(),

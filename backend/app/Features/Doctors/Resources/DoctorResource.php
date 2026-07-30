@@ -35,6 +35,7 @@ class DoctorResource extends JsonResource
             'consultation_fee' => (float) $this->consultation_fee,
             'avg_rating' => (float) $this->avg_rating,
             'total_reviews' => $this->total_reviews,
+            'reviews_enabled' => $this->reviews_enabled,
             'status' => $this->status,
         ];
     }

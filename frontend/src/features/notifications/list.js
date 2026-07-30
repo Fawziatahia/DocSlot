@@ -33,6 +33,11 @@ export async function renderNotificationsList() {
               <div class="fw-semibold">${n.title}</div>
               <div class="text-muted small">${n.message}</div>
               <div class="text-muted small mt-1">${formatDate(n.created_at)}</div>
+              ${
+                n.type === "patient_referral" && n.data?.patient_id
+                  ? `<a href="/patients/${n.data.patient_id}" data-link class="small">View Patient Profile</a>`
+                  : ""
+              }
             </div>
             ${!n.is_read ? `<button class="btn btn-sm btn-outline-secondary flex-shrink-0" data-action="read" data-id="${n.id}">Mark read</button>` : ""}
           </div>

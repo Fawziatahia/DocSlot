@@ -92,7 +92,9 @@ class MedicalRecordController
 
     private function authorizeView($user, $record): void
     {
-        $isDoctor = $user->isDoctor() && $user->doctor->id === $record->doctor_id;
+        // Any doctor may view any medical record (consistent with the patient
+        // medical-history/prescriptions list endpoints, which already allow this).
+        $isDoctor = $user->isDoctor();
         $isPatient = $user->isPatient() && $user->patient->id === $record->patient_id;
         $isAdmin = $user->isAdmin();
 

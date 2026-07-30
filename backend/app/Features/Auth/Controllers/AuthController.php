@@ -2,12 +2,14 @@
 
 namespace App\Features\Auth\Controllers;
 
+use App\Features\Auth\Actions\ChangePasswordAction;
 use App\Features\Auth\Actions\ForgotPasswordAction;
 use App\Features\Auth\Actions\LoginUserAction;
 use App\Features\Auth\Actions\LogoutUserAction;
 use App\Features\Auth\Actions\RegisterUserAction;
 use App\Features\Auth\Actions\ResetPasswordAction;
 use App\Features\Auth\DTOs\AuthData;
+use App\Features\Auth\Requests\ChangePasswordRequest;
 use App\Features\Auth\Requests\ForgotPasswordRequest;
 use App\Features\Auth\Requests\LoginRequest;
 use App\Features\Auth\Requests\RegisterRequest;
@@ -30,6 +32,7 @@ class AuthController
         private readonly LogoutUserAction $logoutUserAction,
         private readonly ForgotPasswordAction $forgotPasswordAction,
         private readonly ResetPasswordAction $resetPasswordAction,
+        private readonly ChangePasswordAction $changePasswordAction,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -86,5 +89,16 @@ class AuthController
         }
 
         return $this->error('Invalid or expired password reset token.', 400);
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $user = $this->changePasswordAction->execute(
+            $request->user(),
+            $request->validated('current_password'),
+            $request->validated('password'),
+        );
+
+        return $this->success(new UserResource($user), 'Password changed successfully.');
     }
 }

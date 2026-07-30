@@ -19,6 +19,7 @@ class Doctor extends Model
         'consultation_fee',
         'avg_rating',
         'total_reviews',
+        'reviews_enabled',
         'status',
     ];
 
@@ -28,6 +29,7 @@ class Doctor extends Model
             'consultation_fee' => 'decimal:2',
             'avg_rating' => 'decimal:2',
             'total_reviews' => 'integer',
+            'reviews_enabled' => 'boolean',
             'status' => DoctorStatusEnum::class,
         ];
     }

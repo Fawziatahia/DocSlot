@@ -30,6 +30,12 @@ export async function renderDoctorForm({ id } = {}) {
         <div class="invalid-feedback" data-server="email"></div>
       </div>
       <div class="mb-3">
+        <label class="form-label" for="password">Temporary password</label>
+        <input type="text" class="form-control" id="password" name="password" minlength="8" required />
+        <div class="form-text">Share this with the doctor — they'll be required to change it on first login.</div>
+        <div class="invalid-feedback" data-server="password"></div>
+      </div>
+      <div class="mb-3">
         <label class="form-label" for="phone">Phone</label>
         <input type="tel" class="form-control" id="phone" name="phone" />
         <div class="invalid-feedback" data-server="phone"></div>
@@ -81,6 +87,17 @@ export async function renderDoctorForm({ id } = {}) {
             <input type="number" min="0" step="0.01" class="form-control" id="consultation_fee" name="consultation_fee" value="${existing?.consultation_fee ?? ""}" />
             <div class="invalid-feedback" data-server="consultation_fee"></div>
           </div>
+          ${
+            id
+              ? `
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="reviews_enabled" name="reviews_enabled" ${existing?.reviews_enabled !== false ? "checked" : ""} />
+              <label class="form-check-label" for="reviews_enabled">Allow patients to rate and review me</label>
+              <div class="form-text">Turning this off hides your reviews and stops new ones from being submitted.</div>
+            </div>
+          `
+              : ""
+          }
           <button type="submit" class="btn btn-primary" id="doctor-form-submit">${id ? "Save Changes" : "Create Doctor"}</button>
         </form>
       </div>
@@ -106,8 +123,11 @@ export function afterDoctorForm({ id } = {}) {
     if (!id) {
       payload.name = form.name.value;
       payload.email = form.email.value;
+      payload.password = form.password.value;
       payload.phone = form.phone.value || undefined;
       payload.license_number = form.license_number.value;
+    } else {
+      payload.reviews_enabled = form.reviews_enabled.checked;
     }
 
     try {

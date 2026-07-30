@@ -18,7 +18,11 @@ export async function renderAppointmentDetail({ id }) {
         <div class="alert alert-danger d-none" data-detail-alert role="alert"></div>
         <dl class="row mb-0">
           <dt class="col-4">${isPatientView ? "Doctor" : "Patient"}</dt>
-          <dd class="col-8">${isPatientView ? a.doctor?.name : a.patient?.name}</dd>
+          <dd class="col-8">${
+            isPatientView
+              ? a.doctor?.name
+              : `<a href="/patients/${a.patient.id}" data-link>${a.patient.name}</a>`
+          }</dd>
           ${!isPatientView ? `<dt class="col-4">Doctor</dt><dd class="col-8">${a.doctor?.name} ${a.doctor?.specialization ? `(${a.doctor.specialization})` : ""}</dd>` : ""}
           <dt class="col-4">Date</dt>
           <dd class="col-8">${formatDate(a.appointment_date)}</dd>
@@ -73,7 +77,7 @@ export async function renderAppointmentDetail({ id }) {
       </div>
 
       ${
-        isPatientView && a.status === "completed"
+        isPatientView && a.status === "completed" && a.doctor?.reviews_enabled
           ? a.rated
             ? `
           <div class="section-card mt-3">
