@@ -7,7 +7,7 @@ export function renderDoctorCard(doctor) {
 
   return `
     <div class="col-sm-6 col-lg-4">
-      <a href="/doctors/${doctor.id}" data-link class="doctor-card text-decoration-none h-100">
+      <a href="/doctors/${doctor.public_id}" data-link class="doctor-card text-decoration-none h-100">
         <div class="d-flex align-items-center gap-3 mb-3">
           <span class="doctor-avatar">${initial}</span>
           <div>

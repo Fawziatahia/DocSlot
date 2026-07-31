@@ -24,7 +24,7 @@ class ReferralController
      * Refer a patient to another doctor.
      * POST /api/patients/{id}/refer
      */
-    public function store(ReferPatientRequest $request, int $id): JsonResponse
+    public function store(ReferPatientRequest $request, string $id): JsonResponse
     {
         $referringDoctor = $request->user()->doctor;
 
@@ -32,12 +32,13 @@ class ReferralController
             return $this->error('Only doctors can refer patients.', 403);
         }
 
-        $patient = Patient::with('user')->findOrFail($id);
+        $patient = Patient::with('user')->where('public_id', $id)->firstOrFail();
+        $receivingDoctor = \App\Models\Doctor::where('public_id', $request->validated('doctor_id'))->firstOrFail();
 
         $referral = $this->referralService->referPatient(
             $patient,
             $referringDoctor,
-            (int) $request->validated('doctor_id'),
+            $receivingDoctor->id,
             $request->validated('note'),
         );
 

@@ -26,8 +26,8 @@ export async function renderPrescriptionDetail({ id }) {
     <div class="section-card mb-3">
       <dl class="row mb-0">
         <dt class="col-3">Patient</dt><dd class="col-9">${
-          (hasRole("doctor") || hasRole("admin")) && p.patient?.id
-            ? `<a href="/patients/${p.patient.id}" data-link>${p.patient.name}</a>`
+          (hasRole("doctor") || hasRole("admin")) && p.patient?.public_id
+            ? `<a href="/patients/${p.patient.public_id}" data-link>${p.patient.name}</a>`
             : p.patient?.name || ""
         }</dd>
         <dt class="col-3">Doctor</dt><dd class="col-9">${p.doctor?.name || ""}</dd>

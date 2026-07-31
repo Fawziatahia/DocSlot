@@ -17,7 +17,7 @@ export function renderMedicalRecordsTable(records, { showPatient = false, showDo
     .map(
       (r) => `
         <tr>
-          ${showPatient ? `<td>${r.patient?.id ? `<a href="/patients/${r.patient.id}" data-link>${r.patient.name}</a>` : r.patient?.name || ""}</td>` : ""}
+          ${showPatient ? `<td>${r.patient?.public_id ? `<a href="/patients/${r.patient.public_id}" data-link>${r.patient.name}</a>` : r.patient?.name || ""}</td>` : ""}
           ${showDoctor ? `<td>${r.doctor?.name || ""}</td>` : ""}
           <td>${r.title}</td>
           <td><span class="badge bg-secondary-subtle text-secondary-emphasis">${TYPE_LABELS[r.record_type] || r.record_type}</span></td>

@@ -23,11 +23,11 @@ export async function renderDoctorDetail({ id }) {
 
   const actions = [];
   if (hasRole("patient")) {
-    actions.push(`<a href="/appointments/book/${doctor.id}" data-link class="btn btn-primary"><i class="bi bi-calendar-plus me-1"></i>Book Appointment</a>`);
+    actions.push(`<a href="/appointments/book/${doctor.public_id}" data-link class="btn btn-primary"><i class="bi bi-calendar-plus me-1"></i>Book Appointment</a>`);
   }
   if (canManage) {
-    actions.push(`<a href="/doctors/${doctor.id}/edit" data-link class="btn btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Edit Profile</a>`);
-    actions.push(`<a href="/doctors/${doctor.id}/schedule" data-link class="btn btn-outline-secondary"><i class="bi bi-clock me-1"></i>Manage Schedule</a>`);
+    actions.push(`<a href="/doctors/${doctor.public_id}/edit" data-link class="btn btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Edit Profile</a>`);
+    actions.push(`<a href="/doctors/${doctor.public_id}/schedule" data-link class="btn btn-outline-secondary"><i class="bi bi-clock me-1"></i>Manage Schedule</a>`);
   }
 
   return `
@@ -39,6 +39,7 @@ export async function renderDoctorDetail({ id }) {
             <div>
               <h1 class="h4 mb-1">${doctor.user.name}</h1>
               <p class="text-muted mb-1">${doctor.specialization?.name || ""} &middot; ${doctor.department?.name || ""}</p>
+              ${doctor.public_id ? `<p class="text-muted small mb-1">Doctor ID: <code>${doctor.public_id}</code></p>` : ""}
               ${hasRole("admin") || hasRole("doctor") ? `<span class="badge ${statusBadgeClass(doctor.status)}">${doctor.status}</span>` : ""}
               ${
                 doctor.reviews_enabled

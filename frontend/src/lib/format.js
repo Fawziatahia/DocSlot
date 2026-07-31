@@ -17,6 +17,12 @@ export function formatTime(value) {
   return new Intl.DateTimeFormat("en-GB", { hour: "numeric", minute: "2-digit", hour12: true }).format(date);
 }
 
+export function slotDurationMinutes(start, end) {
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  return eh * 60 + em - (sh * 60 + sm);
+}
+
 export function statusBadgeClass(status) {
   const map = {
     pending: "bg-warning-subtle text-warning-emphasis",

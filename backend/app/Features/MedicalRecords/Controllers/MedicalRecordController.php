@@ -8,6 +8,7 @@ use App\Features\MedicalRecords\Requests\UpdateMedicalRecordRequest;
 use App\Features\MedicalRecords\Resources\MedicalRecordResource;
 use App\Features\MedicalRecords\Services\MedicalRecordService;
 use App\Features\Shared\Traits\ApiResponseTrait;
+use App\Models\Patient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -44,7 +45,11 @@ class MedicalRecordController
             return $this->error('Only doctors can create medical records.', 403);
         }
 
-        $record = $this->medicalRecordService->createRecord($request->validated(), $doctor->id);
+        $patient = Patient::where('public_id', $request->validated('patient_id'))->firstOrFail();
+        $record = $this->medicalRecordService->createRecord(
+            array_merge($request->validated(), ['patient_id' => $patient->id]),
+            $doctor->id
+        );
 
         return response()->json([
             'success' => true,

@@ -30,6 +30,15 @@ class PatientRepository implements RepositoryInterface
         return Patient::with('user')->findOrFail($id, $columns);
     }
 
+    /**
+     * Look up a patient by their public-facing ID (e.g. "p7894622"), used by every
+     * route that identifies a patient from a URL segment.
+     */
+    public function findByPublicId(string $publicId, array $columns = ['*']): Model
+    {
+        return Patient::with('user')->where('public_id', $publicId)->firstOrFail($columns);
+    }
+
     public function create(array $data): Model
     {
         return Patient::create($data);

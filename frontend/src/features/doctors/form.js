@@ -132,7 +132,7 @@ export function afterDoctorForm({ id } = {}) {
 
     try {
       const { data } = id ? await api.put(`/doctors/${id}`, payload) : await api.post("/doctors", payload);
-      navigate(`/doctors/${data.id}`);
+      navigate(`/doctors/${data.public_id}`);
     } catch (err) {
       applyFormErrors(form, err);
     } finally {

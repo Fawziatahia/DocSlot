@@ -48,8 +48,8 @@ export async function renderAppointmentsList() {
               <td>${
                 isPatientView
                   ? a.doctor?.name || ""
-                  : a.patient?.id
-                    ? `<a href="/patients/${a.patient.id}" data-link>${a.patient.name}</a>`
+                  : a.patient?.public_id
+                    ? `<a href="/patients/${a.patient.public_id}" data-link>${a.patient.name}</a>`
                     : ""
               }</td>
               <td>${formatDate(a.appointment_date)}</td>

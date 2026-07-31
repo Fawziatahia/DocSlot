@@ -32,14 +32,14 @@ export async function renderMedicalRecordForm({ id } = {}) {
             ? `<p class="text-muted">Patient: <strong>${existing.patient?.name || ""}</strong></p>`
             : patientId
               ? `
-            <p class="text-muted">Patient: <strong>${patientName || `#${patientId}`}</strong></p>
+            <p class="text-muted">Patient: <strong>${patientName || patientId}</strong></p>
             <input type="hidden" name="patient_id" value="${patientId}" />
             <input type="hidden" name="appointment_id" value="${appointmentId || ""}" />
           `
               : `
             <div class="mb-3">
               <label class="form-label" for="patient_id">Patient ID</label>
-              <input type="number" min="1" class="form-control" id="patient_id" name="patient_id" required />
+              <input type="text" class="form-control" id="patient_id" name="patient_id" placeholder="e.g. p7894622" required />
               <div class="form-text">Find the patient's ID on their profile page.</div>
               <div class="invalid-feedback" data-server="patient_id"></div>
             </div>
@@ -93,7 +93,7 @@ export function afterMedicalRecordForm({ id } = {}) {
       notes: form.notes.value || undefined,
     };
     if (!id) {
-      payload.patient_id = Number(form.patient_id.value);
+      payload.patient_id = form.patient_id.value;
       payload.appointment_id = form.appointment_id.value ? Number(form.appointment_id.value) : undefined;
     }
 

@@ -18,7 +18,7 @@ class ScheduleRequest extends FormRequest
         if ($user->hasRole('doctor')) {
             $doctor = \App\Models\Doctor::where('user_id', $user->id)->firstOrFail();
 
-            return (int) $this->route('id') === $doctor->id;
+            return $this->route('id') === $doctor->public_id;
         }
 
         return false;

@@ -24,7 +24,7 @@ class UpdatePatientRequest extends FormRequest
         // Patient can only update their own record
         if ($user->hasRole('patient')) {
             $patient = $user->patient;
-            return $patient && (int) $this->route('id') === $patient->id;
+            return $patient && $this->route('id') === $patient->public_id;
         }
 
         return false;

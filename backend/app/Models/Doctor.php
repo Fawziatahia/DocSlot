@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Features\Doctors\Enums\DoctorStatusEnum;
+use App\Features\Shared\Helpers\PublicIdHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,7 @@ class Doctor extends Model
 {
     protected $fillable = [
         'user_id',
+        'public_id',
         'specialization_id',
         'department_id',
         'license_number',
@@ -22,6 +24,15 @@ class Doctor extends Model
         'reviews_enabled',
         'status',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Doctor $doctor) {
+            if (! $doctor->public_id) {
+                $doctor->public_id = PublicIdHelper::generate(self::class, 'd');
+            }
+        });
+    }
 
     protected function casts(): array
     {
