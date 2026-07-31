@@ -9,7 +9,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./style.css";
 
 import { route, startRouter, navigate } from "./lib/router.js";
-import { clearSession } from "./lib/api.js";
+import { clearSession, hasRole } from "./lib/api.js";
 import { guestLayout } from "./layouts/guest.js";
 import { authLayout } from "./layouts/auth.js";
 import { dashboardLayout } from "./layouts/dashboard.js";
@@ -25,7 +25,8 @@ import { renderDoctorsList, afterDoctorsList } from "./features/doctors/list.js"
 import { renderDoctorDetail } from "./features/doctors/detail.js";
 import { renderDoctorForm, afterDoctorForm } from "./features/doctors/form.js";
 import { renderDoctorSchedule, afterDoctorSchedule } from "./features/doctors/schedule.js";
-import { renderMyProfile } from "./features/doctors/my-profile.js";
+import { renderMyProfile as renderDoctorMyProfile } from "./features/doctors/my-profile.js";
+import { renderMyProfile as renderPatientMyProfile } from "./features/patients/my-profile.js";
 import { renderAppointmentsList, afterAppointmentsList } from "./features/appointments/list.js";
 import { renderAppointmentDetail, afterAppointmentDetail } from "./features/appointments/detail.js";
 import { renderBookAppointment, afterBookAppointment } from "./features/appointments/book.js";
@@ -109,9 +110,9 @@ route("/doctors", {
 
 route("/profile", {
   auth: true,
-  roles: ["doctor"],
+  roles: ["doctor", "patient"],
   layout: (content) => dashboardLayout(content, { title: "My Profile", activePath: "/profile" }),
-  render: () => renderMyProfile(),
+  render: () => (hasRole("doctor") ? renderDoctorMyProfile() : renderPatientMyProfile()),
 });
 
 route("/appointments/book/:doctorId", {

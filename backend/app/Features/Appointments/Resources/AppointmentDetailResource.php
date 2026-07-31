@@ -13,12 +13,14 @@ class AppointmentDetailResource extends JsonResource
             'id' => $this->id,
             'patient' => $this->whenLoaded('patient', fn () => [
                 'id' => $this->patient->id,
+                'public_id' => $this->patient->public_id,
                 'name' => $this->patient->user->name,
                 'email' => $this->patient->user->email,
                 'phone' => $this->patient->user->phone,
             ]),
             'doctor' => $this->whenLoaded('doctor', fn () => [
                 'id' => $this->doctor->id,
+                'public_id' => $this->doctor->public_id,
                 'name' => $this->doctor->user->name,
                 'specialization' => $this->doctor->specialization?->name,
                 'reviews_enabled' => $this->doctor->reviews_enabled,

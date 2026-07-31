@@ -8,11 +8,11 @@ trait ApiResponseTrait
 {
     protected function success(mixed $data = null, string $message = 'Operation successful.', int $code = 200, array $extra = []): JsonResponse
     {
-        $response = array_filter([
+        $response = [
             'success' => true,
             'data' => $data,
             'message' => $message,
-        ]);
+        ];
 
         return response()->json(array_merge($response, $extra), $code);
     }

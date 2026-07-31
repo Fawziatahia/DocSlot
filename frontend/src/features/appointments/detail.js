@@ -1,11 +1,22 @@
 import { api, hasRole } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
-import { formatDate, formatTime, statusBadgeClass } from "../../lib/format.js";
+import { formatDate, formatTime, slotDurationMinutes, statusBadgeClass } from "../../lib/format.js";
 import { renderStarInput, bindStarInput } from "../../components/star-rating.js";
+import { createDatePicker } from "../../components/date-picker.js";
 import { setSubmitting } from "../../lib/forms.js";
 
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 export async function renderAppointmentDetail({ id }) {
-  const { data: a } = await api.get(`/appointments/${id}`);
+  const [{ data: a }, { data: bookingSettings }] = await Promise.all([
+    api.get(`/appointments/${id}`),
+    api.get("/booking-settings"),
+  ]);
+  const minRescheduleDate = addDays(new Date(), bookingSettings.min_booking_lead_days);
   const isPatientView = hasRole("patient");
   const isDoctorOrAdmin = hasRole("doctor") || hasRole("admin");
   const canCancel = ["pending", "confirmed"].includes(a.status);
@@ -21,7 +32,7 @@ export async function renderAppointmentDetail({ id }) {
           <dd class="col-8">${
             isPatientView
               ? a.doctor?.name
-              : `<a href="/patients/${a.patient.id}" data-link>${a.patient.name}</a>`
+              : `<a href="/patients/${a.patient.public_id}" data-link>${a.patient.name}</a>`
           }</dd>
           ${!isPatientView ? `<dt class="col-4">Doctor</dt><dd class="col-8">${a.doctor?.name} ${a.doctor?.specialization ? `(${a.doctor.specialization})` : ""}</dd>` : ""}
           <dt class="col-4">Date</dt>
@@ -45,10 +56,10 @@ export async function renderAppointmentDetail({ id }) {
           ${
             hasRole("doctor") && ["confirmed", "completed"].includes(a.status)
               ? `
-            <a href="/prescriptions/new?patient_id=${a.patient.id}&appointment_id=${a.id}&patient_name=${encodeURIComponent(a.patient.name)}" data-link class="btn btn-outline-secondary">
+            <a href="/prescriptions/new?patient_id=${a.patient.public_id}&appointment_id=${a.id}&patient_name=${encodeURIComponent(a.patient.name)}" data-link class="btn btn-outline-secondary">
               <i class="bi bi-capsule me-1"></i>Write Prescription
             </a>
-            <a href="/medical-records/new?patient_id=${a.patient.id}&appointment_id=${a.id}&patient_name=${encodeURIComponent(a.patient.name)}" data-link class="btn btn-outline-secondary">
+            <a href="/medical-records/new?patient_id=${a.patient.public_id}&appointment_id=${a.id}&patient_name=${encodeURIComponent(a.patient.name)}" data-link class="btn btn-outline-secondary">
               <i class="bi bi-file-earmark-medical me-1"></i>Add Medical Record
             </a>
           `
@@ -59,21 +70,19 @@ export async function renderAppointmentDetail({ id }) {
 
       <div class="section-card d-none" id="reschedule-panel">
         <h2 class="h6 mb-3">Reschedule Appointment</h2>
-        <div class="row g-2 align-items-end">
-          <div class="col-sm-5">
-            <label class="form-label">New date</label>
-            <input type="date" class="form-control" id="reschedule-date" min="${new Date().toISOString().slice(0, 10)}" />
+        <div class="row g-3">
+          <div class="col-sm-7">
+            <label class="form-label small fw-semibold">Select a new date</label>
+            <div id="reschedule-calendar" data-min-date="${minRescheduleDate}" data-max-date="${bookingSettings.max_booking_date || ""}"></div>
           </div>
           <div class="col-sm-5">
-            <label class="form-label">Available slots</label>
-            <select class="form-select" id="reschedule-slot" disabled>
-              <option value="">Pick a date first</option>
-            </select>
-          </div>
-          <div class="col-sm-2">
-            <button type="button" class="btn btn-primary w-100" id="reschedule-submit" disabled>Save</button>
+            <label class="form-label small fw-semibold">Available slots</label>
+            <div id="reschedule-slots" class="slot-grid" style="max-height: 14rem; overflow-y: auto;">
+              <div class="slot-empty"><i class="bi bi-calendar-week"></i>Pick a date to see available slots.</div>
+            </div>
           </div>
         </div>
+        <button type="button" class="btn btn-primary btn-sm w-100 mt-3" id="reschedule-submit" disabled>Save</button>
       </div>
 
       ${
@@ -132,45 +141,65 @@ export function afterAppointmentDetail({ id }) {
   const panel = document.getElementById("reschedule-panel");
   toggleBtn?.addEventListener("click", () => panel.classList.toggle("d-none"));
 
-  const dateInput = document.getElementById("reschedule-date");
-  const slotSelect = document.getElementById("reschedule-slot");
+  const calendarEl = document.getElementById("reschedule-calendar");
+  const slotsBox = document.getElementById("reschedule-slots");
   const submitBtn = document.getElementById("reschedule-submit");
+  let rescheduleDate = null;
+  let rescheduleSlot = null;
 
-  dateInput?.addEventListener("change", async () => {
-    slotSelect.disabled = true;
-    submitBtn.disabled = true;
-    slotSelect.innerHTML = `<option value="">Loading...</option>`;
+  if (calendarEl) {
+    createDatePicker(calendarEl, {
+      minDate: calendarEl.dataset.minDate,
+      maxDate: calendarEl.dataset.maxDate || null,
+      onSelect: async (date) => {
+        rescheduleDate = date;
+        rescheduleSlot = null;
+        submitBtn.disabled = true;
+        slotsBox.innerHTML = `<div class="slot-empty"><span class="spinner-border spinner-border-sm"></span>Loading slots...</div>`;
 
-    try {
-      const { data: appointment } = await api.get(`/appointments/${id}`);
-      const { data: slots } = await api.get(`/doctors/${appointment.doctor.id}/slots`, { date: dateInput.value });
+        try {
+          const { data: appointment } = await api.get(`/appointments/${id}`);
+          const { data: slots } = await api.get(`/doctors/${appointment.doctor.public_id}/slots`, { date });
 
-      if (!slots.length) {
-        slotSelect.innerHTML = `<option value="">No slots available</option>`;
-        return;
-      }
+          if (!slots.length) {
+            slotsBox.innerHTML = `<div class="slot-empty"><i class="bi bi-calendar-x"></i>No slots available on this date.</div>`;
+            return;
+          }
 
-      slotSelect.innerHTML =
-        `<option value="">Select a time</option>` +
-        slots.map((s) => `<option value="${s.start}|${s.end}">${s.start.slice(0, 5)} – ${s.end.slice(0, 5)}</option>`).join("");
-      slotSelect.disabled = false;
-    } catch (err) {
-      showError(err);
-    }
-  });
+          slotsBox.innerHTML = slots
+            .map(
+              (s) => `
+                <button type="button" class="slot-btn" data-start="${s.start}" data-end="${s.end}">
+                  <span class="slot-time">${formatTime(s.start)}</span>
+                  <span class="slot-duration">${slotDurationMinutes(s.start, s.end)} min</span>
+                </button>
+              `
+            )
+            .join("");
+        } catch (err) {
+          showError(err);
+        }
+      },
+    });
+  }
 
-  slotSelect?.addEventListener("change", () => {
-    submitBtn.disabled = !slotSelect.value;
+  slotsBox?.addEventListener("click", (e) => {
+    const button = e.target.closest(".slot-btn");
+    if (!button) return;
+    slotsBox.querySelectorAll(".slot-btn").forEach((b) => b.classList.remove("slot-selected"));
+    button.classList.add("slot-selected");
+    rescheduleSlot = { start: button.dataset.start, end: button.dataset.end };
+    submitBtn.disabled = false;
   });
 
   submitBtn?.addEventListener("click", async () => {
-    const [start_time, end_time] = slotSelect.value.split("|");
+    if (!rescheduleSlot) return;
     submitBtn.disabled = true;
     try {
       await api.post(`/appointments/${id}/reschedule`, {
-        appointment_date: dateInput.value,
-        start_time,
-        end_time,
+        appointment_date: rescheduleDate,
+        start_time: rescheduleSlot.start,
+        end_time: rescheduleSlot.end,
       });
       navigate(`/appointments/${id}`, true);
     } catch (err) {

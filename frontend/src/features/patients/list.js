@@ -18,14 +18,15 @@ export async function renderPatientsList() {
         .map(
           (p) => `
           <tr>
+            <td><code>${p.public_id || "—"}</code></td>
             <td>${p.user.name}</td>
             <td>${p.user.email}</td>
             <td>${p.gender || "—"}</td>
             <td>${p.blood_group || "—"}</td>
             <td><span class="badge ${statusBadgeClass(p.status)}">${p.status}</span></td>
             <td class="d-flex gap-1 flex-wrap">
-              <a href="/patients/${p.id}" data-link class="btn btn-sm btn-outline-secondary">View</a>
-              <button class="btn btn-sm btn-outline-warning" data-action="toggle-status" data-id="${p.id}" data-status="${p.status}">
+              <a href="/patients/${p.public_id}" data-link class="btn btn-sm btn-outline-secondary">View</a>
+              <button class="btn btn-sm btn-outline-warning" data-action="toggle-status" data-id="${p.public_id}" data-status="${p.status}">
                 ${p.status === "active" ? "Suspend" : "Activate"}
               </button>
             </td>
@@ -33,7 +34,7 @@ export async function renderPatientsList() {
         `
         )
         .join("")
-    : `<tr><td colspan="6" class="text-center text-muted py-4">No patients found.</td></tr>`;
+    : `<tr><td colspan="7" class="text-center text-muted py-4">No patients found.</td></tr>`;
 
   return `
     <h2 class="h4 mb-3">Patients</h2>
@@ -42,7 +43,7 @@ export async function renderPatientsList() {
       <div class="table-responsive">
         <table class="table align-middle">
           <thead>
-            <tr><th>Name</th><th>Email</th><th>Gender</th><th>Blood Group</th><th>Status</th><th>Actions</th></tr>
+            <tr><th>Patient ID</th><th>Name</th><th>Email</th><th>Gender</th><th>Blood Group</th><th>Status</th><th>Actions</th></tr>
           </thead>
           <tbody id="patients-body">${rows}</tbody>
         </table>

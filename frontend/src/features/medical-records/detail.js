@@ -21,8 +21,8 @@ export async function renderMedicalRecordDetail({ id }) {
     <div class="section-card">
       <dl class="row mb-0">
         <dt class="col-3">Patient</dt><dd class="col-9">${
-          canViewPatientLink && r.patient?.id
-            ? `<a href="/patients/${r.patient.id}" data-link>${r.patient.name}</a>`
+          canViewPatientLink && r.patient?.public_id
+            ? `<a href="/patients/${r.patient.public_id}" data-link>${r.patient.name}</a>`
             : r.patient?.name || ""
         }</dd>
         <dt class="col-3">Doctor</dt><dd class="col-9">${r.doctor?.name || ""}</dd>

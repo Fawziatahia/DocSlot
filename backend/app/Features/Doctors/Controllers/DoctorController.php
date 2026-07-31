@@ -48,7 +48,7 @@ class DoctorController
      * Get doctor details with schedule.
      * GET /api/doctors/{id}
      */
-    public function show(Request $request, int $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
         $doctor = $this->doctorRepository->findWithSchedules($id);
 
@@ -84,7 +84,7 @@ class DoctorController
      * Update a doctor.
      * PUT /api/doctors/{id}
      */
-    public function update(UpdateDoctorRequest $request, int $id): JsonResponse
+    public function update(UpdateDoctorRequest $request, string $id): JsonResponse
     {
         $doctor = $this->updateDoctorAction->execute($id, $request->validated());
         $doctor->load(['user', 'specialization', 'department']);
@@ -96,9 +96,9 @@ class DoctorController
      * Delete a doctor (admin only).
      * DELETE /api/doctors/{id}
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
-        $doctor = $this->doctorRepository->findOrFail($id);
+        $doctor = $this->doctorRepository->findByPublicId($id);
         $this->doctorRepository->delete($doctor);
 
         return $this->noContent();
@@ -108,11 +108,11 @@ class DoctorController
      * Suspend/activate a doctor (admin only).
      * PATCH /api/doctors/{id}/status
      */
-    public function toggleStatus(Request $request, int $id): JsonResponse
+    public function toggleStatus(Request $request, string $id): JsonResponse
     {
         $request->validate(['status' => ['required', 'string', 'in:active,suspended']]);
 
-        $doctor = $this->doctorRepository->findOrFail($id);
+        $doctor = $this->doctorRepository->findByPublicId($id);
         $this->doctorRepository->update($doctor, ['status' => $request->input('status')]);
         $doctor->load(['user', 'specialization', 'department']);
 
@@ -132,13 +132,13 @@ class DoctorController
      * Get available slots for a doctor on a given date.
      * GET /api/doctors/{id}/slots?date=2026-07-30
      */
-    public function slots(Request $request, int $id): JsonResponse
+    public function slots(Request $request, string $id): JsonResponse
     {
         $request->validate([
             'date' => ['required', 'date_format:Y-m-d'],
         ]);
 
-        $doctor = $this->doctorRepository->findOrFail($id);
+        $doctor = $this->doctorRepository->findByPublicId($id);
 
         if (! $doctor->isPubliclyVisible()) {
             return $this->success([], 'This doctor is not currently accepting appointments.');
@@ -147,7 +147,7 @@ class DoctorController
         $date = $request->input('date');
         $dayOfWeek = (int) \Carbon\Carbon::parse($date)->format('w');
 
-        $schedule = \App\Models\DoctorSchedule::where('doctor_id', $id)
+        $schedule = \App\Models\DoctorSchedule::where('doctor_id', $doctor->id)
             ->where('day_of_week', $dayOfWeek)
             ->where('is_available', true)
             ->first();
@@ -163,7 +163,7 @@ class DoctorController
         );
 
         // Remove slots that conflict with existing appointments
-        $bookedAppointments = \App\Models\Appointment::where('doctor_id', $id)
+        $bookedAppointments = \App\Models\Appointment::where('doctor_id', $doctor->id)
             ->where('appointment_date', $date)
             ->whereIn('status', ['pending', 'confirmed', 'in_progress'])
             ->get()
@@ -177,7 +177,7 @@ class DoctorController
 
         // Enforce max_daily_appointments cap
         if ($schedule->max_daily_appointments) {
-            $todayBookings = \App\Models\Appointment::where('doctor_id', $id)
+            $todayBookings = \App\Models\Appointment::where('doctor_id', $doctor->id)
                 ->where('appointment_date', $date)
                 ->whereIn('status', ['pending', 'confirmed', 'in_progress'])
                 ->count();
@@ -193,9 +193,9 @@ class DoctorController
      * Get appointments for a doctor.
      * GET /api/doctors/{id}/appointments
      */
-    public function appointments(Request $request, int $id): JsonResponse
+    public function appointments(Request $request, string $id): JsonResponse
     {
-        $doctor = $this->doctorRepository->findOrFail($id);
+        $doctor = $this->doctorRepository->findByPublicId($id);
         $user = $request->user();
 
         if (!$user->isAdmin() && !($user->isDoctor() && $user->doctor->id === $doctor->id)) {

@@ -13,10 +13,12 @@ class PrescriptionResource extends JsonResource
             'id' => $this->id,
             'patient' => $this->whenLoaded('patient', fn () => [
                 'id' => $this->patient->id,
+                'public_id' => $this->patient->public_id,
                 'name' => $this->patient->user->name,
             ]),
             'doctor' => $this->whenLoaded('doctor', fn () => [
                 'id' => $this->doctor->id,
+                'public_id' => $this->doctor->public_id,
                 'name' => $this->doctor->user->name,
             ]),
             'appointment_id' => $this->appointment_id,

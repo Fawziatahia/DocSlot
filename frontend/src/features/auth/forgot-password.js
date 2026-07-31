@@ -31,9 +31,11 @@ export function afterForgotPassword() {
 
     try {
       const res = await api.post("/auth/forgot-password", { email: form.email.value });
-      const success = form.querySelector("[data-success-alert]");
-      success.textContent = res.message || "Check your email for a reset link.";
-      success.classList.remove("d-none");
+      const success = document.querySelector("[data-success-alert]");
+      if (success) {
+        success.textContent = res.message || "Check your email for a reset link.";
+        success.classList.remove("d-none");
+      }
       form.reset();
     } catch (err) {
       applyFormErrors(form, err);

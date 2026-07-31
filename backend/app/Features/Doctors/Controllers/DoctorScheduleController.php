@@ -3,6 +3,7 @@
 namespace App\Features\Doctors\Controllers;
 
 use App\Features\Doctors\DTOs\ScheduleData;
+use App\Features\Doctors\Repositories\DoctorRepository;
 use App\Features\Doctors\Repositories\DoctorScheduleRepository;
 use App\Features\Doctors\Requests\ScheduleRequest;
 use App\Features\Doctors\Resources\DoctorScheduleResource;
@@ -19,15 +20,17 @@ class DoctorScheduleController
         private readonly DoctorService $doctorService,
         private readonly ScheduleService $scheduleService,
         private readonly DoctorScheduleRepository $scheduleRepository,
+        private readonly DoctorRepository $doctorRepository,
     ) {}
 
     /**
      * Get a doctor's schedule.
      * GET /api/doctors/{id}/schedule
      */
-    public function show(int $doctorId): JsonResponse
+    public function show(string $doctorId): JsonResponse
     {
-        $schedules = $this->scheduleService->getDoctorSchedule($doctorId);
+        $doctor = $this->doctorRepository->findByPublicId($doctorId);
+        $schedules = $this->scheduleService->getDoctorSchedule($doctor->id);
 
         return $this->success(DoctorScheduleResource::collection($schedules));
     }
@@ -36,9 +39,10 @@ class DoctorScheduleController
      * Update a doctor's full-week schedule (full replace).
      * PUT /api/doctors/{id}/schedule
      */
-    public function update(ScheduleRequest $request, int $doctorId): JsonResponse
+    public function update(ScheduleRequest $request, string $doctorId): JsonResponse
     {
-        $scheduleData = ScheduleData::fromArray($request->validated(), $doctorId);
+        $doctor = $this->doctorRepository->findByPublicId($doctorId);
+        $scheduleData = ScheduleData::fromArray($request->validated(), $doctor->id);
         $schedules = $this->doctorService->manageSchedule($scheduleData);
 
         return $this->success(

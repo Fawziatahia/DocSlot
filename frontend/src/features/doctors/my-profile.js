@@ -1,12 +1,13 @@
-import { getMyDoctorId } from "../../lib/doctor.js";
+import { api } from "../../lib/api.js";
 import { renderDoctorDetail } from "./detail.js";
 
 export async function renderMyProfile() {
-  const doctorId = await getMyDoctorId();
+  const { data: user } = await api.get("/auth/me");
+  const doctorPublicId = user.doctor?.public_id;
 
-  if (!doctorId) {
+  if (!doctorPublicId) {
     return `<div class="alert alert-warning">We couldn't find your doctor profile.</div>`;
   }
 
-  return renderDoctorDetail({ id: doctorId });
+  return renderDoctorDetail({ id: doctorPublicId });
 }

@@ -24,6 +24,7 @@ const NAV_BY_ROLE = {
     { href: "/appointments", label: "My Appointments", icon: "bi-calendar-check" },
     { href: "/prescriptions", label: "Prescriptions", icon: "bi-capsule" },
     { href: "/medical-records", label: "Medical Records", icon: "bi-file-earmark-medical" },
+    { href: "/profile", label: "My Profile", icon: "bi-person-badge" },
   ],
 };
 

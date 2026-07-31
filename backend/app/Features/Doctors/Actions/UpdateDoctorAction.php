@@ -12,9 +12,9 @@ class UpdateDoctorAction
         private readonly DoctorRepository $doctorRepository,
     ) {}
 
-    public function execute(int $id, array $data): Doctor
+    public function execute(string $publicId, array $data): Doctor
     {
-        $doctor = $this->doctorRepository->findOrFail($id);
+        $doctor = $this->doctorRepository->findByPublicId($publicId);
 
         return $this->doctorRepository->update($doctor, $data);
     }

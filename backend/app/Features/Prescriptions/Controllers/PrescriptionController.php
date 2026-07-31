@@ -9,6 +9,7 @@ use App\Features\Prescriptions\Requests\UpdatePrescriptionRequest;
 use App\Features\Prescriptions\Resources\PrescriptionResource;
 use App\Features\Prescriptions\Services\PrescriptionService;
 use App\Features\Shared\Traits\ApiResponseTrait;
+use App\Models\Patient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -45,7 +46,8 @@ class PrescriptionController
             return $this->error('Only doctors can create prescriptions.', 403);
         }
 
-        $data = PrescriptionData::fromArray($request->validated());
+        $patient = Patient::where('public_id', $request->validated('patient_id'))->firstOrFail();
+        $data = PrescriptionData::fromArray(array_merge($request->validated(), ['patient_id' => $patient->id]));
         $prescription = $this->prescriptionService->createPrescription($data, $doctor->id);
 
         return response()->json([

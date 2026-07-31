@@ -31,9 +31,22 @@ class DoctorRepository implements RepositoryInterface
         return Doctor::with(['user', 'specialization', 'department'])->findOrFail($id, $columns);
     }
 
-    public function findWithSchedules(int $id): Model
+    /**
+     * Look up a doctor by their public-facing ID (e.g. "d7802721"), used by every
+     * route that identifies a doctor from a URL segment.
+     */
+    public function findByPublicId(string $publicId, array $columns = ['*']): Model
     {
-        return Doctor::with(['user', 'specialization', 'department', 'schedules'])->findOrFail($id);
+        return Doctor::with(['user', 'specialization', 'department'])
+            ->where('public_id', $publicId)
+            ->firstOrFail($columns);
+    }
+
+    public function findWithSchedules(string $publicId): Model
+    {
+        return Doctor::with(['user', 'specialization', 'department', 'schedules'])
+            ->where('public_id', $publicId)
+            ->firstOrFail();
     }
 
     public function create(array $data): Model

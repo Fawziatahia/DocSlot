@@ -39,7 +39,7 @@ class ReferralService
             "{$referringDoctor->user->name} referred {$patient->user->name} to you." . ($note ? " Note: {$note}" : ''),
             [
                 'referral_id' => $referral->id,
-                'patient_id' => $patient->id,
+                'patient_id' => $patient->public_id,
                 'referring_doctor_id' => $referringDoctor->id,
             ],
         );

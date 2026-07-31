@@ -12,6 +12,7 @@ use App\Features\Appointments\Resources\AppointmentDetailResource;
 use App\Features\Appointments\Resources\AppointmentResource;
 use App\Features\Appointments\Services\AppointmentService;
 use App\Features\Shared\Traits\ApiResponseTrait;
+use App\Models\Doctor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -42,7 +43,8 @@ class AppointmentController
 
     public function store(BookAppointmentRequest $request): JsonResponse
     {
-        $data = AppointmentData::fromArray($request->validated());
+        $doctor = Doctor::where('public_id', $request->validated('doctor_id'))->firstOrFail();
+        $data = AppointmentData::fromArray(array_merge($request->validated(), ['doctor_id' => $doctor->id]));
         $patient = $request->user()->patient;
 
         if (!$patient) {

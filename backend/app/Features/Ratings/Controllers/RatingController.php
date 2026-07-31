@@ -2,6 +2,7 @@
 
 namespace App\Features\Ratings\Controllers;
 
+use App\Features\Doctors\Repositories\DoctorRepository;
 use App\Features\Ratings\Repositories\RatingRepository;
 use App\Features\Ratings\Requests\StoreRatingRequest;
 use App\Features\Ratings\Resources\RatingResource;
@@ -18,6 +19,7 @@ class RatingController
     public function __construct(
         private readonly RatingRepository $ratingRepository,
         private readonly RatingService $ratingService,
+        private readonly DoctorRepository $doctorRepository,
     ) {}
 
     /**
@@ -42,10 +44,11 @@ class RatingController
      * List a doctor's ratings (public).
      * GET /api/doctors/{id}/ratings
      */
-    public function doctorRatings(Request $request, int $id): JsonResponse
+    public function doctorRatings(Request $request, string $id): JsonResponse
     {
+        $doctor = $this->doctorRepository->findByPublicId($id);
         $perPage = (int) $request->input('per_page', 15);
-        $ratings = $this->ratingRepository->getDoctorRatings($id, $perPage);
+        $ratings = $this->ratingRepository->getDoctorRatings($doctor->id, $perPage);
 
         return $this->paginated($ratings, RatingResource::class);
     }

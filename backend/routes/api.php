@@ -107,6 +107,9 @@ Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1'
     Route::put('settings', [SettingsController::class, 'update']);
 });
 
+// Public booking rules (e.g. minimum advance-booking lead time)
+Route::get('booking-settings', [SettingsController::class, 'publicBookingSettings']);
+
 // ──────────────────────────────────────────
 // Departments & Specializations
 // ──────────────────────────────────────────

@@ -43,9 +43,9 @@ class PatientController
      * Get patient details (admin, doctor, or the patient themself).
      * GET /api/patients/{id}
      */
-    public function show(int $id): JsonResponse
+    public function show(string $id): JsonResponse
     {
-        $patient = $this->patientRepository->findOrFail($id);
+        $patient = $this->patientRepository->findByPublicId($id);
 
         // Policy check
         if (!$this->policy->view($request = request()->user(), $patient)) {
@@ -59,9 +59,9 @@ class PatientController
      * Update patient.
      * PUT /api/patients/{id}
      */
-    public function update(UpdatePatientRequest $request, int $id): JsonResponse
+    public function update(UpdatePatientRequest $request, string $id): JsonResponse
     {
-        $patient = $this->patientRepository->findOrFail($id);
+        $patient = $this->patientRepository->findByPublicId($id);
 
         $this->patientRepository->update($patient, $request->validated());
 
@@ -75,9 +75,9 @@ class PatientController
      * Delete patient (admin only).
      * DELETE /api/patients/{id}
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
-        $patient = $this->patientRepository->findOrFail($id);
+        $patient = $this->patientRepository->findByPublicId($id);
 
         if (!request()->user()?->hasRole('admin')) {
             return $this->error('Forbidden.', 403);
@@ -92,7 +92,7 @@ class PatientController
      * Suspend/activate patient.
      * PATCH /api/patients/{id}/status
      */
-    public function toggleStatus(Request $request, int $id): JsonResponse
+    public function toggleStatus(Request $request, string $id): JsonResponse
     {
         $request->validate(['status' => ['required', 'string', 'in:active,suspended']]);
 
@@ -100,7 +100,7 @@ class PatientController
             return $this->error('Forbidden.', 403);
         }
 
-        $patient = $this->patientRepository->findOrFail($id);
+        $patient = $this->patientRepository->findByPublicId($id);
         $this->patientRepository->update($patient, ['status' => $request->input('status')]);
         $patient = $patient->fresh()->load('user');
 
@@ -120,9 +120,9 @@ class PatientController
      * View medical history.
      * GET /api/patients/{id}/medical-history
      */
-    public function medicalHistory(Request $request, int $id): JsonResponse
+    public function medicalHistory(Request $request, string $id): JsonResponse
     {
-        $patient = $this->patientRepository->findOrFail($id);
+        $patient = $this->patientRepository->findByPublicId($id);
         $user = $request->user();
 
         if (!$this->policy->viewMedicalHistory($user, $patient)) {
@@ -142,9 +142,9 @@ class PatientController
      * View prescriptions.
      * GET /api/patients/{id}/prescriptions
      */
-    public function prescriptions(Request $request, int $id): JsonResponse
+    public function prescriptions(Request $request, string $id): JsonResponse
     {
-        $patient = $this->patientRepository->findOrFail($id);
+        $patient = $this->patientRepository->findByPublicId($id);
         $user = $request->user();
 
         if (!$this->policy->viewPrescriptions($user, $patient)) {

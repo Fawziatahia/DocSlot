@@ -138,7 +138,7 @@ class AppointmentService
     public function rescheduleAppointment(Appointment $appointment, string $newDate, string $newStart, string $newEnd): Appointment
     {
         // Check reschedule count cap
-        $maxReschedule = (int) config('app.max_reschedule_count', 2);
+        $maxReschedule = \App\Models\Setting::current()->max_reschedule_count;
         if ($appointment->reschedule_count >= $maxReschedule) {
             throw new \App\Features\Shared\Exceptions\ApiException('Maximum reschedule limit reached.', 409);
         }

@@ -14,7 +14,7 @@ class StorePrescriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'patient_id' => ['required', 'integer', 'exists:patients,id'],
+            'patient_id' => ['required', 'string', 'exists:patients,public_id'],
             'appointment_id' => ['nullable', 'integer', 'exists:appointments,id'],
             'diagnosis' => ['required', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:5000'],
