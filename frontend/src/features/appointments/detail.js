@@ -4,6 +4,7 @@ import { formatDate, formatTime, slotDurationMinutes, statusBadgeClass } from ".
 import { renderStarInput, bindStarInput } from "../../components/star-rating.js";
 import { createDatePicker } from "../../components/date-picker.js";
 import { setSubmitting } from "../../lib/forms.js";
+import { refreshUnreadCount } from "../../lib/notifications.js";
 
 function addDays(date, days) {
   const d = new Date(date);
@@ -129,6 +130,7 @@ export function afterAppointmentDetail({ id }) {
       button.disabled = true;
       try {
         await api.post(`/appointments/${id}/${action}`, payload);
+        if (action === "cancel") refreshUnreadCount();
         navigate(`/appointments/${id}`, true);
       } catch (err) {
         showError(err);
@@ -201,6 +203,7 @@ export function afterAppointmentDetail({ id }) {
         start_time: rescheduleSlot.start,
         end_time: rescheduleSlot.end,
       });
+      refreshUnreadCount();
       navigate(`/appointments/${id}`, true);
     } catch (err) {
       showError(err);

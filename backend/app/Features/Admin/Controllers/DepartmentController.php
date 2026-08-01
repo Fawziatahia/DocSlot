@@ -7,12 +7,13 @@ use App\Features\Admin\Requests\StoreDepartmentRequest;
 use App\Features\Admin\Requests\UpdateDepartmentRequest;
 use App\Features\Admin\Resources\DepartmentResource;
 use App\Features\Shared\Traits\ApiResponseTrait;
+use App\Features\Shared\Traits\AuditableTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DepartmentController
 {
-    use ApiResponseTrait;
+    use ApiResponseTrait, AuditableTrait;
 
     public function index(Request $request): JsonResponse
     {
@@ -36,6 +37,7 @@ class DepartmentController
     public function store(StoreDepartmentRequest $request): JsonResponse
     {
         $department = Department::create($request->validated());
+        $this->audit('created', 'Department', $department->id, null, $department->toArray());
         return response()->json([
             'success' => true,
             'data' => new DepartmentResource($department),
@@ -46,13 +48,16 @@ class DepartmentController
     public function update(UpdateDepartmentRequest $request, int $id): JsonResponse
     {
         $department = Department::findOrFail($id);
+        $oldValues = $department->getOriginal();
         $department->update($request->validated());
+        $this->audit('updated', 'Department', $department->id, $oldValues, $department->fresh()->toArray());
         return $this->success(new DepartmentResource($department->fresh()), 'Department updated successfully.');
     }
 
     public function destroy(int $id): JsonResponse
     {
         $department = Department::findOrFail($id);
+        $this->audit('deleted', 'Department', $department->id, $department->toArray(), null);
         $department->delete();
         return $this->noContent();
     }
@@ -60,7 +65,9 @@ class DepartmentController
     public function toggleStatus(int $id): JsonResponse
     {
         $department = Department::findOrFail($id);
+        $oldValues = $department->getOriginal();
         $department->update(['is_active' => !$department->is_active]);
+        $this->audit('updated', 'Department', $department->id, $oldValues, $department->fresh()->toArray());
         return $this->success(new DepartmentResource($department->fresh()), 'Department status updated.');
     }
 }

@@ -17,6 +17,7 @@ const NAV_BY_ROLE = {
     { href: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { href: "/appointments", label: "Appointments", icon: "bi-calendar-check" },
     { href: "/prescriptions", label: "Prescriptions", icon: "bi-capsule" },
+    { href: "/referrals", label: "Referrals", icon: "bi-send" },
     { href: "/profile", label: "My Profile", icon: "bi-person-badge" },
   ],
   patient: [

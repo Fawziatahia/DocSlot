@@ -4,13 +4,14 @@ namespace App\Features\Admin\Controllers;
 
 use App\Features\Admin\Resources\UserListResource;
 use App\Features\Shared\Traits\ApiResponseTrait;
+use App\Features\Shared\Traits\AuditableTrait;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UserManagementController
 {
-    use ApiResponseTrait;
+    use ApiResponseTrait, AuditableTrait;
 
     public function index(Request $request): JsonResponse
     {
@@ -37,11 +38,14 @@ class UserManagementController
     public function toggleStatus(int $id): JsonResponse
     {
         $user = User::findOrFail($id);
+        $wasActive = $user->is_active;
         $user->update(['is_active' => !$user->is_active]);
 
         if (! $user->is_active) {
             $user->tokens()->delete();
         }
+
+        $this->audit('updated', 'User', $user->id, ['is_active' => $wasActive], ['is_active' => $user->is_active]);
 
         return $this->success(new UserListResource($user->fresh()), 'User status updated.');
     }
@@ -52,6 +56,7 @@ class UserManagementController
         if ($user->hasRole('admin')) {
             return $this->error('Cannot delete admin users.', 403);
         }
+        $this->audit('deleted', 'User', $user->id, $user->toArray(), null);
         $user->delete();
         return $this->noContent();
     }

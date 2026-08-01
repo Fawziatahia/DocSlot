@@ -8,6 +8,11 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class AppointmentRepository
 {
+    /**
+     * Statuses that occupy a slot / count against the daily cap.
+     */
+    private const ACTIVE_STATUSES = ['pending', 'confirmed', 'in_progress'];
+
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         return Appointment::with(['patient.user', 'doctor.user'])->latest()->paginate($perPage);
@@ -36,18 +41,34 @@ class AppointmentRepository
     {
         return Appointment::where('doctor_id', $doctorId)
             ->where('appointment_date', $date)
-            ->whereIn('status', ['pending', 'confirmed', 'in_progress'])
+            ->whereIn('status', self::ACTIVE_STATUSES)
             ->get();
     }
 
     /**
-     * Count doctor's confirmed bookings for a given date (for max_daily_appointments cap).
+     * Lock the doctor's active bookings for a date for the duration of the
+     * current transaction, so concurrent booking attempts for the same date
+     * serialize instead of racing past the overlap/cap checks together.
+     *
+     * Must be called inside a DB::transaction().
+     */
+    public function lockDoctorBookings(int $doctorId, string $date): Collection
+    {
+        return Appointment::where('doctor_id', $doctorId)
+            ->where('appointment_date', $date)
+            ->whereIn('status', self::ACTIVE_STATUSES)
+            ->lockForUpdate()
+            ->get();
+    }
+
+    /**
+     * Count doctor's active bookings for a given date (for max_daily_appointments cap).
      */
     public function countDoctorBookings(int $doctorId, string $date): int
     {
         return Appointment::where('doctor_id', $doctorId)
             ->where('appointment_date', $date)
-            ->whereIn('status', ['confirmed', 'in_progress'])
+            ->whereIn('status', self::ACTIVE_STATUSES)
             ->count();
     }
 

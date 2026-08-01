@@ -708,8 +708,63 @@ body {
 }
 
 .topbar-icon-btn {
+  position: relative;
   font-size: 1.15rem;
   text-decoration: none;
+  background: none;
+  border: none;
+  color: var(--docslot-primary);
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.35rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.28rem;
+  border-radius: 999px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.05rem;
+  text-align: center;
+}
+
+.notification-dropdown {
+  width: 320px;
+  padding: 0;
+}
+
+.notification-dropdown-list {
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+.notification-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  background: none;
+  cursor: pointer;
+}
+
+.notification-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.notification-dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.notification-dropdown-item.unread {
+  background: rgba(37, 99, 235, 0.06);
 }
 
 .topbar-avatar {
