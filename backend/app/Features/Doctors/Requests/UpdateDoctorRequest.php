@@ -6,24 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateDoctorRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = $this->user();
-
-        // Admin can update any doctor; a doctor can update only their own profile
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        if ($user->hasRole('doctor')) {
-            $doctor = \App\Models\Doctor::where('user_id', $user->id)->firstOrFail();
-
-            return $this->route('id') === $doctor->public_id;
-        }
-
-        return false;
-    }
-
     public function rules(): array
     {
         return [

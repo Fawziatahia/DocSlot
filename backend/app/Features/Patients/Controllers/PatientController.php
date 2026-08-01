@@ -4,25 +4,23 @@ namespace App\Features\Patients\Controllers;
 
 use App\Features\MedicalRecords\Repositories\MedicalRecordRepository;
 use App\Features\MedicalRecords\Resources\MedicalRecordResource;
-use App\Features\Patients\Policies\PatientPolicy;
 use App\Features\Patients\Repositories\PatientRepository;
-use App\Features\Patients\Requests\StorePatientRequest;
 use App\Features\Patients\Requests\UpdatePatientRequest;
 use App\Features\Patients\Resources\PatientDetailResource;
-use App\Features\Patients\Resources\PatientResource;
 use App\Features\Prescriptions\Repositories\PrescriptionRepository;
 use App\Features\Prescriptions\Resources\PrescriptionResource;
 use App\Features\Shared\Traits\ApiResponseTrait;
+use App\Models\Patient;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PatientController
 {
-    use ApiResponseTrait;
+    use ApiResponseTrait, AuthorizesRequests;
 
     public function __construct(
         private readonly PatientRepository $patientRepository,
-        private readonly PatientPolicy $policy,
         private readonly MedicalRecordRepository $medicalRecordRepository,
         private readonly PrescriptionRepository $prescriptionRepository,
     ) {}
@@ -36,7 +34,7 @@ class PatientController
         $perPage = (int) $request->input('per_page', 15);
         $patients = $this->patientRepository->paginate($perPage);
 
-        return $this->paginated($patients, PatientResource::class);
+        return $this->paginated($patients, PatientDetailResource::class);
     }
 
     /**
@@ -46,13 +44,9 @@ class PatientController
     public function show(string $id): JsonResponse
     {
         $patient = $this->patientRepository->findByPublicId($id);
+        $this->authorize('view', $patient);
 
-        // Policy check
-        if (!$this->policy->view($request = request()->user(), $patient)) {
-            return $this->error('Forbidden.', 403);
-        }
-
-        return $this->success(new PatientDetailResource($patient));
+        return $this->success((new PatientDetailResource($patient))->detailed());
     }
 
     /**
@@ -62,11 +56,12 @@ class PatientController
     public function update(UpdatePatientRequest $request, string $id): JsonResponse
     {
         $patient = $this->patientRepository->findByPublicId($id);
+        $this->authorize('update', $patient);
 
         $this->patientRepository->update($patient, $request->validated());
 
         return $this->success(
-            new PatientDetailResource($patient->fresh()->load('user')),
+            (new PatientDetailResource($patient->fresh()->load('user')))->detailed(),
             'Patient updated successfully.'
         );
     }
@@ -78,10 +73,7 @@ class PatientController
     public function destroy(string $id): JsonResponse
     {
         $patient = $this->patientRepository->findByPublicId($id);
-
-        if (!request()->user()?->hasRole('admin')) {
-            return $this->error('Forbidden.', 403);
-        }
+        $this->authorize('delete', $patient);
 
         $this->patientRepository->delete($patient);
 
@@ -95,10 +87,7 @@ class PatientController
     public function toggleStatus(Request $request, string $id): JsonResponse
     {
         $request->validate(['status' => ['required', 'string', 'in:active,suspended']]);
-
-        if (!$request->user()?->hasRole('admin')) {
-            return $this->error('Forbidden.', 403);
-        }
+        $this->authorize('toggleStatus', Patient::class);
 
         $patient = $this->patientRepository->findByPublicId($id);
         $this->patientRepository->update($patient, ['status' => $request->input('status')]);
@@ -111,7 +100,7 @@ class PatientController
         }
 
         return $this->success(
-            new PatientDetailResource($patient),
+            (new PatientDetailResource($patient))->detailed(),
             'Patient status updated successfully.'
         );
     }
@@ -123,11 +112,7 @@ class PatientController
     public function medicalHistory(Request $request, string $id): JsonResponse
     {
         $patient = $this->patientRepository->findByPublicId($id);
-        $user = $request->user();
-
-        if (!$this->policy->viewMedicalHistory($user, $patient)) {
-            return $this->error('Forbidden.', 403);
-        }
+        $this->authorize('viewMedicalHistory', $patient);
 
         $records = $this->medicalRecordRepository->getPatientRecords(
             $patient->id,
@@ -145,11 +130,7 @@ class PatientController
     public function prescriptions(Request $request, string $id): JsonResponse
     {
         $patient = $this->patientRepository->findByPublicId($id);
-        $user = $request->user();
-
-        if (!$this->policy->viewPrescriptions($user, $patient)) {
-            return $this->error('Forbidden.', 403);
-        }
+        $this->authorize('viewPrescriptions', $patient);
 
         $prescriptions = $this->prescriptionRepository->getPatientPrescriptions(
             $patient->id,

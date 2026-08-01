@@ -1,6 +1,7 @@
 import { api, hasRole } from "../../lib/api.js";
 import { renderPrescriptionsTable } from "../../components/prescription-table.js";
 import { renderPagination } from "../../components/pagination.js";
+import { pageHrefBuilder } from "../../components/data-table.js";
 
 export async function renderPrescriptionsList() {
   const search = new URLSearchParams(window.location.search);
@@ -22,11 +23,7 @@ export async function renderPrescriptionsList() {
     </div>
     <div class="section-card">
       ${renderPrescriptionsTable(prescriptions, { showPatient: !isPatient, showDoctor: isPatient })}
-      ${renderPagination(meta, (p) => {
-        const params = new URLSearchParams(window.location.search);
-        params.set("page", p);
-        return `/prescriptions?${params.toString()}`;
-      })}
+      ${renderPagination(meta, pageHrefBuilder("/prescriptions"))}
     </div>
   `;
 }

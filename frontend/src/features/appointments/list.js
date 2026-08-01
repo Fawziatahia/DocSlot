@@ -1,7 +1,8 @@
 import { api, hasRole } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { formatDate, formatTime, statusBadgeClass } from "../../lib/format.js";
-import { renderPagination } from "../../components/pagination.js";
+import { renderDataTable, pageHrefBuilder } from "../../components/data-table.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 const STATUS_TABS = ["", "pending", "confirmed", "in_progress", "completed", "cancelled"];
 
@@ -47,14 +48,14 @@ export async function renderAppointmentsList() {
             <tr>
               <td>${
                 isPatientView
-                  ? a.doctor?.name || ""
+                  ? escapeHtml(a.doctor?.name)
                   : a.patient?.public_id
-                    ? `<a href="/patients/${a.patient.public_id}" data-link>${a.patient.name}</a>`
+                    ? `<a href="/patients/${a.patient.public_id}" data-link>${escapeHtml(a.patient.name)}</a>`
                     : ""
               }</td>
               <td>${formatDate(a.appointment_date)}</td>
               <td>${formatTime(a.start_time)} – ${formatTime(a.end_time)}</td>
-              <td><span class="badge ${statusBadgeClass(a.status)}">${a.status.replace("_", " ")}</span></td>
+              <td><span class="badge ${statusBadgeClass(a.status)}">${escapeHtml(a.status.replace("_", " "))}</span></td>
               <td class="d-flex gap-1 flex-wrap">${actions.join("")}</td>
             </tr>
           `;
@@ -72,28 +73,13 @@ export async function renderAppointmentsList() {
       ${bookButton}
     </div>
     <ul class="nav nav-pills mb-3 flex-wrap">${tabs}</ul>
-    <div class="section-card">
-      <div class="alert alert-danger d-none" data-list-alert role="alert"></div>
-      <div class="table-responsive">
-        <table class="table align-middle">
-          <thead>
-            <tr>
-              <th>${isPatientView ? "Doctor" : "Patient"}</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="appointments-body">${rows}</tbody>
-        </table>
-      </div>
-      ${renderPagination(meta, (p) => {
-        const params = new URLSearchParams(window.location.search);
-        params.set("page", p);
-        return `${window.location.pathname}?${params.toString()}`;
-      })}
-    </div>
+    ${renderDataTable({
+      headers: [isPatientView ? "Doctor" : "Patient", "Date", "Time", "Status", "Actions"],
+      body: rows,
+      tbodyId: "appointments-body",
+      meta,
+      pageHref: pageHrefBuilder(window.location.pathname),
+    })}
   `;
 }
 

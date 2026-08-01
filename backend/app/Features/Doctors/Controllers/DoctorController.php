@@ -12,16 +12,17 @@ use App\Features\Doctors\Repositories\DoctorRepository;
 use App\Features\Doctors\Requests\StoreDoctorRequest;
 use App\Features\Doctors\Requests\UpdateDoctorRequest;
 use App\Features\Doctors\Resources\DoctorDetailResource;
-use App\Features\Doctors\Resources\DoctorResource;
 use App\Features\Doctors\Services\DoctorService;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use App\Models\Doctor;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class DoctorController
 {
-    use ApiResponseTrait;
+    use ApiResponseTrait, AuthorizesRequests;
 
     public function __construct(
         private readonly DoctorRepository $doctorRepository,
@@ -43,7 +44,7 @@ class DoctorController
 
         $doctors = $this->doctorService->searchDoctors($filters, $perPage);
 
-        return $this->paginated($doctors, DoctorResource::class);
+        return $this->paginated($doctors, DoctorDetailResource::class);
     }
 
     /**
@@ -55,13 +56,13 @@ class DoctorController
         $doctor = $this->doctorRepository->findWithSchedules($id);
 
         $user = $request->user('sanctum');
-        $isOwnerOrAdmin = $user && ($user->isAdmin() || ($user->isDoctor() && $user->doctor?->id === $doctor->id));
+        $isOwnerOrAdmin = $user && Gate::forUser($user)->allows('view', $doctor);
 
         if (! $doctor->isPubliclyVisible() && ! $isOwnerOrAdmin) {
             return $this->error('Doctor not found.', 404);
         }
 
-        return $this->success(new DoctorDetailResource($doctor));
+        return $this->success((new DoctorDetailResource($doctor))->detailed());
     }
 
     /**
@@ -77,7 +78,7 @@ class DoctorController
 
         return response()->json([
             'success' => true,
-            'data' => new DoctorResource($doctor),
+            'data' => new DoctorDetailResource($doctor),
             'message' => 'Doctor created successfully.',
         ], 201);
     }
@@ -88,10 +89,12 @@ class DoctorController
      */
     public function update(UpdateDoctorRequest $request, string $id): JsonResponse
     {
+        $this->authorize('update', $this->doctorRepository->findByPublicId($id));
+
         $doctor = $this->updateDoctorAction->execute($id, $request->validated());
         $doctor->load(['user', 'specialization', 'department']);
 
-        return $this->success(new DoctorResource($doctor), 'Doctor updated successfully.');
+        return $this->success(new DoctorDetailResource($doctor), 'Doctor updated successfully.');
     }
 
     /**
@@ -125,7 +128,7 @@ class DoctorController
         }
 
         return $this->success(
-            new DoctorResource($doctor),
+            new DoctorDetailResource($doctor),
             'Doctor status updated successfully.'
         );
     }
@@ -158,11 +161,7 @@ class DoctorController
     public function appointments(Request $request, string $id): JsonResponse
     {
         $doctor = $this->doctorRepository->findByPublicId($id);
-        $user = $request->user();
-
-        if (!$user->isAdmin() && !($user->isDoctor() && $user->doctor->id === $doctor->id)) {
-            return $this->error('Forbidden.', 403);
-        }
+        $this->authorize('viewAppointments', $doctor);
 
         $perPage = (int) $request->input('per_page', 15);
         $appointments = $this->appointmentRepository->getDoctorAppointments(

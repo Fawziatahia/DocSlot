@@ -51,13 +51,6 @@ class DoctorService
         });
     }
 
-    public function updateDoctor(int $id, array $data): Doctor
-    {
-        $doctor = $this->doctorRepository->findOrFail($id);
-
-        return $this->doctorRepository->update($doctor, $data);
-    }
-
     public function manageSchedule(ScheduleData $data): Collection
     {
         return $this->scheduleRepository->replaceWeekSchedule($data->doctorId, $data->days);

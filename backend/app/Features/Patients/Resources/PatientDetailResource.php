@@ -7,6 +7,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PatientDetailResource extends JsonResource
 {
+    protected bool $detailed = false;
+
+    public function detailed(bool $detailed = true): static
+    {
+        $this->detailed = $detailed;
+
+        return $this;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -24,13 +33,13 @@ class PatientDetailResource extends JsonResource
             ],
             'date_of_birth' => $this->date_of_birth?->format('Y-m-d'),
             'gender' => $this->gender,
-            'address' => $this->address,
+            'address' => $this->when($this->detailed, $this->address),
             'blood_group' => $this->blood_group,
-            'emergency_contact' => $this->emergency_contact,
-            'emergency_contact_name' => $this->emergency_contact_name,
+            'emergency_contact' => $this->when($this->detailed, $this->emergency_contact),
+            'emergency_contact_name' => $this->when($this->detailed, $this->emergency_contact_name),
             'status' => $this->status,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'updated_at' => $this->when($this->detailed, $this->updated_at),
         ];
     }
 }

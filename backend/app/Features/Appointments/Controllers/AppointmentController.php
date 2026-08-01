@@ -13,12 +13,13 @@ use App\Features\Appointments\Resources\AppointmentResource;
 use App\Features\Appointments\Services\AppointmentService;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use App\Models\Doctor;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AppointmentController
 {
-    use ApiResponseTrait;
+    use ApiResponseTrait, AuthorizesRequests;
 
     public function __construct(
         private readonly AppointmentRepository $appointmentRepository,
@@ -33,10 +34,10 @@ class AppointmentController
         return $this->paginated($appointments, AppointmentResource::class);
     }
 
-    public function show(Request $request, int $id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
-        $this->authorizeAction($request->user(), $appointment);
+        $this->authorize('view', $appointment);
 
         return $this->success(new AppointmentDetailResource($appointment));
     }
@@ -64,7 +65,7 @@ class AppointmentController
     public function cancel(CancelAppointmentRequest $request, int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
-        $this->authorizeAction($request->user(), $appointment);
+        $this->authorize('view', $appointment);
 
         $appointment = $this->appointmentService->cancelAppointment(
             $appointment,
@@ -77,10 +78,10 @@ class AppointmentController
         );
     }
 
-    public function confirm(Request $request, int $id): JsonResponse
+    public function confirm(int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
-        $this->authorizeDoctorAction($request->user(), $appointment);
+        $this->authorize('actAsDoctor', $appointment);
         $appointment = $this->appointmentService->confirmAppointment($appointment);
 
         return $this->success(
@@ -89,10 +90,10 @@ class AppointmentController
         );
     }
 
-    public function complete(Request $request, int $id): JsonResponse
+    public function complete(int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
-        $this->authorizeDoctorAction($request->user(), $appointment);
+        $this->authorize('actAsDoctor', $appointment);
         $appointment = $this->appointmentService->completeAppointment($appointment);
 
         return $this->success(
@@ -104,7 +105,7 @@ class AppointmentController
     public function reschedule(RescheduleAppointmentRequest $request, int $id): JsonResponse
     {
         $appointment = $this->appointmentRepository->findOrFail($id);
-        $this->authorizeAction($request->user(), $appointment);
+        $this->authorize('view', $appointment);
         $data = RescheduleData::fromArray($request->validated());
 
         $appointment = $this->appointmentService->rescheduleAppointment(
@@ -141,26 +142,5 @@ class AppointmentController
         }
 
         return $this->paginated($appointments, AppointmentResource::class);
-    }
-
-    private function authorizeAction($user, $appointment): void
-    {
-        $isDoctor = $user->isDoctor() && $user->doctor->id === $appointment->doctor_id;
-        $isPatient = $user->isPatient() && $user->patient->id === $appointment->patient_id;
-        $isAdmin = $user->isAdmin();
-
-        if (!$isDoctor && !$isPatient && !$isAdmin) {
-            abort(403, 'This action is not allowed.');
-        }
-    }
-
-    private function authorizeDoctorAction($user, $appointment): void
-    {
-        $isDoctor = $user->isDoctor() && $user->doctor->id === $appointment->doctor_id;
-        $isAdmin = $user->isAdmin();
-
-        if (!$isDoctor && !$isAdmin) {
-            abort(403, 'This action is not allowed.');
-        }
     }
 }
