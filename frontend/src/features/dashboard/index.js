@@ -1,4 +1,5 @@
 import { getUser } from "../../lib/api.js";
+import { escapeHtml } from "../../lib/escape.js";
 import { renderAdminDashboard } from "./admin.js";
 import { renderDoctorDashboard } from "./doctor.js";
 import { renderPatientDashboard } from "./patient.js";
@@ -11,7 +12,7 @@ const RENDERERS = {
 
 export async function renderDashboard() {
   const user = getUser();
-  const heading = `<h2 class="h4 mb-4">Welcome back, ${user?.name || ""}</h2>`;
+  const heading = `<h2 class="h4 mb-4">Welcome back, ${escapeHtml(user?.name)}</h2>`;
   const renderer = RENDERERS[user?.role];
 
   if (!renderer) {
@@ -21,6 +22,6 @@ export async function renderDashboard() {
   try {
     return `${heading}${await renderer()}`;
   } catch (err) {
-    return `${heading}<div class="alert alert-danger">${err.message || "Couldn't load your dashboard stats."}</div>`;
+    return `${heading}<div class="alert alert-danger">${escapeHtml(err.message || "Couldn't load your dashboard stats.")}</div>`;
   }
 }

@@ -4,6 +4,7 @@ import { formatDate, formatTime, slotDurationMinutes, statusBadgeClass } from ".
 import { renderStarInput, bindStarInput } from "../../components/star-rating.js";
 import { createDatePicker } from "../../components/date-picker.js";
 import { setSubmitting } from "../../lib/forms.js";
+import { escapeHtml } from "../../lib/escape.js";
 import { refreshUnreadCount } from "../../lib/notifications.js";
 
 function addDays(date, days) {
@@ -32,19 +33,19 @@ export async function renderAppointmentDetail({ id }) {
           <dt class="col-4">${isPatientView ? "Doctor" : "Patient"}</dt>
           <dd class="col-8">${
             isPatientView
-              ? a.doctor?.name
-              : `<a href="/patients/${a.patient.public_id}" data-link>${a.patient.name}</a>`
+              ? escapeHtml(a.doctor?.name)
+              : `<a href="/patients/${a.patient.public_id}" data-link>${escapeHtml(a.patient.name)}</a>`
           }</dd>
-          ${!isPatientView ? `<dt class="col-4">Doctor</dt><dd class="col-8">${a.doctor?.name} ${a.doctor?.specialization ? `(${a.doctor.specialization})` : ""}</dd>` : ""}
+          ${!isPatientView ? `<dt class="col-4">Doctor</dt><dd class="col-8">${escapeHtml(a.doctor?.name)} ${a.doctor?.specialization ? `(${escapeHtml(a.doctor.specialization)})` : ""}</dd>` : ""}
           <dt class="col-4">Date</dt>
           <dd class="col-8">${formatDate(a.appointment_date)}</dd>
           <dt class="col-4">Time</dt>
           <dd class="col-8">${formatTime(a.start_time)} – ${formatTime(a.end_time)}</dd>
           <dt class="col-4">Status</dt>
-          <dd class="col-8"><span class="badge ${statusBadgeClass(a.status)}">${a.status.replace("_", " ")}</span></dd>
+          <dd class="col-8"><span class="badge ${statusBadgeClass(a.status)}">${escapeHtml(a.status.replace("_", " "))}</span></dd>
           <dt class="col-4">Reason</dt>
-          <dd class="col-8">${a.reason || "—"}</dd>
-          ${a.cancellation_reason ? `<dt class="col-4">Cancellation reason</dt><dd class="col-8">${a.cancellation_reason}</dd>` : ""}
+          <dd class="col-8">${escapeHtml(a.reason || "—")}</dd>
+          ${a.cancellation_reason ? `<dt class="col-4">Cancellation reason</dt><dd class="col-8">${escapeHtml(a.cancellation_reason)}</dd>` : ""}
           <dt class="col-4">Rescheduled</dt>
           <dd class="col-8">${a.reschedule_count || 0} time(s)</dd>
         </dl>

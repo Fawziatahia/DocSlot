@@ -1,6 +1,7 @@
 import { api, getUser, hasRole } from "../../lib/api.js";
 import { formatDate, statusBadgeClass } from "../../lib/format.js";
 import { setSubmitting } from "../../lib/forms.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 export async function renderPatientDetail({ id }) {
   const { data: patient } = await api.get(`/patients/${id}`);
@@ -14,23 +15,23 @@ export async function renderPatientDetail({ id }) {
     const { data: doctors } = await api.get("/doctors", { per_page: 100 });
     doctorOptions = doctors
       .filter((d) => d.user.email !== user.email)
-      .map((d) => `<option value="${d.public_id}">${d.user.name} — ${d.specialization?.name || ""}</option>`)
+      .map((d) => `<option value="${d.public_id}">${escapeHtml(d.user.name)} — ${escapeHtml(d.specialization?.name)}</option>`)
       .join("");
   }
 
   return `
-    <h2 class="h4 mb-3">${patient.user.name}</h2>
+    <h2 class="h4 mb-3">${escapeHtml(patient.user.name)}</h2>
     <div class="section-card mb-3">
       <dl class="row mb-0">
-        ${patient.public_id ? `<dt class="col-4">Patient ID</dt><dd class="col-8"><code>${patient.public_id}</code></dd>` : ""}
-        <dt class="col-4">Email</dt><dd class="col-8">${patient.user.email}</dd>
-        <dt class="col-4">Phone</dt><dd class="col-8">${patient.user.phone || "—"}</dd>
+        ${patient.public_id ? `<dt class="col-4">Patient ID</dt><dd class="col-8"><code>${escapeHtml(patient.public_id)}</code></dd>` : ""}
+        <dt class="col-4">Email</dt><dd class="col-8">${escapeHtml(patient.user.email)}</dd>
+        <dt class="col-4">Phone</dt><dd class="col-8">${escapeHtml(patient.user.phone || "—")}</dd>
         <dt class="col-4">Date of birth</dt><dd class="col-8">${formatDate(patient.date_of_birth) || "—"}</dd>
-        <dt class="col-4">Gender</dt><dd class="col-8">${patient.gender || "—"}</dd>
-        <dt class="col-4">Blood group</dt><dd class="col-8">${patient.blood_group || "—"}</dd>
-        <dt class="col-4">Address</dt><dd class="col-8">${patient.address || "—"}</dd>
-        <dt class="col-4">Emergency contact</dt><dd class="col-8">${patient.emergency_contact_name ? `${patient.emergency_contact_name} (${patient.emergency_contact || "—"})` : "—"}</dd>
-        <dt class="col-4">Status</dt><dd class="col-8"><span class="badge ${statusBadgeClass(patient.status)}">${patient.status}</span></dd>
+        <dt class="col-4">Gender</dt><dd class="col-8">${escapeHtml(patient.gender || "—")}</dd>
+        <dt class="col-4">Blood group</dt><dd class="col-8">${escapeHtml(patient.blood_group || "—")}</dd>
+        <dt class="col-4">Address</dt><dd class="col-8">${escapeHtml(patient.address || "—")}</dd>
+        <dt class="col-4">Emergency contact</dt><dd class="col-8">${patient.emergency_contact_name ? `${escapeHtml(patient.emergency_contact_name)} (${escapeHtml(patient.emergency_contact || "—")})` : "—"}</dd>
+        <dt class="col-4">Status</dt><dd class="col-8"><span class="badge ${statusBadgeClass(patient.status)}">${escapeHtml(patient.status)}</span></dd>
       </dl>
       <div class="d-flex flex-wrap gap-2 mt-3">
         ${canManage ? `<a href="/patients/${patient.public_id}/edit" data-link class="btn btn-outline-secondary">Edit</a>` : ""}

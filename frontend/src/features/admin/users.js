@@ -2,6 +2,7 @@ import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { formatDate } from "../../lib/format.js";
 import { renderPagination } from "../../components/pagination.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 const ROLES = ["", "admin", "doctor", "patient"];
 
@@ -24,9 +25,9 @@ export async function renderUsersList() {
         .map(
           (u) => `
         <tr>
-          <td>${u.name}</td>
-          <td>${u.email}</td>
-          <td>${(u.roles || []).map((r) => `<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">${r}</span>`).join("")}</td>
+          <td>${escapeHtml(u.name)}</td>
+          <td>${escapeHtml(u.email)}</td>
+          <td>${(u.roles || []).map((r) => `<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">${escapeHtml(r)}</span>`).join("")}</td>
           <td><span class="badge ${u.is_active ? "bg-success-subtle text-success-emphasis" : "bg-danger-subtle text-danger-emphasis"}">${u.is_active ? "Active" : "Inactive"}</span></td>
           <td>${u.last_login_at ? formatDate(u.last_login_at) : "Never"}</td>
           <td class="d-flex gap-1 flex-wrap">
@@ -45,7 +46,7 @@ export async function renderUsersList() {
       <div class="alert alert-danger d-none" data-list-alert role="alert"></div>
       <form id="user-filters" class="row g-2 mb-3">
         <div class="col-sm-6 col-md-4">
-          <input type="text" class="form-control" name="q" placeholder="Search name or email..." value="${q}" />
+          <input type="text" class="form-control" name="q" placeholder="Search name or email..." value="${escapeHtml(q)}" />
         </div>
         <div class="col-sm-4 col-md-3">
           <select class="form-select" name="role">${roleOptions}</select>

@@ -3,6 +3,7 @@ import { navigate } from "../../lib/router.js";
 import { formatCurrency, formatDate, formatTime, slotDurationMinutes } from "../../lib/format.js";
 import { setSubmitting } from "../../lib/forms.js";
 import { createDatePicker } from "../../components/date-picker.js";
+import { escapeHtml } from "../../lib/escape.js";
 import { refreshUnreadCount } from "../../lib/notifications.js";
 
 function addDays(date, days) {
@@ -22,10 +23,10 @@ export async function renderBookAppointment({ doctorId }) {
     <div class="container py-4" style="max-width: 40rem;">
       <div class="section-card mb-3 py-3">
         <div class="d-flex align-items-center gap-2">
-          <span class="doctor-avatar">${doctor.user.name.charAt(0).toUpperCase()}</span>
+          <span class="doctor-avatar">${escapeHtml(doctor.user.name.charAt(0).toUpperCase())}</span>
           <div>
-            <h1 class="h5 mb-0">${doctor.user.name}</h1>
-            <p class="text-muted small mb-0">${doctor.specialization?.name || ""} &middot; ${formatCurrency(doctor.consultation_fee)} per consultation</p>
+            <h1 class="h5 mb-0">${escapeHtml(doctor.user.name)}</h1>
+            <p class="text-muted small mb-0">${escapeHtml(doctor.specialization?.name)} &middot; ${formatCurrency(doctor.consultation_fee)} per consultation</p>
           </div>
         </div>
       </div>

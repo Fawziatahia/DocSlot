@@ -1,4 +1,5 @@
 import { getUser } from "../lib/api.js";
+import { escapeHtml } from "../lib/escape.js";
 import { getCachedUnreadCount } from "../lib/notifications.js";
 
 export function renderTopbar(title = "") {
@@ -31,8 +32,8 @@ export function renderTopbar(title = "") {
         </div>
         <div class="dropdown">
           <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
-            <span class="topbar-avatar">${(user?.name || "?").charAt(0).toUpperCase()}</span>
-            <span class="d-none d-sm-inline">${user?.name || ""}</span>
+            <span class="topbar-avatar">${escapeHtml((user?.name || "?").charAt(0).toUpperCase())}</span>
+            <span class="d-none d-sm-inline">${escapeHtml(user?.name)}</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="/profile" data-link>My Profile</a></li>
