@@ -4,6 +4,7 @@ namespace App\Features\Doctors\Controllers;
 
 use App\Features\Appointments\Repositories\AppointmentRepository;
 use App\Features\Appointments\Resources\AppointmentResource;
+use App\Features\Appointments\Services\SlotService;
 use App\Features\Doctors\Actions\CreateDoctorAction;
 use App\Features\Doctors\Actions\UpdateDoctorAction;
 use App\Features\Doctors\DTOs\DoctorData;
@@ -28,6 +29,7 @@ class DoctorController
         private readonly CreateDoctorAction $createDoctorAction,
         private readonly UpdateDoctorAction $updateDoctorAction,
         private readonly AppointmentRepository $appointmentRepository,
+        private readonly SlotService $slotService,
     ) {}
 
     /**
@@ -144,49 +146,9 @@ class DoctorController
             return $this->success([], 'This doctor is not currently accepting appointments.');
         }
 
-        $date = $request->input('date');
-        $dayOfWeek = (int) \Carbon\Carbon::parse($date)->format('w');
+        $slots = $this->slotService->availableSlots($doctor, $request->input('date'));
 
-        $schedule = \App\Models\DoctorSchedule::where('doctor_id', $doctor->id)
-            ->where('day_of_week', $dayOfWeek)
-            ->where('is_available', true)
-            ->first();
-
-        if (!$schedule) {
-            return $this->success([], 'No availability for this date.');
-        }
-
-        $slots = \App\Features\Shared\Helpers\SlotHelper::generateSlots(
-            $schedule->start_time,
-            $schedule->end_time,
-            $schedule->slot_duration
-        );
-
-        // Remove slots that conflict with existing appointments
-        $bookedAppointments = \App\Models\Appointment::where('doctor_id', $doctor->id)
-            ->where('appointment_date', $date)
-            ->whereIn('status', ['pending', 'confirmed', 'in_progress'])
-            ->get()
-            ->keyBy(function ($apt) {
-                return $apt->start_time;
-            });
-
-        $available = array_values(array_filter($slots, function ($slot) use ($bookedAppointments) {
-            return !isset($bookedAppointments[$slot['start']]);
-        }));
-
-        // Enforce max_daily_appointments cap
-        if ($schedule->max_daily_appointments) {
-            $todayBookings = \App\Models\Appointment::where('doctor_id', $doctor->id)
-                ->where('appointment_date', $date)
-                ->whereIn('status', ['pending', 'confirmed', 'in_progress'])
-                ->count();
-
-            $remaining = max(0, $schedule->max_daily_appointments - $todayBookings);
-            $available = array_slice($available, 0, $remaining);
-        }
-
-        return $this->success($available);
+        return $this->success($slots);
     }
 
     /**

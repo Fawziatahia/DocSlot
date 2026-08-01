@@ -9,7 +9,6 @@ class Setting extends Model
     protected $fillable = [
         'appointment_cutoff_minutes',
         'max_reschedule_count',
-        'reminder_hours_before',
         'default_slot_duration',
         'default_max_daily_appointments',
         'min_booking_lead_days',
@@ -23,7 +22,6 @@ class Setting extends Model
         return [
             'appointment_cutoff_minutes' => 'integer',
             'max_reschedule_count' => 'integer',
-            'reminder_hours_before' => 'integer',
             'default_slot_duration' => 'integer',
             'default_max_daily_appointments' => 'integer',
             'min_booking_lead_days' => 'integer',
