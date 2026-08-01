@@ -2,27 +2,40 @@
 
 namespace App\Features\Auth\Actions;
 
+use App\Features\Auth\Mail\PasswordResetOtpMail;
 use App\Models\User;
-use Illuminate\Auth\Passwords\PasswordBroker;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Mail;
 
 class ForgotPasswordAction
 {
+    public const OTP_TTL_MINUTES = 10;
+
     /**
-     * Send a password reset link to the given email.
+     * Generate and email a one-time password reset code for the given email.
      *
-     * Always returns a generic 200 response regardless of whether the
-     * email exists, to prevent user enumeration.
+     * Always returns silently regardless of whether the email exists, to
+     * prevent user enumeration — the controller sends a generic response.
      */
     public function execute(string $email): void
     {
-        $status = Password::sendResetLink(['email' => $email]);
+        $user = User::where('email', $email)->first();
 
-        if ($status === Password::RESET_LINK_SENT) {
-            Log::info('Password reset link sent', ['email' => $email]);
+        if (! $user) {
+            return;
         }
 
-        // Do nothing if the email doesn't exist — generic response handled by controller.
+        $otp = (string) random_int(100000, 999999);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $email],
+            ['token' => Hash::make($otp), 'created_at' => now()],
+        );
+
+        Mail::to($email)->send(new PasswordResetOtpMail($otp, self::OTP_TTL_MINUTES));
+
+        Log::info('Password reset OTP sent', ['email' => $email]);
     }
 }
