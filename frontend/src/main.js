@@ -16,6 +16,7 @@ import { dashboardLayout } from "./layouts/dashboard.js";
 import { adaptiveLayout } from "./layouts/adaptive.js";
 
 import { renderLanding } from "./features/landing/index.js";
+import { renderFeaturesPage } from "./features/landing/features-page.js";
 import { renderLogin, afterLogin } from "./features/auth/login.js";
 import { renderRegister, afterRegister } from "./features/auth/register.js";
 import { renderForgotPassword, afterForgotPassword } from "./features/auth/forgot-password.js";
@@ -58,6 +59,7 @@ import { renderNotificationsList, afterNotificationsList } from "./features/noti
 import { renderReports, afterReports } from "./features/reports/index.js";
 
 route("/", { layout: guestLayout, render: () => renderLanding() });
+route("/features", { layout: guestLayout, render: () => renderFeaturesPage() });
 
 route("/login", { layout: authLayout, render: () => renderLogin(), after: afterLogin });
 route("/register", { layout: authLayout, render: () => renderRegister(), after: afterRegister });

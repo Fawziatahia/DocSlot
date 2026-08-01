@@ -1,4 +1,5 @@
 import { getUser } from "../lib/api.js";
+import logo from "../assets/logo.png";
 
 const NAV_BY_ROLE = {
   admin: [
@@ -44,7 +45,7 @@ export function renderSidebar(activePath) {
 
   return `
     <aside class="dashboard-sidebar">
-      <a href="/" data-link class="sidebar-brand">DocSlot</a>
+      <a href="/" data-link class="sidebar-brand"><img src="${logo}" alt="DocSlot" /></a>
       <nav class="sidebar-nav">${links}</nav>
     </aside>
   `;

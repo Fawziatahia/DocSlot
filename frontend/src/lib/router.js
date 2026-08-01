@@ -68,13 +68,13 @@ async function render() {
   document.dispatchEvent(new CustomEvent("route:rendered", { detail: { pathname, params } }));
 }
 
-export function navigate(path, replace = false) {
+export async function navigate(path, replace = false) {
   if (replace) {
     window.history.replaceState({}, "", path);
   } else {
     window.history.pushState({}, "", path);
   }
-  render();
+  await render();
 }
 
 export function startRouter() {

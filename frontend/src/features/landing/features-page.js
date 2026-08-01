@@ -7,7 +7,7 @@ const FEATURES = [
   { icon: "bi-graph-up-arrow", title: "Reports & Insights", desc: "Role-aware analytics for admins, doctors, and patients alike." },
 ];
 
-export function renderFeatures() {
+export function renderFeaturesPage() {
   const cards = FEATURES.map(
     (f) => `
       <div class="col-md-6 col-lg-4">
@@ -20,9 +20,9 @@ export function renderFeatures() {
   ).join("");
 
   return `
-    <section id="features" class="features-section py-5">
+    <section class="features-section py-5">
       <div class="container">
-        <h2 class="section-title text-center">Everything you need</h2>
+        <h1 class="section-title text-center">Everything you need</h1>
         <p class="section-desc text-center">Manage your healthcare journey from start to finish.</p>
         <div class="row g-4 mt-2">${cards}</div>
       </div>
