@@ -3,6 +3,7 @@ import { navigate } from "../../lib/router.js";
 import { fetchDepartments, fetchSpecializations } from "../../lib/lookups.js";
 import { renderDoctorCard } from "../../components/doctor-card.js";
 import { renderPagination } from "../../components/pagination.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 function buildHref(params, page) {
   const next = new URLSearchParams(params);
@@ -29,10 +30,10 @@ export async function renderDoctorsList() {
   ]);
 
   const specOptions = specializations
-    .map((s) => `<option value="${s.id}" ${String(s.id) === filters.specialization_id ? "selected" : ""}>${s.name}</option>`)
+    .map((s) => `<option value="${s.id}" ${String(s.id) === filters.specialization_id ? "selected" : ""}>${escapeHtml(s.name)}</option>`)
     .join("");
   const deptOptions = departments
-    .map((d) => `<option value="${d.id}" ${String(d.id) === filters.department_id ? "selected" : ""}>${d.name}</option>`)
+    .map((d) => `<option value="${d.id}" ${String(d.id) === filters.department_id ? "selected" : ""}>${escapeHtml(d.name)}</option>`)
     .join("");
 
   const cards = doctors.length
@@ -52,7 +53,7 @@ export async function renderDoctorsList() {
 
       <form id="doctor-filters" class="row g-2 mb-4">
         <div class="col-md-4">
-          <input type="text" class="form-control" name="q" placeholder="Search by name..." value="${filters.q}" />
+          <input type="text" class="form-control" name="q" placeholder="Search by name..." value="${escapeHtml(filters.q)}" />
         </div>
         <div class="col-6 col-md-2">
           <select class="form-select" name="specialization_id">
@@ -67,10 +68,10 @@ export async function renderDoctorsList() {
           </select>
         </div>
         <div class="col-6 col-md-2">
-          <input type="number" min="0" class="form-control" name="min_fee" placeholder="Min fee" value="${filters.min_fee}" />
+          <input type="number" min="0" class="form-control" name="min_fee" placeholder="Min fee" value="${escapeHtml(filters.min_fee)}" />
         </div>
         <div class="col-6 col-md-2">
-          <input type="number" min="0" class="form-control" name="max_fee" placeholder="Max fee" value="${filters.max_fee}" />
+          <input type="number" min="0" class="form-control" name="max_fee" placeholder="Max fee" value="${escapeHtml(filters.max_fee)}" />
         </div>
         <div class="col-12">
           <button type="submit" class="btn btn-outline-primary">Apply Filters</button>

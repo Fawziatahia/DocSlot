@@ -1,9 +1,8 @@
 <?php
 
 use App\Features\Admin\Controllers\AuditLogController;
-use App\Features\Admin\Controllers\DepartmentController;
 use App\Features\Admin\Controllers\SettingsController;
-use App\Features\Admin\Controllers\SpecializationController;
+use App\Features\Admin\Controllers\TaxonomyController;
 use App\Features\Admin\Controllers\UserManagementController;
 use App\Features\Appointments\Controllers\AppointmentController;
 use App\Features\Auth\Controllers\AuthController;
@@ -57,7 +56,7 @@ Route::prefix('doctors')->group(function () {
     Route::get('/{id}', [DoctorController::class, 'show']);
     Route::get('/{id}/ratings', [RatingController::class, 'doctorRatings']);
     Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1'])->group(function () {
-        Route::post('/', [DoctorController::class, 'store']);
+        Route::post('/', [DoctorController::class, 'store'])->middleware('role:admin');
         Route::put('/{id}', [DoctorController::class, 'update']);
         Route::get('/{id}/appointments', [DoctorController::class, 'appointments'])->middleware('roles:admin,doctor');
         Route::get('/{id}/slots', [DoctorController::class, 'slots']);
@@ -113,29 +112,19 @@ Route::get('booking-settings', [SettingsController::class, 'publicBookingSetting
 // ──────────────────────────────────────────
 // Departments & Specializations
 // ──────────────────────────────────────────
-Route::prefix('departments')->group(function () {
-    Route::get('/', [DepartmentController::class, 'index']);
-    Route::get('/{id}', [DepartmentController::class, 'show']);
+foreach (['departments', 'specializations'] as $resource) {
+    Route::prefix($resource)->group(function () use ($resource) {
+        Route::get('/', [TaxonomyController::class, 'index'])->defaults('resource', $resource);
+        Route::get('/{id}', [TaxonomyController::class, 'show'])->defaults('resource', $resource);
 
-    Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1', 'role:admin'])->group(function () {
-        Route::post('/', [DepartmentController::class, 'store']);
-        Route::put('/{id}', [DepartmentController::class, 'update']);
-        Route::delete('/{id}', [DepartmentController::class, 'destroy']);
-        Route::patch('/{id}/status', [DepartmentController::class, 'toggleStatus']);
+        Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1', 'role:admin'])->group(function () use ($resource) {
+            Route::post('/', [TaxonomyController::class, 'store'])->defaults('resource', $resource);
+            Route::put('/{id}', [TaxonomyController::class, 'update'])->defaults('resource', $resource);
+            Route::delete('/{id}', [TaxonomyController::class, 'destroy'])->defaults('resource', $resource);
+            Route::patch('/{id}/status', [TaxonomyController::class, 'toggleStatus'])->defaults('resource', $resource);
+        });
     });
-});
-
-Route::prefix('specializations')->group(function () {
-    Route::get('/', [SpecializationController::class, 'index']);
-    Route::get('/{id}', [SpecializationController::class, 'show']);
-
-    Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1', 'role:admin'])->group(function () {
-        Route::post('/', [SpecializationController::class, 'store']);
-        Route::put('/{id}', [SpecializationController::class, 'update']);
-        Route::delete('/{id}', [SpecializationController::class, 'destroy']);
-        Route::patch('/{id}/status', [SpecializationController::class, 'toggleStatus']);
-    });
-});
+}
 
 // ──────────────────────────────────────────
 // Appointments

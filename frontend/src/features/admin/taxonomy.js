@@ -1,6 +1,7 @@
 import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { clearFormErrors, applyFormErrors, setSubmitting } from "../../lib/forms.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 function currentPath() {
   return window.location.pathname + window.location.search;
@@ -17,8 +18,8 @@ export function createTaxonomyPages({ resource, label }) {
           .map(
             (item) => `
             <tr>
-              <td>${item.name}</td>
-              <td>${item.description || "—"}</td>
+              <td>${escapeHtml(item.name)}</td>
+              <td>${escapeHtml(item.description || "—")}</td>
               <td>${item.doctors_count ?? 0}</td>
               <td><span class="badge ${item.is_active ? "bg-success-subtle text-success-emphasis" : "bg-danger-subtle text-danger-emphasis"}">${item.is_active ? "Active" : "Inactive"}</span></td>
               <td class="d-flex gap-1 flex-wrap">
@@ -84,12 +85,12 @@ export function createTaxonomyPages({ resource, label }) {
         <form id="taxonomy-form" novalidate>
           <div class="mb-3">
             <label class="form-label" for="name">Name</label>
-            <input type="text" class="form-control" id="name" name="name" value="${existing?.name || ""}" required />
+            <input type="text" class="form-control" id="name" name="name" value="${escapeHtml(existing?.name)}" required />
             <div class="invalid-feedback" data-server="name"></div>
           </div>
           <div class="mb-3">
             <label class="form-label" for="description">Description</label>
-            <textarea class="form-control" id="description" name="description" rows="3">${existing?.description || ""}</textarea>
+            <textarea class="form-control" id="description" name="description" rows="3">${escapeHtml(existing?.description)}</textarea>
             <div class="invalid-feedback" data-server="description"></div>
           </div>
           <div class="form-check form-switch mb-3">

@@ -5,7 +5,6 @@ import { clearFormErrors, applyFormErrors, setSubmitting } from "../../lib/forms
 const FIELDS = [
   ["appointment_cutoff_minutes", "Appointment cutoff (minutes before)"],
   ["max_reschedule_count", "Max reschedule count"],
-  ["reminder_hours_before", "Reminder hours before appointment"],
   ["default_slot_duration", "Default slot duration (minutes)"],
   ["default_max_daily_appointments", "Default max daily appointments"],
   ["min_booking_lead_days", "Minimum advance booking (days)"],

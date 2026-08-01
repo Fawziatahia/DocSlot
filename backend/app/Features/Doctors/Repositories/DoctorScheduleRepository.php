@@ -3,6 +3,7 @@
 namespace App\Features\Doctors\Repositories;
 
 use App\Models\DoctorSchedule;
+use App\Models\Setting;
 use Illuminate\Database\Eloquent\Collection;
 
 class DoctorScheduleRepository
@@ -32,6 +33,8 @@ class DoctorScheduleRepository
     {
         DoctorSchedule::where('doctor_id', $doctorId)->delete();
 
+        $setting = Setting::current();
+
         $schedules = [];
         foreach ($days as $day) {
             $schedules[] = DoctorSchedule::create([
@@ -39,8 +42,8 @@ class DoctorScheduleRepository
                 'day_of_week' => $day['day_of_week'],
                 'start_time' => $day['start_time'],
                 'end_time' => $day['end_time'],
-                'slot_duration' => $day['slot_duration'] ?? 30,
-                'max_daily_appointments' => $day['max_daily_appointments'] ?? 10,
+                'slot_duration' => $day['slot_duration'] ?? $setting->default_slot_duration,
+                'max_daily_appointments' => $day['max_daily_appointments'] ?? $setting->default_max_daily_appointments,
                 'is_available' => $day['is_available'] ?? true,
             ]);
         }

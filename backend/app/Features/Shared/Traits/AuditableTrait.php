@@ -2,21 +2,17 @@
 
 namespace App\Features\Shared\Traits;
 
-use Illuminate\Support\Facades\Log;
+use App\Models\AuditLog;
 
 trait AuditableTrait
 {
     /**
-     * Log an audit entry.
-     *
-     * TODO: Replace with database audit_logs table insert once migrations exist.
+     * Record an audit entry for an admin create/update/delete action.
      */
     protected function audit(string $action, string $entityType, ?int $entityId, ?array $oldValues = null, ?array $newValues = null): void
     {
-        $user = request()->user();
-
-        $entry = [
-            'user_id' => $user?->id,
+        AuditLog::create([
+            'user_id' => request()->user()?->id,
             'action' => $action,
             'entity_type' => $entityType,
             'entity_id' => $entityId,
@@ -24,8 +20,6 @@ trait AuditableTrait
             'new_values' => $newValues,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
-        ];
-
-        Log::info('AUDIT: ' . json_encode($entry));
+        ]);
     }
 }

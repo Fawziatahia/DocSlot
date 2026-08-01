@@ -6,17 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSettingsRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return $this->user()?->hasRole('admin') ?? false;
-    }
-
     public function rules(): array
     {
         return [
             'appointment_cutoff_minutes' => ['sometimes', 'integer', 'min:15', 'max:1440'],
             'max_reschedule_count' => ['sometimes', 'integer', 'min:0', 'max:10'],
-            'reminder_hours_before' => ['sometimes', 'integer', 'min:1', 'max:168'],
             'default_slot_duration' => ['sometimes', 'integer', 'min:15', 'max:120'],
             'default_max_daily_appointments' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'min_booking_lead_days' => ['sometimes', 'integer', 'min:0', 'max:30'],

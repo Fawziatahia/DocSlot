@@ -1,6 +1,7 @@
 import { api, hasRole } from "../../lib/api.js";
 import { renderMedicalRecordsTable } from "../../components/medical-record-table.js";
 import { renderPagination } from "../../components/pagination.js";
+import { pageHrefBuilder } from "../../components/data-table.js";
 
 export async function renderMedicalRecordsList() {
   const search = new URLSearchParams(window.location.search);
@@ -35,11 +36,7 @@ export async function renderMedicalRecordsList() {
     </div>
     <div class="section-card">
       ${renderMedicalRecordsTable(records, { showPatient: isAdmin, showDoctor: true })}
-      ${renderPagination(meta, (p) => {
-        const params = new URLSearchParams(window.location.search);
-        params.set("page", p);
-        return `/medical-records?${params.toString()}`;
-      })}
+      ${renderPagination(meta, pageHrefBuilder("/medical-records"))}
     </div>
   `;
 }

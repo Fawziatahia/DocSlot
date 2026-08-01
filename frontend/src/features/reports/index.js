@@ -1,6 +1,7 @@
 import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { formatCurrency } from "../../lib/format.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 export async function renderReports() {
   const search = new URLSearchParams(window.location.search);
@@ -17,15 +18,15 @@ export async function renderReports() {
   ]);
 
   const statusRows = Object.entries(appointments.by_status || {})
-    .map(([status, count]) => `<tr><td class="text-capitalize">${status.replace("_", " ")}</td><td>${count}</td></tr>`)
+    .map(([status, count]) => `<tr><td class="text-capitalize">${escapeHtml(status.replace("_", " "))}</td><td>${count}</td></tr>`)
     .join("") || `<tr><td colspan="2" class="text-muted text-center">No data</td></tr>`;
 
   const doctorRows = (doctors.doctors || [])
-    .map((d) => `<tr><td>${d.doctor_name || "—"}</td><td>${d.total_appointments}</td><td>${d.completed_appointments}</td></tr>`)
+    .map((d) => `<tr><td>${escapeHtml(d.doctor_name || "—")}</td><td>${d.total_appointments}</td><td>${d.completed_appointments}</td></tr>`)
     .join("") || `<tr><td colspan="3" class="text-muted text-center">No data</td></tr>`;
 
   const patientRows = (patients.top_patients || [])
-    .map((p) => `<tr><td>${p.patient_name || "—"}</td><td>${p.total_appointments}</td></tr>`)
+    .map((p) => `<tr><td>${escapeHtml(p.patient_name || "—")}</td><td>${p.total_appointments}</td></tr>`)
     .join("") || `<tr><td colspan="2" class="text-muted text-center">No data</td></tr>`;
 
   return `
@@ -34,11 +35,11 @@ export async function renderReports() {
     <form id="report-filters" class="row g-2 mb-4">
       <div class="col-sm-4 col-md-3">
         <label class="form-label">From</label>
-        <input type="date" class="form-control" name="from" value="${from}" />
+        <input type="date" class="form-control" name="from" value="${escapeHtml(from)}" />
       </div>
       <div class="col-sm-4 col-md-3">
         <label class="form-label">To</label>
-        <input type="date" class="form-control" name="to" value="${to}" />
+        <input type="date" class="form-control" name="to" value="${escapeHtml(to)}" />
       </div>
       <div class="col-sm-4 col-md-3 d-flex align-items-end">
         <button type="submit" class="btn btn-outline-primary">Apply</button>

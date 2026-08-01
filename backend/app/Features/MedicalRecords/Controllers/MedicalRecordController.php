@@ -9,12 +9,13 @@ use App\Features\MedicalRecords\Resources\MedicalRecordResource;
 use App\Features\MedicalRecords\Services\MedicalRecordService;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use App\Models\Patient;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MedicalRecordController
 {
-    use ApiResponseTrait;
+    use ApiResponseTrait, AuthorizesRequests;
 
     public function __construct(
         private readonly MedicalRecordRepository $medicalRecordRepository,
@@ -29,10 +30,10 @@ class MedicalRecordController
         return $this->paginated($records, MedicalRecordResource::class);
     }
 
-    public function show(Request $request, int $id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         $record = $this->medicalRecordRepository->findOrFail($id);
-        $this->authorizeView($request->user(), $record);
+        $this->authorize('view', $record);
 
         return $this->success(new MedicalRecordResource($record));
     }
@@ -61,7 +62,7 @@ class MedicalRecordController
     public function update(UpdateMedicalRecordRequest $request, int $id): JsonResponse
     {
         $record = $this->medicalRecordRepository->findOrFail($id);
-        $this->authorizeEdit($request->user(), $record);
+        $this->authorize('update', $record);
         $this->medicalRecordRepository->update($record, $request->validated());
 
         return $this->success(
@@ -93,28 +94,5 @@ class MedicalRecordController
         }
 
         return $this->paginated($records, MedicalRecordResource::class);
-    }
-
-    private function authorizeView($user, $record): void
-    {
-        // Any doctor may view any medical record (consistent with the patient
-        // medical-history/prescriptions list endpoints, which already allow this).
-        $isDoctor = $user->isDoctor();
-        $isPatient = $user->isPatient() && $user->patient->id === $record->patient_id;
-        $isAdmin = $user->isAdmin();
-
-        if (!$isDoctor && !$isPatient && !$isAdmin) {
-            abort(403, 'This action is not allowed.');
-        }
-    }
-
-    private function authorizeEdit($user, $record): void
-    {
-        $isDoctor = $user->isDoctor() && $user->doctor->id === $record->doctor_id;
-        $isAdmin = $user->isAdmin();
-
-        if (!$isDoctor && !$isAdmin) {
-            abort(403, 'This action is not allowed.');
-        }
     }
 }

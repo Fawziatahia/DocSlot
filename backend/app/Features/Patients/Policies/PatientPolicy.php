@@ -24,14 +24,6 @@ class PatientPolicy
     }
 
     /**
-     * Admin can create patients.
-     */
-    public function create(User $user): bool
-    {
-        return $user->hasRole('admin');
-    }
-
-    /**
      * Admin can update any patient; doctor can update any patient;
      * a patient can update only their own record.
      */

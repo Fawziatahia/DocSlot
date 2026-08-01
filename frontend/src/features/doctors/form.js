@@ -2,10 +2,11 @@ import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { fetchDepartments, fetchSpecializations } from "../../lib/lookups.js";
 import { clearFormErrors, applyFormErrors, setSubmitting } from "../../lib/forms.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 function optionsFor(list, selectedId) {
   return list
-    .map((item) => `<option value="${item.id}" ${String(item.id) === String(selectedId || "") ? "selected" : ""}>${item.name}</option>`)
+    .map((item) => `<option value="${item.id}" ${String(item.id) === String(selectedId || "") ? "selected" : ""}>${escapeHtml(item.name)}</option>`)
     .join("");
 }
 
@@ -74,12 +75,12 @@ export async function renderDoctorForm({ id } = {}) {
           </div>
           <div class="mb-3">
             <label class="form-label" for="qualifications">Qualifications</label>
-            <textarea class="form-control" id="qualifications" name="qualifications" rows="2">${existing?.qualifications || ""}</textarea>
+            <textarea class="form-control" id="qualifications" name="qualifications" rows="2">${escapeHtml(existing?.qualifications)}</textarea>
             <div class="invalid-feedback" data-server="qualifications"></div>
           </div>
           <div class="mb-3">
             <label class="form-label" for="bio">Bio</label>
-            <textarea class="form-control" id="bio" name="bio" rows="3">${existing?.bio || ""}</textarea>
+            <textarea class="form-control" id="bio" name="bio" rows="3">${escapeHtml(existing?.bio)}</textarea>
             <div class="invalid-feedback" data-server="bio"></div>
           </div>
           <div class="mb-3">

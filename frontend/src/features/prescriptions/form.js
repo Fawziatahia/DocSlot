@@ -1,24 +1,25 @@
 import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
-import { clearFormErrors, applyFormErrors, setSubmitting } from "../../lib/forms.js";
+import { escapeHtml } from "../../lib/escape.js";
+import { renderPatientHeader, bindEntityFormSubmit } from "../../lib/entity-form.js";
 
 function medicationRow(m = {}) {
   return `
     <div class="row g-2 medication-row mb-2">
       <div class="col-sm-3">
-        <input type="text" class="form-control form-control-sm" data-field="medication_name" placeholder="Medication" value="${m.medication_name || ""}" required />
+        <input type="text" class="form-control form-control-sm" data-field="medication_name" placeholder="Medication" value="${escapeHtml(m.medication_name)}" required />
       </div>
       <div class="col-sm-2">
-        <input type="text" class="form-control form-control-sm" data-field="dosage" placeholder="Dosage" value="${m.dosage || ""}" required />
+        <input type="text" class="form-control form-control-sm" data-field="dosage" placeholder="Dosage" value="${escapeHtml(m.dosage)}" required />
       </div>
       <div class="col-sm-2">
-        <input type="text" class="form-control form-control-sm" data-field="frequency" placeholder="Frequency" value="${m.frequency || ""}" required />
+        <input type="text" class="form-control form-control-sm" data-field="frequency" placeholder="Frequency" value="${escapeHtml(m.frequency)}" required />
       </div>
       <div class="col-sm-2">
-        <input type="text" class="form-control form-control-sm" data-field="duration" placeholder="Duration" value="${m.duration || ""}" />
+        <input type="text" class="form-control form-control-sm" data-field="duration" placeholder="Duration" value="${escapeHtml(m.duration)}" />
       </div>
       <div class="col-sm-2">
-        <input type="text" class="form-control form-control-sm" data-field="instructions" placeholder="Instructions" value="${m.instructions || ""}" />
+        <input type="text" class="form-control form-control-sm" data-field="instructions" placeholder="Instructions" value="${escapeHtml(m.instructions)}" />
       </div>
       <div class="col-sm-1">
         <button type="button" class="btn btn-sm btn-outline-danger remove-medication">&times;</button>
@@ -41,34 +42,16 @@ export async function renderPrescriptionForm({ id } = {}) {
     <div class="section-card" style="max-width: 44rem;">
       <div class="alert alert-danger d-none" data-form-alert role="alert"></div>
       <form id="prescription-form" novalidate>
-        ${
-          id
-            ? `<p class="text-muted">Patient: <strong>${existing.patient?.name || ""}</strong></p>`
-            : patientId
-              ? `
-            <p class="text-muted">Patient: <strong>${patientName || patientId}</strong></p>
-            <input type="hidden" name="patient_id" value="${patientId}" />
-            <input type="hidden" name="appointment_id" value="${appointmentId || ""}" />
-          `
-              : `
-            <div class="mb-3">
-              <label class="form-label" for="patient_id">Patient ID</label>
-              <input type="text" class="form-control" id="patient_id" name="patient_id" placeholder="e.g. p7894622" required />
-              <div class="form-text">Find the patient's ID on their profile page.</div>
-              <div class="invalid-feedback" data-server="patient_id"></div>
-            </div>
-            <input type="hidden" name="appointment_id" value="" />
-          `
-        }
+        ${renderPatientHeader({ id, existing, patientId, appointmentId, patientName })}
 
         <div class="mb-3">
           <label class="form-label" for="diagnosis">Diagnosis</label>
-          <textarea class="form-control" id="diagnosis" name="diagnosis" rows="2" required>${existing?.diagnosis || ""}</textarea>
+          <textarea class="form-control" id="diagnosis" name="diagnosis" rows="2" required>${escapeHtml(existing?.diagnosis)}</textarea>
           <div class="invalid-feedback" data-server="diagnosis"></div>
         </div>
         <div class="mb-3">
           <label class="form-label" for="notes">Notes</label>
-          <textarea class="form-control" id="notes" name="notes" rows="2">${existing?.notes || ""}</textarea>
+          <textarea class="form-control" id="notes" name="notes" rows="2">${escapeHtml(existing?.notes)}</textarea>
           <div class="invalid-feedback" data-server="notes"></div>
         </div>
 
@@ -122,39 +105,35 @@ export function afterPrescriptionForm({ id } = {}) {
     }
   });
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    clearFormErrors(form);
-    const button = document.getElementById("prescription-form-submit");
-    setSubmitting(button, true, id ? "Save Changes" : "Create Prescription");
+  bindEntityFormSubmit({
+    formId: "prescription-form",
+    submitId: "prescription-form-submit",
+    resource: "prescriptions",
+    id,
+    createLabel: "Create Prescription",
+    buildPayload: (form) => {
+      const medications = Array.from(list.querySelectorAll(".medication-row")).map((row) => ({
+        medication_name: row.querySelector('[data-field="medication_name"]').value,
+        dosage: row.querySelector('[data-field="dosage"]').value,
+        frequency: row.querySelector('[data-field="frequency"]').value,
+        duration: row.querySelector('[data-field="duration"]').value || undefined,
+        instructions: row.querySelector('[data-field="instructions"]').value || undefined,
+      }));
 
-    const medications = Array.from(list.querySelectorAll(".medication-row")).map((row) => ({
-      medication_name: row.querySelector('[data-field="medication_name"]').value,
-      dosage: row.querySelector('[data-field="dosage"]').value,
-      frequency: row.querySelector('[data-field="frequency"]').value,
-      duration: row.querySelector('[data-field="duration"]').value || undefined,
-      instructions: row.querySelector('[data-field="instructions"]').value || undefined,
-    }));
+      const payload = {
+        diagnosis: form.diagnosis.value,
+        notes: form.notes.value || undefined,
+        medications,
+      };
+      if (!id) {
+        payload.patient_id = form.patient_id.value;
+        payload.appointment_id = form.appointment_id.value ? Number(form.appointment_id.value) : undefined;
+      } else {
+        payload.status = form.status.value;
+      }
 
-    const payload = {
-      diagnosis: form.diagnosis.value,
-      notes: form.notes.value || undefined,
-      medications,
-    };
-    if (!id) {
-      payload.patient_id = form.patient_id.value;
-      payload.appointment_id = form.appointment_id.value ? Number(form.appointment_id.value) : undefined;
-    } else {
-      payload.status = form.status.value;
-    }
-
-    try {
-      const { data } = id ? await api.put(`/prescriptions/${id}`, payload) : await api.post("/prescriptions", payload);
-      navigate(`/prescriptions/${data.id}`);
-    } catch (err) {
-      applyFormErrors(form, err);
-    } finally {
-      setSubmitting(button, false, id ? "Save Changes" : "Create Prescription");
-    }
+      return payload;
+    },
+    onSuccess: (data) => navigate(`/prescriptions/${data.id}`),
   });
 }
