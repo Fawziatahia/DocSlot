@@ -10,6 +10,7 @@ import "./style.css";
 
 import { route, startRouter, navigate } from "./lib/router.js";
 import { clearSession, hasRole } from "./lib/api.js";
+import { initNotificationBell } from "./lib/notifications.js";
 import { guestLayout } from "./layouts/guest.js";
 import { authLayout } from "./layouts/auth.js";
 import { dashboardLayout } from "./layouts/dashboard.js";
@@ -20,6 +21,7 @@ import { renderFeaturesPage } from "./features/landing/features-page.js";
 import { renderLogin, afterLogin } from "./features/auth/login.js";
 import { renderRegister, afterRegister } from "./features/auth/register.js";
 import { renderForgotPassword, afterForgotPassword } from "./features/auth/forgot-password.js";
+import { renderResetPassword, afterResetPassword } from "./features/auth/reset-password.js";
 import { renderChangePassword, afterChangePassword } from "./features/auth/change-password.js";
 import { renderDashboard } from "./features/dashboard/index.js";
 import { renderDoctorsList, afterDoctorsList } from "./features/doctors/list.js";
@@ -56,6 +58,7 @@ import {
 } from "./features/admin/specializations.js";
 import { renderSettings, afterSettings } from "./features/admin/settings.js";
 import { renderNotificationsList, afterNotificationsList } from "./features/notifications/list.js";
+import { renderReferralsList } from "./features/referrals/list.js";
 import { renderReports, afterReports } from "./features/reports/index.js";
 
 route("/", { layout: guestLayout, render: () => renderLanding() });
@@ -67,6 +70,11 @@ route("/forgot-password", {
   layout: authLayout,
   render: () => renderForgotPassword(),
   after: afterForgotPassword,
+});
+route("/reset-password", {
+  layout: authLayout,
+  render: () => renderResetPassword(),
+  after: afterResetPassword,
 });
 route("/change-password", {
   auth: true,
@@ -282,6 +290,13 @@ route("/notifications", {
   after: () => afterNotificationsList(),
 });
 
+route("/referrals", {
+  auth: true,
+  roles: ["doctor"],
+  layout: (content) => dashboardLayout(content, { title: "Referrals", activePath: "/referrals" }),
+  render: () => renderReferralsList(),
+});
+
 route("/reports", {
   auth: true,
   roles: ["admin"],
@@ -296,5 +311,7 @@ document.body.addEventListener("click", (e) => {
     navigate("/login");
   }
 });
+
+document.addEventListener("route:rendered", () => initNotificationBell());
 
 startRouter();

@@ -2,7 +2,9 @@
 
 namespace App\Features\Admin\Controllers;
 
+use App\Features\Admin\Resources\AuditLogResource;
 use App\Features\Shared\Traits\ApiResponseTrait;
+use App\Models\AuditLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,9 +14,6 @@ class AuditLogController
 
     /**
      * GET /api/audit-logs
-     *
-     * Returns paginated audit log entries.
-     * TODO: Replace with real AuditLog model when migrations exist.
      */
     public function index(Request $request): JsonResponse
     {
@@ -26,17 +25,24 @@ class AuditLogController
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        // TODO: Query actual audit_logs table
-        return $this->success([
-            'data' => [],
-            'meta' => [
-                'current_page' => 1,
-                'last_page' => 1,
-                'per_page' => $validated['per_page'] ?? 15,
-                'total' => 0,
-            ],
-            'message' => 'Audit log viewing requires the audit_logs table migration.',
-        ]);
+        $query = AuditLog::with('user')->latest();
+
+        if (! empty($validated['entity_type'])) {
+            $query->where('entity_type', $validated['entity_type']);
+        }
+        if (! empty($validated['entity_id'])) {
+            $query->where('entity_id', $validated['entity_id']);
+        }
+        if (! empty($validated['from'])) {
+            $query->whereDate('created_at', '>=', $validated['from']);
+        }
+        if (! empty($validated['to'])) {
+            $query->whereDate('created_at', '<=', $validated['to']);
+        }
+
+        $logs = $query->paginate($validated['per_page'] ?? 15);
+
+        return $this->paginated($logs, AuditLogResource::class);
     }
 
     /**
@@ -44,7 +50,12 @@ class AuditLogController
      */
     public function show(int $id): JsonResponse
     {
-        // TODO: Query actual audit_logs table
-        return $this->error('Audit log not found.', 404);
+        $log = AuditLog::with('user')->find($id);
+
+        if (! $log) {
+            return $this->error('Audit log not found.', 404);
+        }
+
+        return $this->success(new AuditLogResource($log));
     }
 }

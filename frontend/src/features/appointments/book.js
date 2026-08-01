@@ -3,6 +3,7 @@ import { navigate } from "../../lib/router.js";
 import { formatCurrency, formatDate, formatTime, slotDurationMinutes } from "../../lib/format.js";
 import { setSubmitting } from "../../lib/forms.js";
 import { createDatePicker } from "../../components/date-picker.js";
+import { refreshUnreadCount } from "../../lib/notifications.js";
 
 function addDays(date, days) {
   const d = new Date(date);
@@ -136,6 +137,7 @@ export function afterBookAppointment({ doctorId }) {
         end_time: selectedSlot.end,
         reason: document.getElementById("book-reason").value || undefined,
       });
+      refreshUnreadCount();
       navigate(`/appointments/${data.id}`);
     } catch (err) {
       showError(err.message || "Couldn't book the appointment.");
