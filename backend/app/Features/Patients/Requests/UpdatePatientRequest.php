@@ -2,34 +2,10 @@
 
 namespace App\Features\Patients\Requests;
 
-use App\Models\Doctor;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdatePatientRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = $this->user();
-
-        // Admin can update any patient
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        // Doctor can update patients (their medical info)
-        if ($user->hasRole('doctor')) {
-            return true;
-        }
-
-        // Patient can only update their own record
-        if ($user->hasRole('patient')) {
-            $patient = $user->patient;
-            return $patient && $this->route('id') === $patient->public_id;
-        }
-
-        return false;
-    }
-
     public function rules(): array
     {
         return [

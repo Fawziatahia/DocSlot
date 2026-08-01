@@ -1,6 +1,6 @@
 import { api } from "../../lib/api.js";
 import { formatDate } from "../../lib/format.js";
-import { renderPagination } from "../../components/pagination.js";
+import { renderDataTable, pageHrefBuilder } from "../../components/data-table.js";
 import { escapeHtml } from "../../lib/escape.js";
 
 export async function renderReferralsList() {
@@ -36,26 +36,12 @@ export async function renderReferralsList() {
   return `
     <h2 class="h4 mb-3">Referrals</h2>
     <ul class="nav nav-pills mb-3">${tabs}</ul>
-    <div class="section-card">
-      <div class="table-responsive">
-        <table class="table align-middle">
-          <thead>
-            <tr>
-              <th>Patient</th>
-              <th>${type === "sent" ? "Referred To" : "Referred By"}</th>
-              <th>Note</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-      ${renderPagination(meta, (p) => {
-        const params = new URLSearchParams(window.location.search);
-        params.set("type", type);
-        params.set("page", p);
-        return `/referrals?${params.toString()}`;
-      })}
-    </div>
+    ${renderDataTable({
+      headers: ["Patient", type === "sent" ? "Referred To" : "Referred By", "Note", "Date"],
+      body: rows,
+      meta,
+      pageHref: pageHrefBuilder("/referrals", { type }),
+      showAlert: false,
+    })}
   `;
 }

@@ -1,6 +1,7 @@
 import { api, getUser, hasRole } from "../../lib/api.js";
 import { formatCurrency, formatDate, formatTime, statusBadgeClass } from "../../lib/format.js";
 import { renderStarDisplay } from "../../components/star-rating.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -35,12 +36,12 @@ export async function renderDoctorDetail({ id }) {
       <div class="section-card mb-4">
         <div class="row g-4 align-items-center">
           <div class="col-md-8 d-flex gap-3 align-items-center">
-            <span class="doctor-avatar doctor-avatar-lg">${doctor.user.name.charAt(0).toUpperCase()}</span>
+            <span class="doctor-avatar doctor-avatar-lg">${escapeHtml(doctor.user.name.charAt(0).toUpperCase())}</span>
             <div>
-              <h1 class="h4 mb-1">${doctor.user.name}</h1>
-              <p class="text-muted mb-1">${doctor.specialization?.name || ""} &middot; ${doctor.department?.name || ""}</p>
-              ${doctor.public_id ? `<p class="text-muted small mb-1">Doctor ID: <code>${doctor.public_id}</code></p>` : ""}
-              ${hasRole("admin") || hasRole("doctor") ? `<span class="badge ${statusBadgeClass(doctor.status)}">${doctor.status}</span>` : ""}
+              <h1 class="h4 mb-1">${escapeHtml(doctor.user.name)}</h1>
+              <p class="text-muted mb-1">${escapeHtml(doctor.specialization?.name)} &middot; ${escapeHtml(doctor.department?.name)}</p>
+              ${doctor.public_id ? `<p class="text-muted small mb-1">Doctor ID: <code>${escapeHtml(doctor.public_id)}</code></p>` : ""}
+              ${hasRole("admin") || hasRole("doctor") ? `<span class="badge ${statusBadgeClass(doctor.status)}">${escapeHtml(doctor.status)}</span>` : ""}
               ${
                 doctor.reviews_enabled
                   ? `<span class="ms-2 small align-middle">${renderStarDisplay(doctor.avg_rating)} ${Number(doctor.avg_rating).toFixed(1)} (${doctor.total_reviews} reviews)</span>`
@@ -60,9 +61,9 @@ export async function renderDoctorDetail({ id }) {
         <div class="col-lg-7">
           <div class="section-card h-100">
             <h2 class="h5 mb-3">About</h2>
-            <p class="mb-3">${doctor.bio || "No bio provided yet."}</p>
+            <p class="mb-3">${doctor.bio ? escapeHtml(doctor.bio) : "No bio provided yet."}</p>
             <h3 class="h6">Qualifications</h3>
-            <p class="text-muted mb-0">${doctor.qualifications || "Not specified."}</p>
+            <p class="text-muted mb-0">${doctor.qualifications ? escapeHtml(doctor.qualifications) : "Not specified."}</p>
           </div>
         </div>
         <div class="col-lg-5">
@@ -88,12 +89,12 @@ export async function renderDoctorDetail({ id }) {
                 <div class="review-item">
                   <div class="d-flex justify-content-between align-items-start gap-2">
                     <div>
-                      <div class="fw-semibold">${r.patient?.name || "Anonymous"}</div>
+                      <div class="fw-semibold">${r.patient?.name ? escapeHtml(r.patient.name) : "Anonymous"}</div>
                       ${renderStarDisplay(r.score)}
                     </div>
                     <div class="text-muted small">${formatDate(r.created_at)}</div>
                   </div>
-                  ${r.comment ? `<p class="mb-0 mt-2">${r.comment}</p>` : ""}
+                  ${r.comment ? `<p class="mb-0 mt-2">${escapeHtml(r.comment)}</p>` : ""}
                 </div>
               `
                   )

@@ -2,6 +2,8 @@ import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { formatDate } from "../../lib/format.js";
 import { renderPagination } from "../../components/pagination.js";
+import { pageHrefBuilder } from "../../components/data-table.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 function currentPath() {
   return window.location.pathname + window.location.search;
@@ -30,8 +32,8 @@ export async function renderNotificationsList() {
         <div class="notification-item ${n.is_read ? "" : "unread"}" data-id="${n.id}">
           <div class="d-flex justify-content-between align-items-start gap-2">
             <div>
-              <div class="fw-semibold">${n.title}</div>
-              <div class="text-muted small">${n.message}</div>
+              <div class="fw-semibold">${escapeHtml(n.title)}</div>
+              <div class="text-muted small">${escapeHtml(n.message)}</div>
               <div class="text-muted small mt-1">${formatDate(n.created_at)}</div>
               ${
                 n.type === "patient_referral" && n.data?.patient_id
@@ -56,11 +58,7 @@ export async function renderNotificationsList() {
     <div class="section-card">
       <div class="alert alert-danger d-none" data-list-alert role="alert"></div>
       <div id="notifications-list">${items}</div>
-      ${renderPagination(meta, (p) => {
-        const params = new URLSearchParams(window.location.search);
-        params.set("page", p);
-        return `/notifications?${params.toString()}`;
-      })}
+      ${renderPagination(meta, pageHrefBuilder("/notifications"))}
     </div>
   `;
 }

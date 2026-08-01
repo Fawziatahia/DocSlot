@@ -8,19 +8,11 @@ use App\Models\User;
 class DoctorPolicy
 {
     /**
-     * Admin can view any doctor.
+     * Admin can view any doctor's sensitive fields/hidden profile; a doctor can view their own.
      */
     public function view(User $user, Doctor $doctor): bool
     {
-        return $user->hasRole('admin');
-    }
-
-    /**
-     * Admin can create doctors.
-     */
-    public function create(User $user): bool
-    {
-        return $user->hasRole('admin');
+        return $user->isAdmin() || ($user->isDoctor() && $user->doctor?->id === $doctor->id);
     }
 
     /**
@@ -28,26 +20,22 @@ class DoctorPolicy
      */
     public function update(User $user, Doctor $doctor): bool
     {
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        return $user->hasRole('doctor') && $doctor->user_id === $user->id;
+        return $user->isAdmin() || ($user->isDoctor() && $user->doctor?->id === $doctor->id);
     }
 
     /**
-     * Admin can delete doctors.
+     * Same rule as update: admin, or the doctor managing their own schedule.
      */
-    public function delete(User $user, Doctor $doctor): bool
+    public function manageSchedule(User $user, Doctor $doctor): bool
     {
-        return $user->hasRole('admin');
+        return $this->update($user, $doctor);
     }
 
     /**
-     * Admin can suspend/activate doctors.
+     * Admin can view any doctor's appointments; a doctor can view only their own.
      */
-    public function toggleStatus(User $user): bool
+    public function viewAppointments(User $user, Doctor $doctor): bool
     {
-        return $user->hasRole('admin');
+        return $user->isAdmin() || ($user->isDoctor() && $user->doctor?->id === $doctor->id);
     }
 }

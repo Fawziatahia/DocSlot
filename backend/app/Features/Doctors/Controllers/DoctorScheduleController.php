@@ -10,11 +10,12 @@ use App\Features\Doctors\Resources\DoctorScheduleResource;
 use App\Features\Doctors\Services\DoctorService;
 use App\Features\Doctors\Services\ScheduleService;
 use App\Features\Shared\Traits\ApiResponseTrait;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 
 class DoctorScheduleController
 {
-    use ApiResponseTrait;
+    use ApiResponseTrait, AuthorizesRequests;
 
     public function __construct(
         private readonly DoctorService $doctorService,
@@ -42,6 +43,8 @@ class DoctorScheduleController
     public function update(ScheduleRequest $request, string $doctorId): JsonResponse
     {
         $doctor = $this->doctorRepository->findByPublicId($doctorId);
+        $this->authorize('manageSchedule', $doctor);
+
         $scheduleData = ScheduleData::fromArray($request->validated(), $doctor->id);
         $schedules = $this->doctorService->manageSchedule($scheduleData);
 

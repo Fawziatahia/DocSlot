@@ -1,6 +1,7 @@
 import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { clearFormErrors, applyFormErrors, setSubmitting } from "../../lib/forms.js";
+import { escapeHtml } from "../../lib/escape.js";
 
 export async function renderPatientForm({ id }) {
   const { data: patient } = await api.get(`/patients/${id}`);
@@ -13,7 +14,7 @@ export async function renderPatientForm({ id }) {
         <div class="row">
           <div class="col-sm-7 mb-3">
             <label class="form-label" for="date_of_birth">Date of birth</label>
-            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="${patient.date_of_birth || ""}" />
+            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="${escapeHtml(patient.date_of_birth)}" />
             <div class="invalid-feedback" data-server="date_of_birth"></div>
           </div>
           <div class="col-sm-5 mb-3">
@@ -29,23 +30,23 @@ export async function renderPatientForm({ id }) {
         </div>
         <div class="mb-3">
           <label class="form-label" for="blood_group">Blood group</label>
-          <input type="text" class="form-control" id="blood_group" name="blood_group" value="${patient.blood_group || ""}" placeholder="e.g. O+" />
+          <input type="text" class="form-control" id="blood_group" name="blood_group" value="${escapeHtml(patient.blood_group)}" placeholder="e.g. O+" />
           <div class="invalid-feedback" data-server="blood_group"></div>
         </div>
         <div class="mb-3">
           <label class="form-label" for="address">Address</label>
-          <textarea class="form-control" id="address" name="address" rows="2">${patient.address || ""}</textarea>
+          <textarea class="form-control" id="address" name="address" rows="2">${escapeHtml(patient.address)}</textarea>
           <div class="invalid-feedback" data-server="address"></div>
         </div>
         <div class="row">
           <div class="col-sm-7 mb-3">
             <label class="form-label" for="emergency_contact_name">Emergency contact name</label>
-            <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" value="${patient.emergency_contact_name || ""}" />
+            <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" value="${escapeHtml(patient.emergency_contact_name)}" />
             <div class="invalid-feedback" data-server="emergency_contact_name"></div>
           </div>
           <div class="col-sm-5 mb-3">
             <label class="form-label" for="emergency_contact">Emergency phone</label>
-            <input type="text" class="form-control" id="emergency_contact" name="emergency_contact" value="${patient.emergency_contact || ""}" />
+            <input type="text" class="form-control" id="emergency_contact" name="emergency_contact" value="${escapeHtml(patient.emergency_contact)}" />
             <div class="invalid-feedback" data-server="emergency_contact"></div>
           </div>
         </div>
