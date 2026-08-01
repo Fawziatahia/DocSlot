@@ -1,6 +1,8 @@
 import { isAuthenticated } from "../lib/api.js";
+import logo from "../assets/logo.png";
 
 export function renderGuestNavbar() {
+  const path = window.location.pathname;
   const authLinks = isAuthenticated()
     ? `<a href="/dashboard" data-link class="btn btn-primary px-4">Dashboard</a>`
     : `
@@ -11,15 +13,15 @@ export function renderGuestNavbar() {
   return `
     <nav class="navbar navbar-expand-lg guest-navbar sticky-top">
       <div class="container">
-        <a class="navbar-brand" href="/" data-link>DocSlot</a>
+        <a class="navbar-brand" href="/" data-link><img src="${logo}" alt="DocSlot" /></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#guestNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="guestNav">
           <ul class="navbar-nav mx-auto gap-lg-2">
-            <li class="nav-item"><a class="nav-link" href="/" data-link>Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="/doctors" data-link>Find a Doctor</a></li>
-            <li class="nav-item"><a class="nav-link" href="/#features" data-link>Features</a></li>
+            <li class="nav-item"><a class="nav-link ${path === "/" ? "active" : ""}" href="/" data-link>Home</a></li>
+            <li class="nav-item"><a class="nav-link ${path === "/doctors" ? "active" : ""}" href="/doctors" data-link>Find a Doctor</a></li>
+            <li class="nav-item"><a class="nav-link ${path === "/features" ? "active" : ""}" href="/features" data-link>Features</a></li>
           </ul>
           <div class="d-flex gap-2 mt-3 mt-lg-0">${authLinks}</div>
         </div>
