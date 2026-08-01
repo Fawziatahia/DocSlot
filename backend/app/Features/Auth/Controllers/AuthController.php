@@ -20,7 +20,6 @@ use App\Features\Shared\Traits\ApiResponseTrait;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
 
 class AuthController
 {
@@ -73,22 +72,26 @@ class AuthController
     {
         $this->forgotPasswordAction->execute($request->validated('email'));
 
-        return $this->success(null, 'Password reset link sent to your email.');
+        return $this->success(null, 'If an account exists for that email, a reset code has been sent.');
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
         $status = $this->resetPasswordAction->execute(
             $request->validated('email'),
-            $request->validated('token'),
+            $request->validated('otp'),
             $request->validated('password'),
         );
 
-        if ($status === Password::PASSWORD_RESET) {
+        if ($status === ResetPasswordAction::STATUS_SUCCESS) {
             return $this->success(null, 'Password has been reset successfully.');
         }
 
-        return $this->error('Invalid or expired password reset token.', 400);
+        if ($status === ResetPasswordAction::STATUS_EXPIRED) {
+            return $this->error('This reset code has expired. Please request a new one.', 400);
+        }
+
+        return $this->error('Invalid reset code.', 400);
     }
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
