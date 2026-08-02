@@ -10,6 +10,7 @@ use App\Features\Dashboard\Controllers\AdminDashboardController;
 use App\Features\Dashboard\Controllers\DoctorDashboardController;
 use App\Features\Dashboard\Controllers\PatientDashboardController;
 use App\Features\Doctors\Controllers\DoctorController;
+use App\Features\Landing\Controllers\LandingController;
 use App\Features\Doctors\Controllers\DoctorScheduleController;
 use App\Features\MedicalRecords\Controllers\MedicalRecordController;
 use App\Features\Notifications\Controllers\NotificationController;
@@ -46,6 +47,15 @@ Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1'
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
     Route::post('change-password', [AuthController::class, 'changePassword']);
+});
+
+// ──────────────────────────────────────────
+// Landing page (public, read-only)
+// ──────────────────────────────────────────
+Route::prefix('landing')->group(function () {
+    Route::get('stats', [LandingController::class, 'stats']);
+    Route::get('specialties', [LandingController::class, 'specialties']);
+    Route::get('featured-doctors', [LandingController::class, 'featuredDoctors']);
 });
 
 // ──────────────────────────────────────────

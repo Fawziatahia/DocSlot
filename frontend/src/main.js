@@ -1,3 +1,4 @@
+import "@fontsource/manrope/300.css";
 import "@fontsource/manrope/400.css";
 import "@fontsource/manrope/500.css";
 import "@fontsource/manrope/600.css";
@@ -16,7 +17,7 @@ import { authLayout } from "./layouts/auth.js";
 import { dashboardLayout } from "./layouts/dashboard.js";
 import { adaptiveLayout } from "./layouts/adaptive.js";
 
-import { renderLanding } from "./features/landing/index.js";
+import { renderLanding, afterLanding } from "./features/landing/index.js";
 import { renderFeaturesPage } from "./features/landing/features-page.js";
 import { renderLogin, afterLogin } from "./features/auth/login.js";
 import { renderRegister, afterRegister } from "./features/auth/register.js";
@@ -60,7 +61,7 @@ import { renderNotificationsList, afterNotificationsList } from "./features/noti
 import { renderReferralsList, afterReferralsList } from "./features/referrals/list.js";
 import { renderReports, afterReports } from "./features/reports/index.js";
 
-route("/", { layout: guestLayout, render: () => renderLanding() });
+route("/", { layout: guestLayout, render: () => renderLanding(), after: () => afterLanding() });
 route("/features", { layout: guestLayout, render: () => renderFeaturesPage() });
 
 route("/login", {
