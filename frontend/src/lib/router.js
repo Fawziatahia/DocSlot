@@ -8,6 +8,7 @@ const appEl = () => document.querySelector("#app");
  * @param {object} config
  * @param {(params: Record<string,string>) => Promise<string>|string} config.render
  * @param {(content: string) => Promise<string>|string} [config.layout]
+ * @param {(params: Record<string,string>) => string} [config.redirect] send elsewhere instead of rendering
  * @param {boolean} [config.auth] require login
  * @param {string[]} [config.roles] require one of these roles
  */
@@ -49,6 +50,10 @@ async function render() {
   }
 
   const { route: matchedRoute, params } = matched;
+
+  if (matchedRoute.redirect) {
+    return navigate(matchedRoute.redirect(params), true);
+  }
 
   if (matchedRoute.auth && !isAuthenticated()) {
     return navigate("/login", true);

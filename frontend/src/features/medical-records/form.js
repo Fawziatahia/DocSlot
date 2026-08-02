@@ -1,7 +1,8 @@
 import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
+import { formatFileSize } from "../../lib/format.js";
 import { escapeHtml } from "../../lib/escape.js";
-import { renderPatientHeader, bindEntityFormSubmit } from "../../lib/entity-form.js";
+import { renderPatientHeader, bindEntityFormSubmit, bindPatientPicker } from "../../lib/entity-form.js";
 
 const RECORD_TYPES = [
   ["lab_result", "Lab Result"],
@@ -45,9 +46,27 @@ export async function renderMedicalRecordForm({ id } = {}) {
           <div class="invalid-feedback" data-server="description"></div>
         </div>
         <div class="mb-3">
-          <label class="form-label" for="file_path">File URL (optional)</label>
-          <input type="text" class="form-control" id="file_path" name="file_path" value="${escapeHtml(existing?.file_path)}" placeholder="https://..." />
-          <div class="invalid-feedback" data-server="file_path"></div>
+          <label class="form-label" for="file">Attachment (optional)</label>
+          ${
+            existing?.file
+              ? `
+            <div class="attachment-current" id="current-attachment">
+              <i class="bi ${existing.file.is_image ? "bi-file-earmark-image" : "bi-file-earmark-pdf"}"></i>
+              <span class="attachment-name">${escapeHtml(existing.file.name)}</span>
+              <span class="attachment-size">${formatFileSize(existing.file.size)}</span>
+              <div class="form-check ms-auto mb-0">
+                <input class="form-check-input" type="checkbox" id="remove_file" name="remove_file" />
+                <label class="form-check-label small" for="remove_file">Remove</label>
+              </div>
+            </div>
+          `
+              : existing?.external_url
+                ? `<p class="form-text mb-2">Currently linked: <a href="${escapeHtml(existing.external_url)}" target="_blank" rel="noopener">${escapeHtml(existing.external_url)}</a></p>`
+                : ""
+          }
+          <input type="file" class="form-control" id="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*" />
+          <div class="form-text">PDF or image (JPG, PNG, WEBP), up to 10 MB.${existing?.file ? " Choosing a new file replaces the current one." : ""}</div>
+          <div class="invalid-feedback" data-server="file"></div>
         </div>
         <div class="mb-3">
           <label class="form-label" for="notes">Notes</label>
@@ -61,6 +80,8 @@ export async function renderMedicalRecordForm({ id } = {}) {
 }
 
 export function afterMedicalRecordForm({ id } = {}) {
+  bindPatientPicker();
+
   bindEntityFormSubmit({
     formId: "record-form",
     submitId: "record-form-submit",
@@ -68,17 +89,29 @@ export function afterMedicalRecordForm({ id } = {}) {
     id,
     createLabel: "Create Record",
     buildPayload: (form) => {
-      const payload = {
+      const file = form.file.files[0];
+      const removeFile = form.remove_file?.checked;
+
+      const fields = {
         record_type: form.record_type.value,
         title: form.title.value,
         description: form.description.value || undefined,
-        file_path: form.file_path.value || undefined,
         notes: form.notes.value || undefined,
       };
       if (!id) {
-        payload.patient_id = form.patient_id.value;
-        payload.appointment_id = form.appointment_id.value ? Number(form.appointment_id.value) : undefined;
+        fields.patient_id = form.patient_id.value;
+        fields.appointment_id = form.appointment_id.value ? Number(form.appointment_id.value) : undefined;
       }
+
+      // Only switch to multipart when there is actually a file to carry.
+      if (!file && !removeFile) return fields;
+
+      const payload = new FormData();
+      Object.entries(fields).forEach(([key, value]) => {
+        if (value !== undefined) payload.append(key, value);
+      });
+      if (file) payload.append("file", file);
+      if (removeFile && !file) payload.append("remove_file", "1");
 
       return payload;
     },

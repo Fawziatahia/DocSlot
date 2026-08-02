@@ -20,7 +20,16 @@ class StoreMedicalRecordRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'file_path' => ['nullable', 'string', 'max:500'],
+            'file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240'],
             'notes' => ['nullable', 'string', 'max:5000'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'file.mimes' => 'Attach a PDF or an image (JPG, PNG or WEBP).',
+            'file.max' => 'The attachment must be 10 MB or smaller.',
         ];
     }
 }

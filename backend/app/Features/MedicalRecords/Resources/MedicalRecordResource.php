@@ -25,7 +25,20 @@ class MedicalRecordResource extends JsonResource
             'record_type' => $this->record_type,
             'title' => $this->title,
             'description' => $this->description,
-            'file_path' => $this->file_path,
+            // Uploads are described by `file` and fetched through the
+            // authenticated download route; `external_url` covers the older
+            // records that only ever held a link.
+            'file' => $this->when($this->hasStoredFile(), fn () => [
+                'name' => $this->file_name,
+                'mime' => $this->file_mime,
+                'size' => $this->file_size,
+                'is_image' => str_starts_with((string) $this->file_mime, 'image/'),
+                'url' => "/medical-records/{$this->id}/file",
+            ]),
+            'external_url' => $this->when(
+                $this->file_path && ! $this->file_name,
+                fn () => $this->file_path
+            ),
             'notes' => $this->notes,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

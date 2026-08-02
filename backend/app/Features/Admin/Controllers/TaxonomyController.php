@@ -23,6 +23,13 @@ class TaxonomyController
             $query->where('is_active', true);
         }
 
+        if ($q = $request->input('q')) {
+            $query->where(function ($qry) use ($q) {
+                $qry->where('name', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%");
+            });
+        }
+
         $items = $query->latest()->paginate((int) $request->input('per_page', 15));
 
         return $this->paginated($items, TaxonomyResource::class);

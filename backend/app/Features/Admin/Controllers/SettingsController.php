@@ -45,6 +45,7 @@ class SettingsController
         return $this->success([
             'min_booking_lead_days' => $setting->min_booking_lead_days,
             'max_booking_date' => $setting->effectiveMaxBookingDate(),
+            'appointment_cutoff_minutes' => $setting->appointment_cutoff_minutes,
         ]);
     }
 }

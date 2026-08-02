@@ -25,23 +25,22 @@ import { renderResetPassword, afterResetPassword } from "./features/auth/reset-p
 import { renderChangePassword, afterChangePassword } from "./features/auth/change-password.js";
 import { renderDashboard } from "./features/dashboard/index.js";
 import { renderDoctorsList, afterDoctorsList } from "./features/doctors/list.js";
-import { renderDoctorDetail } from "./features/doctors/detail.js";
+import { renderDoctorDetail, afterDoctorDetail } from "./features/doctors/detail.js";
 import { renderDoctorForm, afterDoctorForm } from "./features/doctors/form.js";
 import { renderDoctorSchedule, afterDoctorSchedule } from "./features/doctors/schedule.js";
 import { renderMyProfile as renderDoctorMyProfile } from "./features/doctors/my-profile.js";
 import { renderMyProfile as renderPatientMyProfile } from "./features/patients/my-profile.js";
 import { renderAppointmentsList, afterAppointmentsList } from "./features/appointments/list.js";
 import { renderAppointmentDetail, afterAppointmentDetail } from "./features/appointments/detail.js";
-import { renderBookAppointment, afterBookAppointment } from "./features/appointments/book.js";
 import { renderPatientsList, afterPatientsList } from "./features/patients/list.js";
-import { renderPatientDetail, afterPatientDetail } from "./features/patients/detail.js";
+import { renderPatientDetail } from "./features/patients/detail.js";
 import { renderPatientForm, afterPatientForm } from "./features/patients/form.js";
 import { renderPatientMedicalHistory, renderPatientPrescriptionsHistory } from "./features/patients/records.js";
-import { renderPrescriptionsList } from "./features/prescriptions/list.js";
+import { renderPrescriptionsList, afterPrescriptionsList } from "./features/prescriptions/list.js";
 import { renderPrescriptionDetail } from "./features/prescriptions/detail.js";
 import { renderPrescriptionForm, afterPrescriptionForm } from "./features/prescriptions/form.js";
 import { renderMedicalRecordsList } from "./features/medical-records/list.js";
-import { renderMedicalRecordDetail } from "./features/medical-records/detail.js";
+import { renderMedicalRecordDetail, afterMedicalRecordDetail } from "./features/medical-records/detail.js";
 import { renderMedicalRecordForm, afterMedicalRecordForm } from "./features/medical-records/form.js";
 import { renderUsersList, afterUsersList } from "./features/admin/users.js";
 import {
@@ -58,14 +57,30 @@ import {
 } from "./features/admin/specializations.js";
 import { renderSettings, afterSettings } from "./features/admin/settings.js";
 import { renderNotificationsList, afterNotificationsList } from "./features/notifications/list.js";
-import { renderReferralsList } from "./features/referrals/list.js";
+import { renderReferralsList, afterReferralsList } from "./features/referrals/list.js";
 import { renderReports, afterReports } from "./features/reports/index.js";
 
 route("/", { layout: guestLayout, render: () => renderLanding() });
 route("/features", { layout: guestLayout, render: () => renderFeaturesPage() });
 
 route("/login", { layout: authLayout, render: () => renderLogin(), after: afterLogin });
-route("/register", { layout: authLayout, render: () => renderRegister(), after: afterRegister });
+route("/register", {
+  layout: (content) =>
+    authLayout(content, {
+      panel: {
+        title: "Join DocSlot Today.",
+        subtitle: "Free for patients. Always.",
+        points: [
+          "Find the right specialist",
+          "Book in under 3 minutes",
+          "Notifications & reminders",
+          "Rate & review doctors",
+        ],
+      },
+    }),
+  render: () => renderRegister(),
+  after: afterRegister,
+});
 route("/forgot-password", {
   layout: authLayout,
   render: () => renderForgotPassword(),
@@ -111,6 +126,7 @@ route("/doctors/:id/schedule", {
 route("/doctors/:id", {
   layout: (content) => adaptiveLayout(content, { title: "Doctor Profile", activePath: "/doctors" }),
   render: (params) => renderDoctorDetail(params),
+  after: (params) => afterDoctorDetail(params),
 });
 route("/doctors", {
   layout: (content) => adaptiveLayout(content, { title: "Doctors", activePath: "/doctors" }),
@@ -123,14 +139,12 @@ route("/profile", {
   roles: ["doctor", "patient"],
   layout: (content) => dashboardLayout(content, { title: "My Profile", activePath: "/profile" }),
   render: () => (hasRole("doctor") ? renderDoctorMyProfile() : renderPatientMyProfile()),
+  after: () => hasRole("doctor") && afterDoctorDetail({}),
 });
 
+// Booking now happens inline on the doctor's profile; keep old links working.
 route("/appointments/book/:doctorId", {
-  auth: true,
-  roles: ["patient"],
-  layout: (content) => dashboardLayout(content, { title: "Book Appointment", activePath: "/appointments" }),
-  render: (params) => renderBookAppointment(params),
-  after: (params) => afterBookAppointment(params),
+  redirect: ({ doctorId }) => `/doctors/${doctorId}`,
 });
 route("/appointments/:id", {
   auth: true,
@@ -165,11 +179,10 @@ route("/patients/:id", {
   auth: true,
   layout: (content) => dashboardLayout(content, { title: "Patient Profile", activePath: "/patients" }),
   render: (params) => renderPatientDetail(params),
-  after: (params) => afterPatientDetail(params),
 });
 route("/patients", {
   auth: true,
-  roles: ["admin"],
+  roles: ["admin", "doctor"],
   layout: (content) => dashboardLayout(content, { title: "Patients", activePath: "/patients" }),
   render: () => renderPatientsList(),
   after: () => afterPatientsList(),
@@ -197,6 +210,7 @@ route("/prescriptions", {
   auth: true,
   layout: (content) => dashboardLayout(content, { title: "Prescriptions", activePath: "/prescriptions" }),
   render: () => renderPrescriptionsList(),
+  after: () => afterPrescriptionsList(),
 });
 
 route("/medical-records/new", {
@@ -216,6 +230,7 @@ route("/medical-records/:id", {
   auth: true,
   layout: (content) => dashboardLayout(content, { title: "Medical Record", activePath: "/medical-records" }),
   render: (params) => renderMedicalRecordDetail(params),
+  after: () => afterMedicalRecordDetail(),
 });
 route("/medical-records", {
   auth: true,
@@ -295,6 +310,7 @@ route("/referrals", {
   roles: ["doctor"],
   layout: (content) => dashboardLayout(content, { title: "Referrals", activePath: "/referrals" }),
   render: () => renderReferralsList(),
+  after: () => afterReferralsList(),
 });
 
 route("/reports", {

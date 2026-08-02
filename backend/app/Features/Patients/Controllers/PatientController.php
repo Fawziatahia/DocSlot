@@ -26,13 +26,16 @@ class PatientController
     ) {}
 
     /**
-     * List patients (admin only).
-     * GET /api/patients
+     * List/search patients (admin & doctor — PatientPolicy already lets both
+     * view any patient record).
+     * GET /api/patients?q=&status=
      */
     public function index(Request $request): JsonResponse
     {
+        $filters = $request->only(['q', 'status']);
         $perPage = (int) $request->input('per_page', 15);
-        $patients = $this->patientRepository->paginate($perPage);
+
+        $patients = $this->patientRepository->search($filters, $perPage);
 
         return $this->paginated($patients, PatientDetailResource::class);
     }
@@ -135,6 +138,7 @@ class PatientController
         $prescriptions = $this->prescriptionRepository->getPatientPrescriptions(
             $patient->id,
             (int) $request->input('per_page', 15),
+            $request->only(['q', 'status']),
         );
 
         return $this->paginated($prescriptions, PrescriptionResource::class);

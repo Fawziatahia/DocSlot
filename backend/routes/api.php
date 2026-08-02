@@ -74,7 +74,7 @@ Route::prefix('doctors')->group(function () {
 // Patient Routes (admin & doctor)
 // ──────────────────────────────────────────
 Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1'])->prefix('patients')->group(function () {
-    Route::get('/', [PatientController::class, 'index'])->middleware('role:admin');
+    Route::get('/', [PatientController::class, 'index'])->middleware('roles:admin,doctor');
     Route::get('/{id}', [PatientController::class, 'show']);
     Route::put('/{id}', [PatientController::class, 'update']);
     Route::delete('/{id}', [PatientController::class, 'destroy']);
@@ -160,6 +160,7 @@ Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1'
     Route::get('/', [MedicalRecordController::class, 'index'])->middleware('role:admin');
     Route::get('my', [MedicalRecordController::class, 'myRecords']);
     Route::get('/{id}', [MedicalRecordController::class, 'show']);
+    Route::get('/{id}/file', [MedicalRecordController::class, 'downloadFile']);
     Route::post('/', [MedicalRecordController::class, 'store']);
     Route::put('/{id}', [MedicalRecordController::class, 'update']);
     Route::delete('/{id}', [MedicalRecordController::class, 'destroy'])->middleware('role:admin');

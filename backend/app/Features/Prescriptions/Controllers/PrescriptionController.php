@@ -26,7 +26,7 @@ class PrescriptionController
     public function index(Request $request): JsonResponse
     {
         $perPage = (int) $request->input('per_page', 15);
-        $prescriptions = $this->prescriptionRepository->paginate($perPage);
+        $prescriptions = $this->prescriptionRepository->paginate($perPage, $request->only(['q', 'status']));
 
         return $this->paginated($prescriptions, PrescriptionResource::class);
     }
@@ -82,15 +82,19 @@ class PrescriptionController
     {
         $user = $request->user();
 
+        $filters = $request->only(['q', 'status']);
+
         if ($user->isPatient()) {
             $prescriptions = $this->prescriptionRepository->getPatientPrescriptions(
                 $user->patient->id,
                 (int) $request->input('per_page', 15),
+                $filters,
             );
         } elseif ($user->isDoctor()) {
             $prescriptions = $this->prescriptionRepository->getDoctorPrescriptions(
                 $user->doctor->id,
                 (int) $request->input('per_page', 15),
+                $filters,
             );
         } else {
             return $this->error('Unauthorized.', 403);

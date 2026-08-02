@@ -39,8 +39,12 @@ class DoctorController
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only(['q', 'specialization_id', 'department_id', 'min_fee', 'max_fee']);
+        $filters = $request->only(['q', 'specialization_id', 'department_id', 'min_fee', 'max_fee', 'status']);
         $perPage = (int) $request->input('per_page', 15);
+
+        // Admins search the whole roster, including suspended doctors, and can
+        // match on licence number and email; everyone else sees the directory.
+        $filters['privileged'] = (bool) $request->user('sanctum')?->isAdmin();
 
         $doctors = $this->doctorService->searchDoctors($filters, $perPage);
 

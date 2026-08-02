@@ -39,6 +39,39 @@ class PatientRepository implements RepositoryInterface
         return Patient::with('user')->where('public_id', $publicId)->firstOrFail($columns);
     }
 
+    /**
+     * Search patients for the admin/doctor patient list.
+     *
+     * `q` matches a patient ID exactly first (so pasting "p7894622" lands on
+     * that record), then falls back to a partial match on name, email or
+     * phone.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function search(array $filters, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = Patient::with('user');
+
+        if (! empty($filters['q'])) {
+            $q = trim($filters['q']);
+            $query->where(function ($qry) use ($q) {
+                $qry->where('public_id', $q)
+                    ->orWhere('public_id', 'like', "{$q}%")
+                    ->orWhereHas('user', function ($u) use ($q) {
+                        $u->where('name', 'like', "%{$q}%")
+                            ->orWhere('email', 'like', "%{$q}%")
+                            ->orWhere('phone', 'like', "%{$q}%");
+                    });
+            });
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->latest('id')->paginate($perPage);
+    }
+
     public function create(array $data): Model
     {
         return Patient::create($data);

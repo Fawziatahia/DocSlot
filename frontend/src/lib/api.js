@@ -56,17 +56,21 @@ export async function apiFetch(path, { method = "GET", body, params } = {}) {
     });
   }
 
+  // FormData carries its own multipart boundary, so the browser must set
+  // Content-Type itself — setting it here would corrupt the upload.
+  const isFormData = body instanceof FormData;
+
   const headers = {
     Accept: "application/json",
   };
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
-  if (body) headers["Content-Type"] = "application/json";
+  if (body && !isFormData) headers["Content-Type"] = "application/json";
 
   const response = await fetch(url, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
   });
 
   const isJson = response.headers.get("content-type")?.includes("application/json");
@@ -82,10 +86,30 @@ export async function apiFetch(path, { method = "GET", body, params } = {}) {
   return data;
 }
 
+/**
+ * Fetch a private file (medical-record attachments) as a Blob. A plain <a href>
+ * can't be used for these because the download route needs the bearer token.
+ */
+export async function apiBlob(path) {
+  const headers = { Accept: "*/*" };
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE_URL}${path}`, { headers });
+
+  if (!response.ok) {
+    if (response.status === 401) clearSession();
+    throw new ApiError("Couldn't load the attachment.", response.status);
+  }
+
+  return response.blob();
+}
+
 export const api = {
   get: (path, params) => apiFetch(path, { method: "GET", params }),
   post: (path, body) => apiFetch(path, { method: "POST", body }),
   put: (path, body) => apiFetch(path, { method: "PUT", body }),
   patch: (path, body) => apiFetch(path, { method: "PATCH", body }),
   delete: (path) => apiFetch(path, { method: "DELETE" }),
+  blob: apiBlob,
 };
