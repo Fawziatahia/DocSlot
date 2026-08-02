@@ -1,6 +1,7 @@
 import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { clearFormErrors, applyFormErrors, setSubmitting } from "../../lib/forms.js";
+import { renderSearchBar, attachLiveSearch } from "../../components/live-search.js";
 import { escapeHtml } from "../../lib/escape.js";
 
 function currentPath() {
@@ -8,10 +9,8 @@ function currentPath() {
 }
 
 export function createTaxonomyPages({ resource, label }) {
-  async function renderList() {
-    const search = new URLSearchParams(window.location.search);
-    const page = search.get("page") || 1;
-    const { data: items } = await api.get(`/${resource}`, { page, per_page: 50 });
+  async function fetchResults(params) {
+    const { data: items } = await api.get(`/${resource}`, { ...params, per_page: 50 });
 
     const rows = items.length
       ? items
@@ -31,34 +30,54 @@ export function createTaxonomyPages({ resource, label }) {
           `
           )
           .join("")
-      : `<tr><td colspan="5" class="text-center text-muted py-4">No ${label.toLowerCase()} yet.</td></tr>`;
+      : `<tr><td colspan="5" class="text-center text-muted py-4">No ${label.toLowerCase()} match your search.</td></tr>`;
+
+    return `
+      <div class="alert alert-danger d-none" data-list-alert role="alert"></div>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th>Name</th><th>Description</th><th>Doctors</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  async function renderList() {
+    const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+    const results = await fetchResults(params);
 
     return `
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="h4 mb-0">${label}</h2>
         <a href="/admin/${resource}/new" data-link class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add ${label.replace(/s$/, "")}</a>
       </div>
-      <div class="section-card">
-        <div class="alert alert-danger d-none" data-list-alert role="alert"></div>
-        <div class="table-responsive">
-          <table class="table align-middle">
-            <thead><tr><th>Name</th><th>Description</th><th>Doctors</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="taxonomy-body">${rows}</tbody>
-          </table>
-        </div>
-      </div>
+      ${renderSearchBar({
+        id: "taxonomy-search",
+        value: params.q || "",
+        placeholder: `Search ${label.toLowerCase()} by name or description...`,
+      })}
+      <div class="section-card" id="taxonomy-results">${results}</div>
     `;
   }
 
   function afterList() {
-    const alertBox = document.querySelector("[data-list-alert]");
-    document.getElementById("taxonomy-body")?.addEventListener("click", async (e) => {
+    attachLiveSearch({
+      formId: "taxonomy-search",
+      resultsId: "taxonomy-results",
+      render: fetchResults,
+    });
+
+    document.getElementById("taxonomy-results")?.addEventListener("click", async (e) => {
       const button = e.target.closest("button[data-action]");
       if (!button) return;
       const { action, id } = button.dataset;
 
       if (action === "delete" && !window.confirm(`Delete this ${label.toLowerCase().replace(/s$/, "")}?`)) return;
 
+      // Re-queried per click: the alert lives inside the container that each
+      // search replaces.
+      const alertBox = document.querySelector("[data-list-alert]");
       button.disabled = true;
       try {
         if (action === "toggle") {

@@ -29,7 +29,7 @@ class AppointmentController
     public function index(Request $request): JsonResponse
     {
         $perPage = (int) $request->input('per_page', 15);
-        $appointments = $this->appointmentRepository->paginate($perPage);
+        $appointments = $this->appointmentRepository->paginate($perPage, $request->only(['q', 'status']));
 
         return $this->paginated($appointments, AppointmentResource::class);
     }
@@ -125,17 +125,24 @@ class AppointmentController
     {
         $user = $request->user();
 
+        $perPage = (int) $request->input('per_page', 15);
+        $filters = $request->only(['q']);
+
         if ($user->isPatient()) {
             $patient = $user->patient;
             $appointments = $this->appointmentRepository->getPatientAppointments(
                 $patient->id,
                 $request->input('status'),
+                $perPage,
+                $filters,
             );
         } elseif ($user->isDoctor()) {
             $doctor = $user->doctor;
             $appointments = $this->appointmentRepository->getDoctorAppointments(
                 $doctor->id,
                 $request->input('status'),
+                $perPage,
+                $filters,
             );
         } else {
             return $this->error('Unauthorized.', 403);

@@ -72,20 +72,46 @@ class DoctorRepository implements RepositoryInterface
     }
 
     /**
+     * Search the doctor directory.
+     *
+     * `q` matches a doctor ID exactly first (so pasting "d8681108" jumps
+     * straight to that record), then falls back to a partial match on name,
+     * specialization and department. Admins additionally match on licence
+     * number and email, and see suspended/deactivated doctors — everyone
+     * else only sees the publicly bookable ones.
+     *
      * @return LengthAwarePaginator<Doctor>
      */
     public function search(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        $query = Doctor::with(['user', 'specialization', 'department'])
-            ->where('status', 'active')
-            ->whereHas('user', function ($qry) {
-                $qry->where('is_active', true);
-            });
+        $privileged = ! empty($filters['privileged']);
+
+        $query = Doctor::with(['user', 'specialization', 'department']);
+
+        if (! $privileged) {
+            $query->where('status', 'active')
+                ->whereHas('user', function ($qry) {
+                    $qry->where('is_active', true);
+                });
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
 
         if (! empty($filters['q'])) {
-            $q = $filters['q'];
-            $query->whereHas('user', function ($qry) use ($q) {
-                $qry->where('name', 'like', "%{$q}%");
+            $q = trim($filters['q']);
+            $query->where(function ($qry) use ($q, $privileged) {
+                $qry->where('public_id', $q)
+                    ->orWhere('public_id', 'like', "{$q}%")
+                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$q}%"))
+                    ->orWhereHas('specialization', fn ($s) => $s->where('name', 'like', "%{$q}%"))
+                    ->orWhereHas('department', fn ($d) => $d->where('name', 'like', "%{$q}%"));
+
+                if ($privileged) {
+                    $qry->orWhere('license_number', 'like', "%{$q}%")
+                        ->orWhereHas('user', fn ($u) => $u->where('email', 'like', "%{$q}%"));
+                }
             });
         }
 

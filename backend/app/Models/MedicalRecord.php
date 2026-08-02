@@ -15,8 +15,27 @@ class MedicalRecord extends Model
         'title',
         'description',
         'file_path',
+        'file_name',
+        'file_mime',
+        'file_size',
         'notes',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'file_size' => 'integer',
+        ];
+    }
+
+    /**
+     * True when the attachment is a file we hold on the private disk, as
+     * opposed to a legacy external URL sitting in `file_path`.
+     */
+    public function hasStoredFile(): bool
+    {
+        return $this->file_path && $this->file_name;
+    }
 
     public function patient(): BelongsTo
     {

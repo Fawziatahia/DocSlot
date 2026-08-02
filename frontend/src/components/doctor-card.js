@@ -24,6 +24,11 @@ export function renderDoctorCard(doctor) {
               : ""
           }
         </div>
+        ${
+          doctor.license_number
+            ? `<div class="small text-muted mb-2"><i class="bi bi-patch-check me-1"></i>License <code>${escapeHtml(doctor.license_number)}</code></div>`
+            : ""
+        }
         <div class="d-flex justify-content-between align-items-center">
           <span class="fw-semibold">${formatCurrency(doctor.consultation_fee)}</span>
           ${

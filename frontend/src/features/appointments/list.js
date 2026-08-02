@@ -2,6 +2,7 @@ import { api, hasRole } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { formatDate, formatTime, statusBadgeClass } from "../../lib/format.js";
 import { renderDataTable, pageHrefBuilder } from "../../components/data-table.js";
+import { renderSearchBar, attachLiveSearch } from "../../components/live-search.js";
 import { escapeHtml } from "../../lib/escape.js";
 
 const STATUS_TABS = ["", "pending", "confirmed", "in_progress", "completed", "cancelled"];
@@ -10,20 +11,9 @@ function currentPath() {
   return window.location.pathname + window.location.search;
 }
 
-export async function renderAppointmentsList() {
-  const search = new URLSearchParams(window.location.search);
-  const status = search.get("status") || "";
-  const page = search.get("page") || 1;
-
+async function fetchResults(params) {
   const endpoint = hasRole("admin") ? "/appointments" : "/appointments/my";
-  const { data: appointments, meta } = await api.get(endpoint, { status: status || undefined, page, per_page: 10 });
-
-  const tabs = STATUS_TABS.map((s) => {
-    const params = new URLSearchParams();
-    if (s) params.set("status", s);
-    const href = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
-    return `<a href="${href}" data-link class="nav-link ${status === s ? "active" : ""}">${s ? s.replace("_", " ") : "All"}</a>`;
-  }).join("");
+  const { data: appointments, meta } = await api.get(endpoint, { ...params, per_page: 10 });
 
   const isPatientView = hasRole("patient");
   const isDoctorView = hasRole("doctor");
@@ -61,7 +51,26 @@ export async function renderAppointmentsList() {
           `;
         })
         .join("")
-    : `<tr><td colspan="5" class="text-center text-muted py-4">No appointments found.</td></tr>`;
+    : `<tr><td colspan="5" class="text-center text-muted py-4">No appointments match your search.</td></tr>`;
+
+  return renderDataTable({
+    headers: [isPatientView ? "Doctor" : "Patient", "Date", "Time", "Status", "Actions"],
+    body: rows,
+    meta,
+    pageHref: pageHrefBuilder(window.location.pathname),
+  });
+}
+
+export async function renderAppointmentsList() {
+  const params = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+  const results = await fetchResults(params);
+
+  const isPatientView = hasRole("patient");
+
+  const statusOptions = STATUS_TABS.map(
+    (s) =>
+      `<option value="${s}" ${(params.status || "") === s ? "selected" : ""}>${s ? s.replace("_", " ") : "Any status"}</option>`
+  ).join("");
 
   const bookButton = isPatientView
     ? `<a href="/doctors" data-link class="btn btn-primary"><i class="bi bi-calendar-plus me-1"></i>Book Appointment</a>`
@@ -72,21 +81,26 @@ export async function renderAppointmentsList() {
       <h2 class="h4 mb-0">Appointments</h2>
       ${bookButton}
     </div>
-    <ul class="nav nav-pills mb-3 flex-wrap">${tabs}</ul>
-    ${renderDataTable({
-      headers: [isPatientView ? "Doctor" : "Patient", "Date", "Time", "Status", "Actions"],
-      body: rows,
-      tbodyId: "appointments-body",
-      meta,
-      pageHref: pageHrefBuilder(window.location.pathname),
+    ${renderSearchBar({
+      id: "appointment-search",
+      value: params.q || "",
+      placeholder: isPatientView
+        ? "Search by doctor name, doctor ID or reason..."
+        : "Search by patient name, patient ID, appointment # or reason...",
+      controls: `<select class="form-select search-control text-capitalize" name="status" aria-label="Status">${statusOptions}</select>`,
     })}
+    <div id="appointment-results">${results}</div>
   `;
 }
 
 export function afterAppointmentsList() {
-  const alertBox = document.querySelector("[data-list-alert]");
+  attachLiveSearch({
+    formId: "appointment-search",
+    resultsId: "appointment-results",
+    render: fetchResults,
+  });
 
-  document.getElementById("appointments-body")?.addEventListener("click", async (e) => {
+  document.getElementById("appointment-results")?.addEventListener("click", async (e) => {
     const button = e.target.closest("button[data-action]");
     if (!button) return;
 
@@ -98,6 +112,9 @@ export function afterAppointmentsList() {
       payload = { cancellation_reason: reason };
     }
 
+    // Re-queried per click: the alert lives inside the container that each
+    // search replaces.
+    const alertBox = document.querySelector("[data-list-alert]");
     button.disabled = true;
     try {
       await api.post(`/appointments/${id}/${action}`, payload);

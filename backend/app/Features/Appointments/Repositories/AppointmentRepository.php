@@ -13,9 +13,52 @@ class AppointmentRepository
      */
     private const ACTIVE_STATUSES = ['pending', 'confirmed', 'in_progress'];
 
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    /**
+     * Narrow an appointment query by free-text search and status.
+     *
+     * `q` matches an appointment number, a patient or doctor ID exactly, or
+     * partially matches either party's name or the stated reason for the
+     * visit — so "42", "p7894622", "Rahman" and "chest pain" all find it.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Appointment>  $query
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyFilters($query, array $filters)
     {
-        return Appointment::with(['patient.user', 'doctor.user'])->latest()->paginate($perPage);
+        if (! empty($filters['q'])) {
+            $q = trim($filters['q']);
+            $query->where(function ($qry) use ($q) {
+                $qry->where('reason', 'like', "%{$q}%")
+                    ->orWhereHas('patient', function ($p) use ($q) {
+                        $p->where('public_id', $q)
+                            ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$q}%"));
+                    })
+                    ->orWhereHas('doctor', function ($d) use ($q) {
+                        $d->where('public_id', $q)
+                            ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$q}%"));
+                    });
+
+                if (ctype_digit($q)) {
+                    $qry->orWhere('id', (int) $q);
+                }
+            });
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
+    {
+        $query = Appointment::with(['patient.user', 'doctor.user']);
+
+        return $this->applyFilters($query, $filters)->latest()->paginate($perPage);
     }
 
     public function findOrFail(int $id): Appointment
@@ -74,31 +117,31 @@ class AppointmentRepository
 
     /**
      * Get patient's appointments.
+     *
+     * @param  array<string, mixed>  $filters
      */
-    public function getPatientAppointments(int $patientId, ?string $status = null, int $perPage = 15): LengthAwarePaginator
+    public function getPatientAppointments(int $patientId, ?string $status = null, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $query = Appointment::with(['doctor.user'])
             ->where('patient_id', $patientId);
 
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        return $query->latest('appointment_date')->paginate($perPage);
+        return $this->applyFilters($query, $filters + ['status' => $status])
+            ->latest('appointment_date')
+            ->paginate($perPage);
     }
 
     /**
      * Get doctor's appointments.
+     *
+     * @param  array<string, mixed>  $filters
      */
-    public function getDoctorAppointments(int $doctorId, ?string $status = null, int $perPage = 15): LengthAwarePaginator
+    public function getDoctorAppointments(int $doctorId, ?string $status = null, int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         $query = Appointment::with(['patient.user'])
             ->where('doctor_id', $doctorId);
 
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        return $query->latest('appointment_date')->paginate($perPage);
+        return $this->applyFilters($query, $filters + ['status' => $status])
+            ->latest('appointment_date')
+            ->paginate($perPage);
     }
 }

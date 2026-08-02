@@ -1,7 +1,7 @@
 import { api } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { escapeHtml } from "../../lib/escape.js";
-import { renderPatientHeader, bindEntityFormSubmit } from "../../lib/entity-form.js";
+import { renderPatientHeader, bindEntityFormSubmit, bindPatientPicker } from "../../lib/entity-form.js";
 
 function medicationRow(m = {}) {
   return `
@@ -85,6 +85,8 @@ export async function renderPrescriptionForm({ id } = {}) {
 export function afterPrescriptionForm({ id } = {}) {
   const form = document.getElementById("prescription-form");
   const list = document.getElementById("medications-list");
+
+  bindPatientPicker();
 
   document.getElementById("add-medication").addEventListener("click", () => {
     list.insertAdjacentHTML("beforeend", `

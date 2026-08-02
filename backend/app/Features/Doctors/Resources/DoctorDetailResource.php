@@ -32,6 +32,8 @@ class DoctorDetailResource extends JsonResource
                 'email' => $this->when($canViewSensitive, $this->user->email),
                 'phone' => $this->when($canViewSensitive, $this->user->phone),
                 'avatar' => $this->user->avatar,
+                'is_active' => $this->when($canViewSensitive, (bool) $this->user->is_active),
+                'last_login_at' => $this->when($canViewSensitive, $this->user->last_login_at),
             ],
             'specialization' => $this->whenLoaded('specialization', fn () => [
                 'id' => $this->specialization->id,
@@ -49,8 +51,33 @@ class DoctorDetailResource extends JsonResource
             'total_reviews' => $this->total_reviews,
             'reviews_enabled' => $this->reviews_enabled,
             'status' => $this->status,
+            'rating_breakdown' => $this->when(
+                $this->detailed && $this->reviews_enabled,
+                fn () => $this->ratingBreakdown()
+            ),
             'schedules' => $this->when($this->detailed, fn () => DoctorScheduleResource::collection($this->whenLoaded('schedules'))),
             'created_at' => $this->when($this->detailed, $this->created_at),
         ];
+    }
+
+    /**
+     * Review counts per star, 5 down to 1, so the profile can draw the
+     * distribution bars without pulling every rating row down the wire.
+     *
+     * @return array<int, int>
+     */
+    private function ratingBreakdown(): array
+    {
+        $counts = $this->ratings()
+            ->selectRaw('score, COUNT(*) as total')
+            ->groupBy('score')
+            ->pluck('total', 'score');
+
+        $breakdown = [];
+        foreach (range(5, 1) as $score) {
+            $breakdown[$score] = (int) ($counts[$score] ?? 0);
+        }
+
+        return $breakdown;
     }
 }

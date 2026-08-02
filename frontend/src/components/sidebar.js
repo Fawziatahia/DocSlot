@@ -7,6 +7,8 @@ const NAV_BY_ROLE = {
     { href: "/doctors", label: "Doctors", icon: "bi-heart-pulse" },
     { href: "/patients", label: "Patients", icon: "bi-people" },
     { href: "/appointments", label: "Appointments", icon: "bi-calendar-check" },
+    { href: "/prescriptions", label: "Prescriptions", icon: "bi-capsule" },
+    { href: "/medical-records", label: "Medical Records", icon: "bi-file-earmark-medical" },
     { href: "/admin/users", label: "Users", icon: "bi-person-lines-fill" },
     { href: "/admin/departments", label: "Departments", icon: "bi-building" },
     { href: "/admin/specializations", label: "Specializations", icon: "bi-tags" },
@@ -16,6 +18,7 @@ const NAV_BY_ROLE = {
   doctor: [
     { href: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { href: "/appointments", label: "Appointments", icon: "bi-calendar-check" },
+    { href: "/patients", label: "Patients", icon: "bi-people" },
     { href: "/prescriptions", label: "Prescriptions", icon: "bi-capsule" },
     { href: "/referrals", label: "Referrals", icon: "bi-send" },
     { href: "/profile", label: "My Profile", icon: "bi-person-badge" },

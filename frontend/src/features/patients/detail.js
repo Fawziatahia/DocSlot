@@ -1,6 +1,5 @@
 import { api, getUser, hasRole } from "../../lib/api.js";
 import { formatDate, statusBadgeClass } from "../../lib/format.js";
-import { setSubmitting } from "../../lib/forms.js";
 import { escapeHtml } from "../../lib/escape.js";
 
 export async function renderPatientDetail({ id }) {
@@ -9,15 +8,6 @@ export async function renderPatientDetail({ id }) {
   const isSelf = hasRole("patient") && user && patient.user.id === user.id;
   const canManage = hasRole("admin") || hasRole("doctor") || isSelf;
   const isDoctor = hasRole("doctor");
-
-  let doctorOptions = "";
-  if (isDoctor) {
-    const { data: doctors } = await api.get("/doctors", { per_page: 100 });
-    doctorOptions = doctors
-      .filter((d) => d.user.email !== user.email)
-      .map((d) => `<option value="${d.public_id}">${escapeHtml(d.user.name)} — ${escapeHtml(d.specialization?.name)}</option>`)
-      .join("");
-  }
 
   return `
     <h2 class="h4 mb-3">${escapeHtml(patient.user.name)}</h2>
@@ -46,75 +36,16 @@ export async function renderPatientDetail({ id }) {
           <a href="/medical-records/new?patient_id=${patient.public_id}&patient_name=${encodeURIComponent(patient.user.name)}" data-link class="btn btn-outline-secondary">
             <i class="bi bi-file-earmark-medical me-1"></i>Add Medical Record
           </a>
-          <button type="button" class="btn btn-outline-secondary" id="toggle-refer"><i class="bi bi-send me-1"></i>Refer to Another Doctor</button>
+          <a href="/referrals?patient_id=${patient.public_id}&patient_name=${encodeURIComponent(patient.user.name)}" data-link class="btn btn-outline-secondary">
+            <i class="bi bi-send me-1"></i>Refer to Another Doctor
+          </a>
         `
             : ""
         }
       </div>
     </div>
-
-    ${
-      isDoctor
-        ? `
-      <div class="section-card d-none" id="refer-panel">
-        <h2 class="h6 mb-3">Refer to Another Doctor</h2>
-        <div class="alert alert-danger d-none" data-refer-alert role="alert"></div>
-        <div class="alert alert-success d-none" data-refer-success role="alert"></div>
-        <div class="mb-3">
-          <label class="form-label" for="refer-doctor">Doctor</label>
-          <select class="form-select" id="refer-doctor">
-            <option value="">Select a doctor</option>
-            ${doctorOptions}
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label" for="refer-note">Note (optional)</label>
-          <textarea class="form-control" id="refer-note" rows="2"></textarea>
-        </div>
-        <button type="button" class="btn btn-primary" id="refer-submit">Send Referral</button>
-      </div>
-    `
-        : ""
-    }
   `;
 }
 
-export function afterPatientDetail({ id }) {
-  const toggleBtn = document.getElementById("toggle-refer");
-  const panel = document.getElementById("refer-panel");
-  toggleBtn?.addEventListener("click", () => panel.classList.toggle("d-none"));
-
-  document.getElementById("refer-submit")?.addEventListener("click", async () => {
-    const doctorSelect = document.getElementById("refer-doctor");
-    const noteInput = document.getElementById("refer-note");
-    const alertBox = document.querySelector("[data-refer-alert]");
-    const successBox = document.querySelector("[data-refer-success]");
-    alertBox.classList.add("d-none");
-    successBox.classList.add("d-none");
-
-    if (!doctorSelect.value) {
-      alertBox.textContent = "Please select a doctor.";
-      alertBox.classList.remove("d-none");
-      return;
-    }
-
-    const button = document.getElementById("refer-submit");
-    setSubmitting(button, true, "Send Referral");
-
-    try {
-      await api.post(`/patients/${id}/refer`, {
-        doctor_id: doctorSelect.value,
-        note: noteInput.value || undefined,
-      });
-      successBox.textContent = "Referral sent successfully.";
-      successBox.classList.remove("d-none");
-      doctorSelect.value = "";
-      noteInput.value = "";
-    } catch (err) {
-      alertBox.textContent = err.message || "Couldn't send the referral.";
-      alertBox.classList.remove("d-none");
-    } finally {
-      setSubmitting(button, false, "Send Referral");
-    }
-  });
-}
+// Referrals are sent from the Referrals tab; "Refer to Another Doctor" here is
+// just a link that carries this patient over pre-selected.
