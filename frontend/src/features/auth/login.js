@@ -4,27 +4,29 @@ import { clearFormErrors, applyFormErrors, setSubmitting } from "../../lib/forms
 
 export function renderLogin() {
   return `
-    <h1>Welcome back</h1>
-    <p class="auth-subtitle">Sign in to your DocSlot account.</p>
+    <h1>Sign In</h1>
+    <p class="auth-subtitle">
+      New to DocSlot? <a href="/register" data-link>Create a free account <i class="bi bi-arrow-right"></i></a>
+    </p>
     <div class="alert alert-danger d-none" data-form-alert role="alert"></div>
     <form id="login-form" novalidate>
       <div class="mb-3">
-        <label class="form-label" for="email">Email</label>
-        <input type="email" class="form-control" id="email" name="email" required autofocus />
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="your@email.com" required autofocus />
         <div class="invalid-feedback" data-server="email"></div>
       </div>
-      <div class="mb-3">
+      <div class="mb-2">
         <label class="form-label" for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required />
+        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required />
         <div class="invalid-feedback" data-server="password"></div>
       </div>
-      <div class="d-flex justify-content-end mb-3">
+      <div class="d-flex justify-content-end mb-4">
         <a href="/forgot-password" data-link class="small">Forgot password?</a>
       </div>
-      <button type="submit" class="btn btn-primary w-100" id="login-submit">Sign In</button>
+      <button type="submit" class="btn btn-primary w-100" id="login-submit">Sign In to DocSlot</button>
     </form>
-    <p class="text-center small text-muted mt-4 mb-0">
-      Don't have an account? <a href="/register" data-link>Create one</a>
+    <p class="auth-note">
+      <i class="bi bi-shield-lock"></i> Secure, encrypted sign-in.
     </p>
   `;
 }
@@ -35,7 +37,7 @@ export function afterLogin() {
     e.preventDefault();
     clearFormErrors(form);
     const button = document.getElementById("login-submit");
-    setSubmitting(button, true, "Sign In");
+    setSubmitting(button, true, "Sign In to DocSlot");
 
     try {
       const { data } = await api.post("/auth/login", {
@@ -47,7 +49,7 @@ export function afterLogin() {
     } catch (err) {
       applyFormErrors(form, err);
     } finally {
-      setSubmitting(button, false, "Sign In");
+      setSubmitting(button, false, "Sign In to DocSlot");
     }
   });
 

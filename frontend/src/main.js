@@ -63,7 +63,24 @@ import { renderReports, afterReports } from "./features/reports/index.js";
 route("/", { layout: guestLayout, render: () => renderLanding() });
 route("/features", { layout: guestLayout, render: () => renderFeaturesPage() });
 
-route("/login", { layout: authLayout, render: () => renderLogin(), after: afterLogin });
+route("/login", {
+  layout: (content) =>
+    authLayout(content, {
+      framed: true,
+      panel: {
+        title: "Welcome back.",
+        subtitle: "Sign in to manage your appointments & records.",
+        points: [
+          "Verified specialists",
+          "Instant booking",
+          "Real-time notifications",
+          "Secure & encrypted",
+        ],
+      },
+    }),
+  render: () => renderLogin(),
+  after: afterLogin,
+});
 route("/register", {
   layout: (content) =>
     authLayout(content, {
