@@ -62,10 +62,11 @@ class PrescriptionController
     {
         $prescription = $this->prescriptionRepository->findOrFail($id);
         $this->authorize('update', $prescription);
-        $this->prescriptionRepository->update($prescription, $request->validated());
+
+        $prescription = $this->prescriptionService->updatePrescription($prescription, $request->validated());
 
         return $this->success(
-            new PrescriptionResource($prescription->fresh()->load(['patient.user', 'doctor.user', 'medications'])),
+            new PrescriptionResource($prescription),
             'Prescription updated successfully.'
         );
     }

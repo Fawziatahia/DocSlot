@@ -1,4 +1,5 @@
 import { isAuthenticated, hasRole, getUser } from "./api.js";
+import { escapeHtml } from "./escape.js";
 
 const routes = [];
 const appEl = () => document.querySelector("#app");
@@ -65,11 +66,32 @@ async function render() {
     return navigate("/dashboard", true);
   }
 
-  const content = await matchedRoute.render(params);
+  // Without this, a failing render leaves the previous page on screen and the
+  // click that triggered it looks like it did nothing at all.
+  let content;
+  try {
+    content = await matchedRoute.render(params);
+  } catch (err) {
+    appEl().innerHTML = `
+      <div class="container py-5 text-center">
+        <h1 class="h4">Couldn't load this page</h1>
+        <p class="text-muted">${escapeHtml(err?.message || "Something went wrong.")}</p>
+        <a href="/dashboard" data-link class="btn btn-outline-primary">Back to dashboard</a>
+      </div>`;
+    console.error(`Failed to render ${pathname}:`, err);
+    return;
+  }
+
   const output = matchedRoute.layout ? await matchedRoute.layout(content) : content;
   appEl().innerHTML = output;
   window.scrollTo(0, 0);
-  await matchedRoute.after?.(params);
+
+  try {
+    await matchedRoute.after?.(params);
+  } catch (err) {
+    console.error(`Failed to initialise ${pathname}:`, err);
+  }
+
   document.dispatchEvent(new CustomEvent("route:rendered", { detail: { pathname, params } }));
 }
 

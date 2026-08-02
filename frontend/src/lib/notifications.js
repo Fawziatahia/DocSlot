@@ -1,5 +1,4 @@
 import { api, isAuthenticated } from "./api.js";
-import { navigate } from "./router.js";
 import { escapeHtml } from "./escape.js";
 import { formatRelativeTime } from "./format.js";
 
@@ -30,9 +29,18 @@ export async function refreshUnreadCount() {
   }
 }
 
-function notificationTarget(n) {
-  if (n.data?.appointment_id) return `/appointments/${n.data.appointment_id}`;
-  if (n.data?.patient_id) return `/patients/${n.data.patient_id}`;
+/**
+ * Where a notification should take you. Every type that carries an id gets a
+ * destination — previously only appointments and patients did, so clicking a
+ * prescription or medical-record notification did nothing at all.
+ */
+export function notificationTarget(n) {
+  const data = n.data || {};
+  if (data.appointment_id) return `/appointments/${data.appointment_id}`;
+  if (data.prescription_id) return `/prescriptions/${data.prescription_id}`;
+  if (data.medical_record_id) return `/medical-records/${data.medical_record_id}`;
+  if (data.patient_id) return `/patients/${data.patient_id}`;
+  if (data.doctor_id) return `/doctors/${data.doctor_id}`;
   return "";
 }
 
@@ -42,22 +50,26 @@ function renderDropdownItems(items) {
   }
 
   return items
-    .map(
-      (n) => `
-      <div
+    .map((n) => {
+      const target = notificationTarget(n);
+      // A real anchor, so the router's own link handling drives navigation and
+      // the row behaves like a link (hover, focus, middle-click).
+      const tag = target ? "a" : "div";
+      const linkAttrs = target ? `href="${escapeHtml(target)}" data-link` : "";
+
+      return `
+      <${tag}
         class="notification-dropdown-item ${n.is_read ? "" : "unread"}"
+        ${linkAttrs}
         data-notif-id="${n.id}"
         data-notif-read="${n.is_read}"
-        data-notif-target="${escapeHtml(notificationTarget(n))}"
-        role="button"
-        tabindex="0"
       >
         <div class="small ${n.is_read ? "" : "fw-semibold"}">${escapeHtml(n.title)}</div>
         <div class="text-muted small">${escapeHtml(n.message)}</div>
         <div class="text-muted" style="font-size: 0.7rem;">${formatRelativeTime(n.created_at)}</div>
-      </div>
-    `
-    )
+      </${tag}>
+    `;
+    })
     .join("");
 }
 
@@ -75,22 +87,22 @@ async function loadDropdownList() {
   }
 }
 
-async function handleItemClick(item) {
-  const target = item.dataset.notifTarget;
-  const wasUnread = item.dataset.notifRead === "false";
+/**
+ * Marking-as-read runs alongside navigation rather than before it: the router
+ * handles the anchor itself, so this must never block or swallow the click.
+ */
+async function markItemRead(item) {
+  if (item.dataset.notifRead !== "false") return;
+
   item.classList.remove("unread");
   item.dataset.notifRead = "true";
 
-  if (wasUnread) {
-    try {
-      await api.post(`/notifications/${item.dataset.notifId}/read`);
-    } catch {
-      // ignore — still navigate below
-    }
+  try {
+    await api.post(`/notifications/${item.dataset.notifId}/read`);
     await refreshUnreadCount();
+  } catch {
+    // a failed read-receipt shouldn't affect what the user sees next
   }
-
-  if (target) navigate(target);
 }
 
 async function handleMarkAllRead(button) {
@@ -128,6 +140,14 @@ export function initNotificationBell() {
     }
 
     const item = e.target.closest(".notification-dropdown-item");
-    if (item) handleItemClick(item);
+    if (!item) return;
+
+    markItemRead(item);
+
+    // Items with a destination are anchors the router already handles; the
+    // rest have nowhere to go, so at least close the menu.
+    if (!item.hasAttribute("href")) {
+      document.getElementById("notification-bell-toggle")?.click();
+    }
   });
 }

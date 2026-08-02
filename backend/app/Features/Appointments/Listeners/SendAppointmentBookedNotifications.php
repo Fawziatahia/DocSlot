@@ -4,8 +4,12 @@ namespace App\Features\Appointments\Listeners;
 
 use App\Features\Appointments\Events\AppointmentBooked;
 use App\Features\Appointments\Listeners\Concerns\FormatsAppointmentWindow;
+use App\Features\Appointments\Mail\AppointmentBookedMail;
 use App\Features\Notifications\Enums\NotificationTypeEnum;
 use App\Features\Notifications\Services\NotificationService;
+use App\Models\Appointment;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SendAppointmentBookedNotifications
 {
@@ -35,5 +39,25 @@ class SendAppointmentBookedNotifications
             "{$appointment->patient->user->name} booked an appointment with you on {$when}.",
             ['appointment_id' => $appointment->id],
         );
+
+        $this->email($appointment, $when, 'patient', $appointment->patient->user->email);
+        $this->email($appointment, $when, 'doctor', $appointment->doctor->user->email);
+    }
+
+    /**
+     * A failed send must not roll back a booking that already succeeded, so
+     * mail errors are logged rather than thrown.
+     */
+    private function email(Appointment $appointment, string $when, string $audience, ?string $address): void
+    {
+        if (! $address) {
+            return;
+        }
+
+        try {
+            Mail::to($address)->send(new AppointmentBookedMail($appointment, $when, $audience));
+        } catch (\Throwable $e) {
+            Log::error("Failed to email the {$audience} about appointment {$appointment->id}: {$e->getMessage()}");
+        }
     }
 }
