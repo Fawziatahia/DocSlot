@@ -3,7 +3,21 @@ import { navigate } from "../../lib/router.js";
 import { formatDate } from "../../lib/format.js";
 import { renderPagination } from "../../components/pagination.js";
 import { pageHrefBuilder } from "../../components/data-table.js";
+import { notificationTarget } from "../../lib/notifications.js";
 import { escapeHtml } from "../../lib/escape.js";
+
+const TARGET_LABELS = {
+  appointment: "View appointment",
+  prescriptions: "View prescription",
+  "medical-records": "View medical record",
+  patients: "View patient profile",
+  doctors: "View doctor profile",
+};
+
+function targetLabel(target) {
+  const segment = target.split("/")[1];
+  return TARGET_LABELS[segment] || TARGET_LABELS[segment.replace(/s$/, "")] || "Open";
+}
 
 function currentPath() {
   return window.location.pathname + window.location.search;
@@ -27,25 +41,26 @@ export async function renderNotificationsList() {
 
   const items = notifications.length
     ? notifications
-        .map(
-          (n) => `
+        .map((n) => {
+          // Every type that points somewhere gets a link here, not just
+          // referrals — appointment and prescription notifications used to be
+          // dead ends on this page.
+          const target = notificationTarget(n);
+
+          return `
         <div class="notification-item ${n.is_read ? "" : "unread"}" data-id="${n.id}">
           <div class="d-flex justify-content-between align-items-start gap-2">
             <div>
               <div class="fw-semibold">${escapeHtml(n.title)}</div>
               <div class="text-muted small">${escapeHtml(n.message)}</div>
               <div class="text-muted small mt-1">${formatDate(n.created_at)}</div>
-              ${
-                n.type === "patient_referral" && n.data?.patient_id
-                  ? `<a href="/patients/${n.data.patient_id}" data-link class="small">View Patient Profile</a>`
-                  : ""
-              }
+              ${target ? `<a href="${escapeHtml(target)}" data-link class="small">${targetLabel(target)} <i class="bi bi-arrow-right"></i></a>` : ""}
             </div>
             ${!n.is_read ? `<button class="btn btn-sm btn-outline-secondary flex-shrink-0" data-action="read" data-id="${n.id}">Mark read</button>` : ""}
           </div>
         </div>
-      `
-        )
+      `;
+        })
         .join("")
     : `<div class="text-center text-muted py-4">No notifications.</div>`;
 

@@ -1381,6 +1381,8 @@ body {
   border-bottom: 1px solid #e5e7eb;
   background: none;
   cursor: pointer;
+  color: inherit;
+  text-decoration: none;
 }
 
 .notification-dropdown-item:last-child {
