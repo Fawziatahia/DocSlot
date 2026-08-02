@@ -1,52 +1,49 @@
 import { formatCurrency } from "../../lib/format.js";
 import { escapeHtml } from "../../lib/escape.js";
 
-function renderFeaturedDoctor(doctor) {
+/**
+ * One doctor from the shortlist. The specialty appears once, as the role
+ * line — the surrounding chips carry the details it doesn't already say.
+ */
+export function renderFinderDoctor(doctor) {
   if (!doctor) {
-    return `<p class="finder-empty">Search the directory to find a specialist.</p>`;
+    return `<p class="finder-empty">No doctors are accepting appointments just yet.</p>`;
   }
 
   const initial = (doctor.name || "?").charAt(0).toUpperCase();
-  const tags = [doctor.specialization, doctor.department]
+  const rated = doctor.reviews_enabled && doctor.total_reviews > 0;
+
+  const facts = [
+    doctor.department ? `<span class="finder-tag"><i class="bi bi-building"></i>${escapeHtml(doctor.department)}</span>` : "",
+    `<span class="finder-tag"><i class="bi bi-cash-coin"></i>${formatCurrency(doctor.consultation_fee)}</span>`,
+    rated
+      ? `<span class="finder-tag"><i class="bi bi-chat-square-text"></i>${doctor.total_reviews} ${doctor.total_reviews === 1 ? "review" : "reviews"}</span>`
+      : `<span class="finder-tag finder-tag-new">New on DocSlot</span>`,
+  ]
     .filter(Boolean)
-    .map((tag) => `<span class="finder-tag">${escapeHtml(tag)}</span>`)
     .join("");
 
   return `
-    <article class="finder-doctor">
-      <div class="finder-doctor-head">
-        <span class="finder-avatar">${escapeHtml(initial)}</span>
-        <div class="finder-doctor-id">
-          <h3 class="finder-doctor-name">${escapeHtml(doctor.name)}</h3>
-          <p class="finder-doctor-role">${escapeHtml(doctor.specialization || "Specialist")}</p>
-        </div>
-        ${
-          doctor.reviews_enabled && doctor.total_reviews > 0
-            ? `<span class="finder-rating"><i class="bi bi-star-fill"></i>${Number(doctor.avg_rating).toFixed(1)}</span>`
-            : ""
-        }
+    <div class="finder-doctor-head">
+      <span class="finder-avatar">${escapeHtml(initial)}</span>
+      <div class="finder-doctor-id">
+        <h3 class="finder-doctor-name">${escapeHtml(doctor.name)}</h3>
+        <p class="finder-doctor-role">${escapeHtml(doctor.specialization || "Specialist")}</p>
       </div>
-      <div class="finder-tags">${tags}</div>
-      <dl class="finder-meta">
-        <div><dt>Fee</dt><dd>${formatCurrency(doctor.consultation_fee)}</dd></div>
-        <div><dt>Reviews</dt><dd>${doctor.total_reviews}</dd></div>
-      </dl>
-      <div class="finder-actions">
-        <a href="/doctors/${encodeURIComponent(doctor.public_id)}" data-link class="btn btn-primary flex-fill">Book Appointment</a>
-        <a href="/doctors" data-link class="btn btn-outline-primary">Browse all</a>
-      </div>
-    </article>
+      ${rated ? `<span class="finder-rating"><i class="bi bi-star-fill"></i>${Number(doctor.avg_rating).toFixed(1)}</span>` : ""}
+    </div>
+    <div class="finder-tags">${facts}</div>
+    <div class="finder-actions">
+      <a href="/doctors/${encodeURIComponent(doctor.public_id)}" data-link class="btn btn-primary flex-fill">Book Appointment</a>
+      <a href="/doctors" data-link class="btn btn-outline-primary">See all</a>
+    </div>
   `;
 }
 
-export function renderHero({ specialties = [], featuredDoctor = null } = {}) {
+export function renderHero({ specialties = [], doctors = [] } = {}) {
   const chips = specialties
     .slice(0, 5)
-    .map(
-      (s) => `
-        <a href="/doctors?specialization_id=${s.id}" data-link class="finder-chip">${escapeHtml(s.name)}</a>
-      `
-    )
+    .map((s) => `<a href="/doctors?specialization_id=${s.id}" data-link class="finder-chip">${escapeHtml(s.name)}</a>`)
     .join("");
 
   return `
@@ -86,7 +83,20 @@ export function renderHero({ specialties = [], featuredDoctor = null } = {}) {
               </form>
 
               ${chips ? `<div class="finder-chips">${chips}</div>` : ""}
-              ${renderFeaturedDoctor(featuredDoctor)}
+
+              <div class="finder-doctor">
+                <div class="finder-doctor-label">
+                  <span>Available now</span>
+                  ${
+                    doctors.length > 1
+                      ? `<button type="button" class="finder-shuffle" id="finder-shuffle">
+                           <i class="bi bi-shuffle"></i>Show another
+                         </button>`
+                      : ""
+                  }
+                </div>
+                <div id="finder-doctor-body">${renderFinderDoctor(doctors[0])}</div>
+              </div>
             </div>
           </div>
         </div>

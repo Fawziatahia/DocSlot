@@ -56,6 +56,8 @@ Route::prefix('landing')->group(function () {
     Route::get('stats', [LandingController::class, 'stats']);
     Route::get('specialties', [LandingController::class, 'specialties']);
     Route::get('featured-doctors', [LandingController::class, 'featuredDoctors']);
+    Route::get('top-rated-doctors', [LandingController::class, 'topRatedDoctors']);
+    Route::get('testimonials', [LandingController::class, 'testimonials']);
 });
 
 // ──────────────────────────────────────────
