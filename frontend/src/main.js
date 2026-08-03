@@ -1,3 +1,4 @@
+import "@fontsource/manrope/300.css";
 import "@fontsource/manrope/400.css";
 import "@fontsource/manrope/500.css";
 import "@fontsource/manrope/600.css";
@@ -16,8 +17,12 @@ import { authLayout } from "./layouts/auth.js";
 import { dashboardLayout } from "./layouts/dashboard.js";
 import { adaptiveLayout } from "./layouts/adaptive.js";
 
-import { renderLanding } from "./features/landing/index.js";
+import { renderLanding, afterLanding } from "./features/landing/index.js";
 import { renderFeaturesPage } from "./features/landing/features-page.js";
+import { renderAboutPage } from "./features/pages/about.js";
+import { renderContactPage } from "./features/pages/contact.js";
+import { renderPrivacyPage } from "./features/pages/privacy.js";
+import { renderTermsPage } from "./features/pages/terms.js";
 import { renderLogin, afterLogin } from "./features/auth/login.js";
 import { renderRegister, afterRegister } from "./features/auth/register.js";
 import { renderForgotPassword, afterForgotPassword } from "./features/auth/forgot-password.js";
@@ -60,8 +65,12 @@ import { renderNotificationsList, afterNotificationsList } from "./features/noti
 import { renderReferralsList, afterReferralsList } from "./features/referrals/list.js";
 import { renderReports, afterReports } from "./features/reports/index.js";
 
-route("/", { layout: guestLayout, render: () => renderLanding() });
+route("/", { layout: guestLayout, render: () => renderLanding(), after: () => afterLanding() });
 route("/features", { layout: guestLayout, render: () => renderFeaturesPage() });
+route("/about", { layout: guestLayout, render: () => renderAboutPage() });
+route("/contact", { layout: guestLayout, render: () => renderContactPage() });
+route("/privacy", { layout: guestLayout, render: () => renderPrivacyPage() });
+route("/terms", { layout: guestLayout, render: () => renderTermsPage() });
 
 route("/login", {
   layout: (content) =>
