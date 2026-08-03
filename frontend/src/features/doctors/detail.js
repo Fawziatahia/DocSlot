@@ -3,6 +3,7 @@ import { formatCurrency, formatDate, formatTime, statusBadgeClass } from "../../
 import { renderStarDisplay } from "../../components/star-rating.js";
 import { renderBookingPanel, attachBookingPanel } from "../../components/booking-panel.js";
 import { escapeHtml } from "../../lib/escape.js";
+import { renderAvatar } from "../../lib/avatar.js";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -175,7 +176,7 @@ export async function renderDoctorDetail({ id }) {
       <div class="section-card doctor-hero mt-3">
         <div class="d-flex flex-wrap gap-4 justify-content-between align-items-start">
           <div class="d-flex gap-3 align-items-start">
-            <span class="doctor-avatar doctor-avatar-lg">${escapeHtml(doctor.user.name.charAt(0).toUpperCase())}</span>
+            ${renderAvatar(doctor.user, "doctor-avatar-lg")}
             <div>
               <h1 class="h4 mb-1">${escapeHtml(doctor.user.name)}</h1>
               <p class="text-muted mb-2">

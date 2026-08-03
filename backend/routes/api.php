@@ -159,6 +159,7 @@ Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1'
 Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1'])->prefix('prescriptions')->group(function () {
     Route::get('/', [PrescriptionController::class, 'index'])->middleware('role:admin');
     Route::get('my', [PrescriptionController::class, 'myPrescriptions']);
+    Route::get('/{id}/pdf', [PrescriptionController::class, 'downloadPdf']);
     Route::get('/{id}', [PrescriptionController::class, 'show']);
     Route::post('/', [PrescriptionController::class, 'store']);
     Route::put('/{id}', [PrescriptionController::class, 'update']);

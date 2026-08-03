@@ -10,6 +10,7 @@ use App\Features\Prescriptions\Resources\PrescriptionResource;
 use App\Features\Prescriptions\Services\PrescriptionService;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use App\Models\Patient;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,23 @@ class PrescriptionController
         $this->authorize('view', $prescription);
 
         return $this->success(new PrescriptionResource($prescription));
+    }
+
+    /**
+     * Render the prescription as a downloadable PDF. Anyone allowed to view the
+     * prescription (its patient, the prescribing doctor, or an admin) may
+     * download it. The route needs the bearer token, so the frontend fetches
+     * this as a blob rather than linking to it directly.
+     * GET /prescriptions/{id}/pdf
+     */
+    public function downloadPdf(int $id): mixed
+    {
+        $prescription = $this->prescriptionRepository->findOrFail($id);
+        $this->authorize('view', $prescription);
+
+        $pdf = Pdf::loadView('pdf.prescription', ['prescription' => $prescription]);
+
+        return $pdf->download("prescription-{$prescription->id}.pdf");
     }
 
     public function store(StorePrescriptionRequest $request): JsonResponse

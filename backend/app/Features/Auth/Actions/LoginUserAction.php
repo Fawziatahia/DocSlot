@@ -40,6 +40,10 @@ class LoginUserAction
 
         $token = $user->createToken('auth-token', $abilities)->plainTextToken;
 
+        // Eager-load the profile relations UserResource reads, so serialization
+        // doesn't fire two lazy queries per response.
+        $user->load(['doctor:id,user_id,public_id', 'patient:id,user_id,public_id']);
+
         return ['user' => $user, 'token' => $token];
     }
 }

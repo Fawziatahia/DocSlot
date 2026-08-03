@@ -31,7 +31,7 @@ class DoctorDetailResource extends JsonResource
                 'name' => $this->user->name,
                 'email' => $this->when($canViewSensitive, $this->user->email),
                 'phone' => $this->when($canViewSensitive, $this->user->phone),
-                'avatar' => $this->user->avatar,
+                'avatar' => $this->user->avatarUrl(),
                 'is_active' => $this->when($canViewSensitive, (bool) $this->user->is_active),
                 'last_login_at' => $this->when($canViewSensitive, $this->user->last_login_at),
             ],

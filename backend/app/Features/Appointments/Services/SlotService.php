@@ -31,11 +31,13 @@ class SlotService
     }
 
     /**
+     * @param  DoctorSchedule|null  $schedule     Pre-fetched schedule for the date, if the caller already has it.
+     * @param  int|null             $bookedCount  Pre-computed active booking count for the date, if already known.
      * @return array<int, array{start: string, end: string}>
      */
-    public function availableSlots(Doctor $doctor, string $date): array
+    public function availableSlots(Doctor $doctor, string $date, ?DoctorSchedule $schedule = null, ?int $bookedCount = null): array
     {
-        $schedule = $this->scheduleFor($doctor, $date);
+        $schedule ??= $this->scheduleFor($doctor, $date);
 
         if (! $schedule) {
             return [];
@@ -43,10 +45,11 @@ class SlotService
 
         // The daily cap blocks all further booking for the day once reached —
         // it isn't "the first N slots", so this is an all-or-nothing gate.
-        if ($schedule->max_daily_appointments
-            && $this->appointmentRepository->countDoctorBookings($doctor->id, $date) >= $schedule->max_daily_appointments
-        ) {
-            return [];
+        if ($schedule->max_daily_appointments) {
+            $bookedCount ??= $this->appointmentRepository->countDoctorBookings($doctor->id, $date);
+            if ($bookedCount >= $schedule->max_daily_appointments) {
+                return [];
+            }
         }
 
         $slots = SlotHelper::generateSlots(

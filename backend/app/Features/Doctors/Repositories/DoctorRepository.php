@@ -42,6 +42,20 @@ class DoctorRepository implements RepositoryInterface
             ->firstOrFail($columns);
     }
 
+    /**
+     * Bare lookup by public ID with only the relations the caller asks for —
+     * for auth checks, deletes, and status flips that don't need the doctor's
+     * specialization/department joined in just to read a column or run a policy.
+     *
+     * @param  array<int, string>  $with
+     */
+    public function findByPublicIdBare(string $publicId, array $with = []): Model
+    {
+        return Doctor::with($with)
+            ->where('public_id', $publicId)
+            ->firstOrFail();
+    }
+
     public function findWithSchedules(string $publicId): Model
     {
         return Doctor::with(['user', 'specialization', 'department', 'schedules'])

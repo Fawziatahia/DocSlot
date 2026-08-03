@@ -7,8 +7,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "barryvdh/laravel-dompdf": "^3.1",
         "hasinhayder/tyro": "^1.10",
-        "hasinhayder/tyro-login": "^2.12",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0"
@@ -40,7 +40,14 @@
             "@php artisan key:generate",
             "@php artisan migrate --force",
             "npm install",
-            "npm run build"
+            "npm run build",
+            "@php artisan optimize"
+        ],
+        "optimize": [
+            "@php artisan config:cache",
+            "@php artisan route:cache",
+            "@php artisan event:cache",
+            "@php artisan view:cache"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",

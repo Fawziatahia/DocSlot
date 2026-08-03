@@ -65,7 +65,9 @@ class AuthController
 
     public function me(Request $request): JsonResponse
     {
-        return $this->success(new UserResource($request->user()));
+        $user = $request->user()->load(['doctor:id,user_id,public_id', 'patient:id,user_id,public_id']);
+
+        return $this->success(new UserResource($user));
     }
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
@@ -101,6 +103,8 @@ class AuthController
             $request->validated('current_password'),
             $request->validated('password'),
         );
+
+        $user->load(['doctor:id,user_id,public_id', 'patient:id,user_id,public_id']);
 
         return $this->success(new UserResource($user), 'Password changed successfully.');
     }

@@ -63,8 +63,10 @@ class PatientController
 
         $this->patientRepository->update($patient, $request->validated());
 
+        // update() mutates $patient in place and findByPublicId already loaded
+        // its user relation, so no re-fetch is needed to render the response.
         return $this->success(
-            (new PatientDetailResource($patient->fresh()->load('user')))->detailed(),
+            (new PatientDetailResource($patient))->detailed(),
             'Patient updated successfully.'
         );
     }
@@ -94,7 +96,6 @@ class PatientController
 
         $patient = $this->patientRepository->findByPublicId($id);
         $this->patientRepository->update($patient, ['status' => $request->input('status')]);
-        $patient = $patient->fresh()->load('user');
 
         $isActive = $request->input('status') === 'active';
         $patient->user->update(['is_active' => $isActive]);

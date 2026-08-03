@@ -63,7 +63,7 @@ class AppointmentRepository
 
     public function findOrFail(int $id): Appointment
     {
-        return Appointment::with(['patient.user', 'doctor.user'])->findOrFail($id);
+        return Appointment::with(['patient.user', 'doctor.user', 'doctor.specialization', 'rating'])->findOrFail($id);
     }
 
     public function create(array $data): Appointment

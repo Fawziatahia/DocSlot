@@ -16,50 +16,71 @@ class DashboardService
      */
     public function adminStats(): array
     {
+        $today = today()->toDateString();
+
+        // Fold the doctor and appointment breakdowns into one grouped query each
+        // (conditional aggregation) instead of a separate COUNT per metric.
+        $doctors = Doctor::selectRaw("COUNT(*) as total, SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active")->first();
+
+        $appointments = Appointment::selectRaw(
+            "COUNT(*) as total,
+             SUM(CASE WHEN appointment_date = ? THEN 1 ELSE 0 END) as today,
+             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed",
+            [$today]
+        )->first();
+
         return [
-            'total_doctors' => Doctor::count(),
-            'active_doctors' => Doctor::where('status', 'active')->count(),
+            'total_doctors' => (int) $doctors->total,
+            'active_doctors' => (int) $doctors->active,
             'total_patients' => Patient::count(),
-            'total_appointments' => Appointment::count(),
-            'today_appointments' => Appointment::whereDate('appointment_date', today())->count(),
-            'pending_appointments' => Appointment::where('status', 'pending')->count(),
-            'completed_appointments' => Appointment::where('status', 'completed')->count(),
+            'total_appointments' => (int) $appointments->total,
+            'today_appointments' => (int) $appointments->today,
+            'pending_appointments' => (int) $appointments->pending,
+            'completed_appointments' => (int) $appointments->completed,
             'total_prescriptions' => Prescription::count(),
-            'total_revenue' => Appointment::where('status', 'completed')
-                ->with('doctor')
-                ->get()
-                ->sum(fn ($a) => (float) ($a->doctor?->consultation_fee ?? 0)),
+            'total_revenue' => (float) Appointment::where('appointments.status', 'completed')
+                ->join('doctors', 'doctors.id', '=', 'appointments.doctor_id')
+                ->sum('doctors.consultation_fee'),
         ];
     }
 
     public function doctorStats(int $doctorId): array
     {
+        $today = today()->toDateString();
+
+        $appointments = Appointment::where('doctor_id', $doctorId)->selectRaw(
+            "COUNT(*) as total,
+             SUM(CASE WHEN appointment_date = ? THEN 1 ELSE 0 END) as today,
+             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed",
+            [$today]
+        )->first();
+
         return [
-            'total_appointments' => Appointment::where('doctor_id', $doctorId)->count(),
-            'today_appointments' => Appointment::where('doctor_id', $doctorId)
-                ->whereDate('appointment_date', today())
-                ->count(),
-            'pending_appointments' => Appointment::where('doctor_id', $doctorId)
-                ->where('status', 'pending')
-                ->count(),
-            'completed_appointments' => Appointment::where('doctor_id', $doctorId)
-                ->where('status', 'completed')
-                ->count(),
+            'total_appointments' => (int) $appointments->total,
+            'today_appointments' => (int) $appointments->today,
+            'pending_appointments' => (int) $appointments->pending,
+            'completed_appointments' => (int) $appointments->completed,
             'total_prescriptions' => Prescription::where('doctor_id', $doctorId)->count(),
         ];
     }
 
     public function patientStats(int $patientId): array
     {
+        $today = today()->toDateString();
+
+        $appointments = Appointment::where('patient_id', $patientId)->selectRaw(
+            "COUNT(*) as total,
+             SUM(CASE WHEN status IN ('pending', 'confirmed') AND appointment_date >= ? THEN 1 ELSE 0 END) as upcoming,
+             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed",
+            [$today]
+        )->first();
+
         return [
-            'total_appointments' => Appointment::where('patient_id', $patientId)->count(),
-            'upcoming_appointments' => Appointment::where('patient_id', $patientId)
-                ->whereIn('status', ['pending', 'confirmed'])
-                ->where('appointment_date', '>=', today())
-                ->count(),
-            'completed_appointments' => Appointment::where('patient_id', $patientId)
-                ->where('status', 'completed')
-                ->count(),
+            'total_appointments' => (int) $appointments->total,
+            'upcoming_appointments' => (int) $appointments->upcoming,
+            'completed_appointments' => (int) $appointments->completed,
             'total_prescriptions' => Prescription::where('patient_id', $patientId)->count(),
         ];
     }

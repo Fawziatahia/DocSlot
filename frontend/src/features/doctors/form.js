@@ -74,6 +74,31 @@ export async function renderDoctorForm({ id } = {}) {
             </div>
           </div>
           <div class="mb-3">
+            <label class="form-label" for="avatar">Profile photo</label>
+            <div class="avatar-field">
+              <span class="avatar-preview" id="avatar-preview">
+                ${
+                  existing?.user?.avatar
+                    ? `<img src="${escapeHtml(existing.user.avatar)}" alt="Current photo" />`
+                    : `<i class="bi bi-person"></i>`
+                }
+              </span>
+              <div class="flex-grow-1">
+                <input type="file" class="form-control" id="avatar" name="avatar" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                <div class="form-text">JPG, PNG or WEBP, up to 2 MB.${existing?.user?.avatar ? " Choosing a new photo replaces the current one." : ""}</div>
+                ${
+                  existing?.user?.avatar
+                    ? `<div class="form-check mt-1">
+                         <input class="form-check-input" type="checkbox" id="remove_avatar" name="remove_avatar" />
+                         <label class="form-check-label small" for="remove_avatar">Remove current photo</label>
+                       </div>`
+                    : ""
+                }
+                <div class="invalid-feedback d-block" data-server="avatar"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
             <label class="form-label" for="qualifications">Qualifications</label>
             <textarea class="form-control" id="qualifications" name="qualifications" rows="2">${escapeHtml(existing?.qualifications)}</textarea>
             <div class="invalid-feedback" data-server="qualifications"></div>
@@ -99,7 +124,10 @@ export async function renderDoctorForm({ id } = {}) {
           `
               : ""
           }
-          <button type="submit" class="btn btn-primary" id="doctor-form-submit">${id ? "Save Changes" : "Create Doctor"}</button>
+          <div class="form-actions">
+            <a href="${id ? `/doctors/${id}` : "/doctors"}" data-link class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="doctor-form-submit">${id ? "Save Changes" : "Create Doctor"}</button>
+          </div>
         </form>
       </div>
     </div>
@@ -108,13 +136,26 @@ export async function renderDoctorForm({ id } = {}) {
 
 export function afterDoctorForm({ id } = {}) {
   const form = document.getElementById("doctor-form");
+
+  // Live preview of a newly chosen photo before it's uploaded.
+  const fileInput = form.querySelector("#avatar");
+  const preview = form.querySelector("#avatar-preview");
+  fileInput?.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    preview.innerHTML = `<img src="${url}" alt="Selected photo" />`;
+    const removeBox = form.querySelector("#remove_avatar");
+    if (removeBox) removeBox.checked = false;
+  });
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearFormErrors(form);
     const button = document.getElementById("doctor-form-submit");
     setSubmitting(button, true, id ? "Save Changes" : "Create Doctor");
 
-    const payload = {
+    const fields = {
       specialization_id: form.specialization_id.value,
       department_id: form.department_id.value,
       qualifications: form.qualifications.value || undefined,
@@ -122,17 +163,34 @@ export function afterDoctorForm({ id } = {}) {
       consultation_fee: form.consultation_fee.value || undefined,
     };
     if (!id) {
-      payload.name = form.name.value;
-      payload.email = form.email.value;
-      payload.password = form.password.value;
-      payload.phone = form.phone.value || undefined;
-      payload.license_number = form.license_number.value;
+      fields.name = form.name.value;
+      fields.email = form.email.value;
+      fields.password = form.password.value;
+      fields.phone = form.phone.value || undefined;
+      fields.license_number = form.license_number.value;
     } else {
-      payload.reviews_enabled = form.reviews_enabled.checked;
+      fields.reviews_enabled = form.reviews_enabled.checked ? "1" : "0";
     }
 
+    const avatarFile = fileInput?.files[0];
+    const removeAvatar = form.querySelector("#remove_avatar")?.checked;
+
     try {
-      const { data } = id ? await api.put(`/doctors/${id}`, payload) : await api.post("/doctors", payload);
+      let data;
+      // Only switch to multipart when a photo is actually being changed;
+      // PHP can't parse multipart on PUT, so an edit spoofs the method.
+      if (avatarFile || removeAvatar) {
+        const payload = new FormData();
+        Object.entries(fields).forEach(([key, value]) => {
+          if (value !== undefined) payload.append(key, value);
+        });
+        if (avatarFile) payload.append("avatar", avatarFile);
+        if (removeAvatar && !avatarFile) payload.append("remove_avatar", "1");
+        if (id) payload.append("_method", "PUT");
+        ({ data } = await api.post(id ? `/doctors/${id}` : "/doctors", payload));
+      } else {
+        ({ data } = id ? await api.put(`/doctors/${id}`, fields) : await api.post("/doctors", fields));
+      }
       navigate(`/doctors/${data.public_id}`);
     } catch (err) {
       applyFormErrors(form, err);

@@ -55,9 +55,10 @@ class TaxonomyController
         $item = $this->modelClass($resource)::findOrFail($id);
         $oldValues = $item->getOriginal();
         $item->update($request->validated());
-        $this->audit('updated', $this->label($resource), $item->id, $oldValues, $item->fresh()->toArray());
+        $fresh = $item->fresh();
+        $this->audit('updated', $this->label($resource), $item->id, $oldValues, $fresh->toArray());
 
-        return $this->success(new TaxonomyResource($item->fresh()), "{$this->label($resource)} updated successfully.");
+        return $this->success(new TaxonomyResource($fresh), "{$this->label($resource)} updated successfully.");
     }
 
     public function destroy(string $resource, int $id): JsonResponse
@@ -74,9 +75,10 @@ class TaxonomyController
         $item = $this->modelClass($resource)::findOrFail($id);
         $oldValues = $item->getOriginal();
         $item->update(['is_active' => ! $item->is_active]);
-        $this->audit('updated', $this->label($resource), $item->id, $oldValues, $item->fresh()->toArray());
+        $fresh = $item->fresh();
+        $this->audit('updated', $this->label($resource), $item->id, $oldValues, $fresh->toArray());
 
-        return $this->success(new TaxonomyResource($item->fresh()), "{$this->label($resource)} status updated.");
+        return $this->success(new TaxonomyResource($fresh), "{$this->label($resource)} status updated.");
     }
 
     /**

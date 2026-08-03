@@ -36,7 +36,12 @@ export async function renderPrescriptionDetail({ id }) {
         <dt class="col-3">Status</dt><dd class="col-9"><span class="badge ${statusBadgeClass(p.status)}">${escapeHtml(p.status)}</span></dd>
         <dt class="col-3">Date</dt><dd class="col-9">${formatDate(p.created_at)}</dd>
       </dl>
-      ${canEdit ? `<a href="/prescriptions/${p.id}/edit" data-link class="btn btn-outline-secondary mt-2">Edit</a>` : ""}
+      <div class="page-actions">
+        <button type="button" class="btn btn-primary" data-download-pdf="${p.id}">
+          <i class="bi bi-download me-1"></i>Download PDF
+        </button>
+        ${canEdit ? `<a href="/prescriptions/${p.id}/edit" data-link class="btn btn-outline-secondary">Edit</a>` : ""}
+      </div>
     </div>
     <div class="section-card">
       <h3 class="h6 mb-3">Medications</h3>
@@ -48,4 +53,33 @@ export async function renderPrescriptionDetail({ id }) {
       </div>
     </div>
   `;
+}
+
+export function afterPrescriptionDetail() {
+  const button = document.querySelector("[data-download-pdf]");
+  if (!button) return;
+
+  button.addEventListener("click", async () => {
+    const id = button.dataset.downloadPdf;
+    const original = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Preparing...`;
+
+    try {
+      // The PDF route is token-authenticated, so it must be fetched as a blob
+      // rather than linked to directly.
+      const blob = await api.blob(`/prescriptions/${id}/pdf`);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `prescription-${id}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      button.insertAdjacentHTML("afterend", `<div class="text-danger small mt-2">Couldn't generate the PDF. Please try again.</div>`);
+    } finally {
+      button.disabled = false;
+      button.innerHTML = original;
+    }
+  });
 }

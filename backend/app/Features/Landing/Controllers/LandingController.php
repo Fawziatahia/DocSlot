@@ -47,7 +47,10 @@ class LandingController
     public function stats(): JsonResponse
     {
         $stats = Cache::remember('landing.stats', self::CACHE_TTL_SECONDS, function () {
-            $reviewCount = Rating::count();
+            // One pass over ratings for both the count and the average, instead
+            // of two separate full-table aggregate scans.
+            $ratingAgg = Rating::selectRaw('COUNT(*) as cnt, AVG(score) as avg_score')->first();
+            $reviewCount = (int) $ratingAgg->cnt;
 
             return [
                 'doctors' => $this->bookableDoctors()->count(),
@@ -59,7 +62,7 @@ class LandingController
                 'reviews' => $reviewCount,
                 // Null rather than a flattering zero when nobody has rated yet;
                 // the page hides the stat instead of showing "0.0".
-                'average_rating' => $reviewCount > 0 ? round((float) Rating::avg('score'), 1) : null,
+                'average_rating' => $reviewCount > 0 ? round((float) $ratingAgg->avg_score, 1) : null,
             ];
         });
 

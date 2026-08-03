@@ -53,7 +53,7 @@ class AppointmentController
         }
 
         $appointment = $this->appointmentService->bookAppointment($data, $patient->id);
-        $appointment->load(['patient.user', 'doctor.user']);
+        $appointment->load(['patient.user', 'doctor.user', 'doctor.specialization', 'rating']);
 
         return response()->json([
             'success' => true,
@@ -73,7 +73,7 @@ class AppointmentController
         );
 
         return $this->success(
-            new AppointmentDetailResource($appointment->load(['patient.user', 'doctor.user'])),
+            new AppointmentDetailResource($appointment->load(['patient.user', 'doctor.user', 'doctor.specialization', 'rating'])),
             'Appointment cancelled successfully.'
         );
     }
@@ -85,7 +85,7 @@ class AppointmentController
         $appointment = $this->appointmentService->confirmAppointment($appointment);
 
         return $this->success(
-            new AppointmentDetailResource($appointment->load(['patient.user', 'doctor.user'])),
+            new AppointmentDetailResource($appointment->load(['patient.user', 'doctor.user', 'doctor.specialization', 'rating'])),
             'Appointment confirmed successfully.'
         );
     }
@@ -97,7 +97,7 @@ class AppointmentController
         $appointment = $this->appointmentService->completeAppointment($appointment);
 
         return $this->success(
-            new AppointmentDetailResource($appointment->load(['patient.user', 'doctor.user'])),
+            new AppointmentDetailResource($appointment->load(['patient.user', 'doctor.user', 'doctor.specialization', 'rating'])),
             'Appointment completed successfully.'
         );
     }
@@ -116,7 +116,7 @@ class AppointmentController
         );
 
         return $this->success(
-            new AppointmentDetailResource($appointment->load(['patient.user', 'doctor.user'])),
+            new AppointmentDetailResource($appointment->load(['patient.user', 'doctor.user', 'doctor.specialization', 'rating'])),
             'Appointment rescheduled successfully.'
         );
     }

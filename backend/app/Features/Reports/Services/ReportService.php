@@ -32,16 +32,18 @@ class ReportService
 
     public function revenueReport(?string $from, ?string $to): array
     {
-        $query = Appointment::where('status', 'completed');
-        if ($from) $query->where('appointment_date', '>=', $from);
-        if ($to) $query->where('appointment_date', '<=', $to);
+        $query = Appointment::where('appointments.status', 'completed')
+            ->join('doctors', 'doctors.id', '=', 'appointments.doctor_id');
+        if ($from) $query->where('appointments.appointment_date', '>=', $from);
+        if ($to) $query->where('appointments.appointment_date', '<=', $to);
 
-        $appointments = $query->with('doctor')->get();
-        $totalRevenue = $appointments->sum(fn ($a) => (float) ($a->doctor?->consultation_fee ?? 0));
+        $result = $query
+            ->selectRaw('COALESCE(SUM(doctors.consultation_fee), 0) as revenue, COUNT(*) as cnt')
+            ->first();
 
         return [
-            'total_revenue' => $totalRevenue,
-            'total_completed_appointments' => $appointments->count(),
+            'total_revenue' => (float) ($result->revenue ?? 0),
+            'total_completed_appointments' => (int) ($result->cnt ?? 0),
             'period' => ['from' => $from, 'to' => $to],
         ];
     }

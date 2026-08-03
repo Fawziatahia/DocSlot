@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use HasinHayder\Tyro\Concerns\HasTyroRoles;
-use HasinHayder\TyroLogin\Traits\HasTwoFactorAuth;
 
 
 class User extends Authenticatable
@@ -45,6 +45,23 @@ class User extends Authenticatable
             'must_change_password' => 'boolean',
             'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Resolve the stored avatar to a full URL the frontend can render. Stored
+     * paths live on the public disk; an already-absolute URL is returned as-is.
+     */
+    public function avatarUrl(): ?string
+    {
+        if (! $this->avatar) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+            return $this->avatar;
+        }
+
+        return Storage::disk('public')->url($this->avatar);
     }
 
     public function doctor(): HasOne

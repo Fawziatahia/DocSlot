@@ -5,6 +5,7 @@ import { setSubmitting } from "../lib/forms.js";
 import { createDatePicker } from "./date-picker.js";
 import { escapeHtml } from "../lib/escape.js";
 import { refreshUnreadCount } from "../lib/notifications.js";
+import { showModal } from "../lib/modal.js";
 
 function addDays(date, days) {
   const d = new Date(date);
@@ -162,7 +163,16 @@ export function attachBookingPanel(doctorId) {
         reason: document.getElementById("book-reason").value || undefined,
       });
       refreshUnreadCount();
-      navigate(`/appointments/${data.id}`);
+      setSubmitting(submitBtn, false, "Confirm Booking");
+      showModal({
+        variant: "success",
+        title: "Booking Successful",
+        message: `Your appointment on ${formatDate(selectedDate)} at ${formatTime(selectedSlot.start)} has been booked and is now pending the doctor's confirmation.`,
+        primaryLabel: "View Appointment",
+        onPrimary: () => navigate(`/appointments/${data.id}`),
+        secondaryLabel: "Done",
+        onSecondary: () => navigate("/appointments"),
+      });
     } catch (err) {
       showError(err.message || "Couldn't book the appointment.");
       setSubmitting(submitBtn, false, "Confirm Booking");

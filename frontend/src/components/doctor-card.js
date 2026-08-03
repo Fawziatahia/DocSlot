@@ -1,16 +1,16 @@
 import { formatCurrency } from "../lib/format.js";
 import { hasRole } from "../lib/api.js";
 import { escapeHtml } from "../lib/escape.js";
+import { renderAvatar } from "../lib/avatar.js";
 
 export function renderDoctorCard(doctor) {
-  const initial = (doctor.user.name || "?").charAt(0).toUpperCase();
   const canSeeStatus = hasRole("admin") || hasRole("doctor");
 
   return `
     <div class="col-sm-6 col-lg-4">
       <a href="/doctors/${doctor.public_id}" data-link class="doctor-card text-decoration-none h-100">
         <div class="d-flex align-items-center gap-3 mb-3">
-          <span class="doctor-avatar">${escapeHtml(initial)}</span>
+          ${renderAvatar(doctor.user)}
           <div>
             <div class="doctor-name">${escapeHtml(doctor.user.name)}</div>
             <div class="doctor-specialization">${escapeHtml(doctor.specialization?.name)}</div>

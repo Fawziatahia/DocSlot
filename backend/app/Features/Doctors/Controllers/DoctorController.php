@@ -13,6 +13,7 @@ use App\Features\Doctors\Requests\StoreDoctorRequest;
 use App\Features\Doctors\Requests\UpdateDoctorRequest;
 use App\Features\Doctors\Resources\DoctorDetailResource;
 use App\Features\Doctors\Services\DoctorService;
+use App\Features\Shared\Services\AvatarService;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use App\Models\Doctor;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -31,6 +32,7 @@ class DoctorController
         private readonly UpdateDoctorAction $updateDoctorAction,
         private readonly AppointmentRepository $appointmentRepository,
         private readonly SlotService $slotService,
+        private readonly AvatarService $avatarService,
     ) {}
 
     /**
@@ -75,10 +77,14 @@ class DoctorController
      */
     public function store(StoreDoctorRequest $request): JsonResponse
     {
-        $data = DoctorData::fromArray($request->validated());
+        $data = DoctorData::fromArray($request->safe()->except(['avatar']));
         $doctor = $this->createDoctorAction->execute($data);
 
         $doctor->load(['user', 'specialization', 'department']);
+
+        if ($file = $request->file('avatar')) {
+            $this->avatarService->update($doctor->user, $file);
+        }
 
         return response()->json([
             'success' => true,
@@ -93,10 +99,16 @@ class DoctorController
      */
     public function update(UpdateDoctorRequest $request, string $id): JsonResponse
     {
-        $this->authorize('update', $this->doctorRepository->findByPublicId($id));
+        $this->authorize('update', $this->doctorRepository->findByPublicIdBare($id));
 
-        $doctor = $this->updateDoctorAction->execute($id, $request->validated());
+        $doctor = $this->updateDoctorAction->execute($id, $request->safe()->except(['avatar', 'remove_avatar']));
         $doctor->load(['user', 'specialization', 'department']);
+
+        if ($file = $request->file('avatar')) {
+            $this->avatarService->update($doctor->user, $file);
+        } elseif ($request->boolean('remove_avatar')) {
+            $this->avatarService->remove($doctor->user);
+        }
 
         return $this->success(new DoctorDetailResource($doctor), 'Doctor updated successfully.');
     }
@@ -107,7 +119,7 @@ class DoctorController
      */
     public function destroy(string $id): JsonResponse
     {
-        $doctor = $this->doctorRepository->findByPublicId($id);
+        $doctor = $this->doctorRepository->findByPublicIdBare($id);
         $this->doctorRepository->delete($doctor);
 
         return $this->noContent();
@@ -121,9 +133,11 @@ class DoctorController
     {
         $request->validate(['status' => ['required', 'string', 'in:active,suspended']]);
 
+        // findByPublicId already eager-loads user/specialization/department, and
+        // updating only the status column leaves those loaded relations valid —
+        // so the response resource needs no extra ->load().
         $doctor = $this->doctorRepository->findByPublicId($id);
         $this->doctorRepository->update($doctor, ['status' => $request->input('status')]);
-        $doctor->load(['user', 'specialization', 'department']);
 
         $isActive = $request->input('status') === 'active';
         $doctor->user->update(['is_active' => $isActive]);
@@ -147,7 +161,7 @@ class DoctorController
             'date' => ['required', 'date_format:Y-m-d'],
         ]);
 
-        $doctor = $this->doctorRepository->findByPublicId($id);
+        $doctor = $this->doctorRepository->findByPublicIdBare($id, ['user']);
 
         if (! $doctor->isPubliclyVisible()) {
             return $this->success([], 'This doctor is not currently accepting appointments.');
@@ -164,7 +178,7 @@ class DoctorController
      */
     public function appointments(Request $request, string $id): JsonResponse
     {
-        $doctor = $this->doctorRepository->findByPublicId($id);
+        $doctor = $this->doctorRepository->findByPublicIdBare($id);
         $this->authorize('viewAppointments', $doctor);
 
         $perPage = (int) $request->input('per_page', 15);

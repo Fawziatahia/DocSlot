@@ -5,8 +5,12 @@ namespace App\Features\Appointments\Listeners;
 use App\Features\Appointments\Enums\AppointmentStatusEnum;
 use App\Features\Appointments\Events\AppointmentStatusChanged;
 use App\Features\Appointments\Listeners\Concerns\FormatsAppointmentWindow;
+use App\Features\Appointments\Mail\AppointmentConfirmedMail;
 use App\Features\Notifications\Enums\NotificationTypeEnum;
 use App\Features\Notifications\Services\NotificationService;
+use App\Models\Appointment;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SendAppointmentStatusChangedNotifications
 {
@@ -58,5 +62,29 @@ class SendAppointmentStatusChangedNotifications
             $doctorMessage,
             ['appointment_id' => $appointment->id],
         );
+
+        // Email the patient a confirmation when the doctor confirms the booking.
+        if ($appointment->status === AppointmentStatusEnum::Confirmed) {
+            $this->emailPatientConfirmation($appointment, $when);
+        }
+    }
+
+    /**
+     * A failed send must never undo an already-confirmed appointment, so mail
+     * errors are logged rather than thrown.
+     */
+    private function emailPatientConfirmation(Appointment $appointment, string $when): void
+    {
+        $address = $appointment->patient->user->email;
+
+        if (! $address) {
+            return;
+        }
+
+        try {
+            Mail::to($address)->send(new AppointmentConfirmedMail($appointment, $when));
+        } catch (\Throwable $e) {
+            Log::error("Failed to email the patient about confirmed appointment {$appointment->id}: {$e->getMessage()}");
+        }
     }
 }

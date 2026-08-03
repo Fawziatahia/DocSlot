@@ -1,7 +1,7 @@
 import { getUser } from "../lib/api.js";
 import logo from "../assets/logo.png";
 
-const NAV_BY_ROLE = {
+export const NAV_BY_ROLE = {
   admin: [
     { href: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { href: "/doctors", label: "Doctors", icon: "bi-heart-pulse" },

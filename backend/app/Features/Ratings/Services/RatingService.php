@@ -50,9 +50,13 @@ class RatingService
 
     private function recalculateDoctorRating(Doctor $doctor): void
     {
+        $stats = $doctor->ratings()
+            ->selectRaw('AVG(score) AS avg_score, COUNT(*) AS total')
+            ->first();
+
         $doctor->update([
-            'avg_rating' => (float) $doctor->ratings()->avg('score') ?: 0,
-            'total_reviews' => $doctor->ratings()->count(),
+            'avg_rating' => (float) ($stats->avg_score ?? 0),
+            'total_reviews' => (int) ($stats->total ?? 0),
         ]);
     }
 }

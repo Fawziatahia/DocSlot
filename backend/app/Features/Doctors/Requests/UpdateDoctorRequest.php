@@ -15,6 +15,8 @@ class UpdateDoctorRequest extends FormRequest
             'bio' => ['nullable', 'string', 'max:2000'],
             'consultation_fee' => ['nullable', 'numeric', 'min:0'],
             'reviews_enabled' => ['sometimes', 'boolean'],
+            'avatar' => ['nullable', 'file', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+            'remove_avatar' => ['sometimes', 'boolean'],
         ];
     }
 }

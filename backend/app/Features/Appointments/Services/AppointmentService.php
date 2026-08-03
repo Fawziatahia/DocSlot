@@ -47,6 +47,7 @@ class AppointmentService
             // on this lock instead of racing past the checks below with us.
             $this->appointmentRepository->lockDoctorBookings($data->doctorId, $data->appointmentDate);
 
+            $todayCount = null;
             if ($schedule->max_daily_appointments) {
                 $todayCount = $this->appointmentRepository->countDoctorBookings(
                     $data->doctorId, $data->appointmentDate
@@ -58,7 +59,9 @@ class AppointmentService
                 }
             }
 
-            $available = $this->slotService->availableSlots($doctor, $data->appointmentDate);
+            // Reuse the schedule + booking count already fetched above so
+            // availableSlots() doesn't re-run the same two queries.
+            $available = $this->slotService->availableSlots($doctor, $data->appointmentDate, $schedule, $todayCount);
             $slotIsFree = collect($available)->contains(
                 fn (array $slot) => $slot['start'] === $data->startTime && $slot['end'] === $data->endTime
             );
@@ -140,12 +143,12 @@ class AppointmentService
 
     public function rescheduleAppointment(Appointment $appointment, string $newDate, string $newStart, string $newEnd): Appointment
     {
-        $maxReschedule = Setting::current()->max_reschedule_count;
-        if ($appointment->reschedule_count >= $maxReschedule) {
+        $setting = Setting::current();
+        if ($appointment->reschedule_count >= $setting->max_reschedule_count) {
             throw new ApiException('Maximum reschedule limit reached.', 409);
         }
 
-        $this->assertPastCutoffAllows($appointment, 'rescheduled');
+        $this->assertPastCutoffAllows($appointment, 'rescheduled', $setting);
 
         $appointment = $this->appointmentRepository->update($appointment, [
             'appointment_date' => $newDate,
@@ -164,9 +167,9 @@ class AppointmentService
      * Enforce Setting::appointment_cutoff_minutes: cancel/reschedule is only
      * allowed until that many minutes before the appointment's start time.
      */
-    private function assertPastCutoffAllows(Appointment $appointment, string $action): void
+    private function assertPastCutoffAllows(Appointment $appointment, string $action, ?Setting $setting = null): void
     {
-        $cutoffMinutes = Setting::current()->appointment_cutoff_minutes;
+        $cutoffMinutes = ($setting ?? Setting::current())->appointment_cutoff_minutes;
         $startsAt = Carbon::parse($appointment->appointment_date->format('Y-m-d').' '.$appointment->start_time);
 
         if (now()->addMinutes($cutoffMinutes)->greaterThan($startsAt)) {
