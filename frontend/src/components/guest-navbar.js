@@ -13,7 +13,7 @@ export function renderGuestNavbar() {
   return `
     <nav class="navbar navbar-expand-lg guest-navbar sticky-top">
       <div class="container">
-        <a class="navbar-brand" href="/" data-link><img src="${logo}" alt="DocSlot" /></a>
+        <a class="navbar-brand" href="/" data-link><img src="${logo}" alt="DocSlot" width="218" height="180" /></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#guestNav">
           <span class="navbar-toggler-icon"></span>
         </button>

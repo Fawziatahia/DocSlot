@@ -44,6 +44,21 @@ class ReferralService
             ],
         );
 
+        // The patient also needs to know, since they're the one who has to
+        // book the follow-up appointment with the receiving doctor.
+        $this->notificationService->createNotification(
+            $patient->user_id,
+            NotificationTypeEnum::PatientReferral->value,
+            'You Have Been Referred',
+            "{$referringDoctor->user->name} referred you to {$receivingDoctor->user->name} for further evaluation."
+                . ($note ? " Note: {$note}" : '')
+                . ' Book an appointment — they will already have access to your medical records.',
+            [
+                'referral_id' => $referral->id,
+                'doctor_id' => $receivingDoctor->public_id,
+            ],
+        );
+
         return $referral->load(['patient.user', 'referringDoctor.user', 'receivingDoctor.user']);
     }
 }

@@ -70,8 +70,9 @@ class SendAppointmentStatusChangedNotifications
     }
 
     /**
-     * A failed send must never undo an already-confirmed appointment, so mail
-     * errors are logged rather than thrown.
+     * Queued (not sent inline) so the confirm/complete request doesn't block
+     * on SMTP. A failed dispatch must never undo an already-confirmed
+     * appointment, so errors are logged rather than thrown.
      */
     private function emailPatientConfirmation(Appointment $appointment, string $when): void
     {
@@ -82,7 +83,7 @@ class SendAppointmentStatusChangedNotifications
         }
 
         try {
-            Mail::to($address)->send(new AppointmentConfirmedMail($appointment, $when));
+            Mail::to($address)->queue(new AppointmentConfirmedMail($appointment, $when));
         } catch (\Throwable $e) {
             Log::error("Failed to email the patient about confirmed appointment {$appointment->id}: {$e->getMessage()}");
         }

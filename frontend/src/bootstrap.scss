@@ -1,0 +1,47 @@
+// Custom Bootstrap 5.3 build: imports only the parts the app actually uses,
+// instead of the full ~312KB bootstrap.min.css.
+//
+// Confirmed used (grep across frontend/src): navbar, dropdown, collapse, alerts,
+// badges, tables, forms (form-control/form-select/form-check/input-group), buttons
+// (incl. btn-group), spinners, pagination, nav/nav-pills, grid (container/row/col),
+// ratio, plus the full utilities API (spacing, flex, display, text, bg, border,
+// position, rounded, shadow, w-/h-, gap, object-fit, etc.) so no utility class used
+// anywhere in the app is removed.
+//
+// Confirmed NOT used anywhere: cards, modals, offcanvas, tooltips, popovers,
+// accordion, carousel, toast, breadcrumb, list-group, progress bars, close button
+// (all "*-card" classes in this app are custom, not Bootstrap's .card).
+
+// 1. Configuration
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+
+// 2. Base
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/tables";
+@import "bootstrap/scss/forms";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/transitions";
+
+// 3. Components actually used
+@import "bootstrap/scss/dropdown";
+@import "bootstrap/scss/button-group";
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/navbar";
+@import "bootstrap/scss/badge";
+@import "bootstrap/scss/alert";
+@import "bootstrap/scss/pagination";
+@import "bootstrap/scss/spinners";
+@import "bootstrap/scss/helpers";
+
+// 4. Full utilities API — keeps every utility class available, even ones not
+// grep-detected (dynamically built class strings, etc.)
+@import "bootstrap/scss/utilities/api";

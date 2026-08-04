@@ -7,13 +7,15 @@ import "@fontsource/poppins/latin-500.css";
 import "@fontsource/poppins/latin-600.css";
 import "@fontsource/poppins/latin-700.css";
 import "@fontsource/poppins/latin-800.css";
-import "bootstrap/dist/css/bootstrap.min.css";
+// Custom Bootstrap build (see bootstrap.scss) — imports only the components and
+// utilities this app actually uses, instead of the full bootstrap.min.css.
+import "./bootstrap.scss";
 // Only Collapse (navbar toggler) and Dropdown (topbar menus) are used via data-api.
 // Importing just these two — instead of bootstrap.bundle.min.js — drops Modal,
 // Offcanvas, Carousel, Toast, Tab, Tooltip, Popover, ScrollSpy, Alert & Button JS.
 import "bootstrap/js/dist/collapse.js";
 import "bootstrap/js/dist/dropdown.js";
-import "bootstrap-icons/font/bootstrap-icons.css";
+import "./bootstrap-icons.css";
 import "./style.css";
 
 import { route, startRouter, navigate } from "./lib/router.js";

@@ -34,7 +34,9 @@ class ForgotPasswordAction
             ['token' => Hash::make($otp), 'created_at' => now()],
         );
 
-        Mail::to($email)->send(new PasswordResetOtpMail($otp, self::OTP_TTL_MINUTES));
+        // Queued so the response doesn't block on SMTP; user enumeration is
+        // still prevented since this returns silently either way.
+        Mail::to($email)->queue(new PasswordResetOtpMail($otp, self::OTP_TTL_MINUTES));
 
         Log::info('Password reset OTP sent', ['email' => $email]);
     }

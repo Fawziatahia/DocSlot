@@ -42,7 +42,7 @@ export function guestLayout(content) {
       <div class="container">
         <div class="row gy-4">
           <div class="col-md-6 col-lg-5">
-            <a href="/" data-link class="footer-brand"><img src="${logo}" alt="DocSlot" /></a>
+            <a href="/" data-link class="footer-brand"><img src="${logo}" alt="DocSlot" width="218" height="180" /></a>
             <p class="footer-blurb">
               Book verified specialists, keep your prescriptions and medical records
               in one place, and skip the phone calls.

@@ -45,8 +45,10 @@ class SendAppointmentBookedNotifications
     }
 
     /**
-     * A failed send must not roll back a booking that already succeeded, so
-     * mail errors are logged rather than thrown.
+     * Queued (not sent inline) so the booking request doesn't block on SMTP;
+     * ShouldQueueAfterCommit on the mailable defers it until this transaction
+     * commits. A failed dispatch must not roll back a booking that already
+     * succeeded, so errors are logged rather than thrown.
      */
     private function email(Appointment $appointment, string $when, string $audience, ?string $address): void
     {
@@ -55,7 +57,7 @@ class SendAppointmentBookedNotifications
         }
 
         try {
-            Mail::to($address)->send(new AppointmentBookedMail($appointment, $when, $audience));
+            Mail::to($address)->queue(new AppointmentBookedMail($appointment, $when, $audience));
         } catch (\Throwable $e) {
             Log::error("Failed to email the {$audience} about appointment {$appointment->id}: {$e->getMessage()}");
         }

@@ -2,6 +2,8 @@
 
 namespace App\Features\Prescriptions\Services;
 
+use App\Features\Notifications\Enums\NotificationTypeEnum;
+use App\Features\Notifications\Services\NotificationService;
 use App\Features\Prescriptions\DTOs\PrescriptionData;
 use App\Features\Prescriptions\Repositories\PrescriptionRepository;
 use App\Models\Prescription;
@@ -11,6 +13,7 @@ class PrescriptionService
 {
     public function __construct(
         private readonly PrescriptionRepository $prescriptionRepository,
+        private readonly NotificationService $notificationService,
     ) {}
 
     public function createPrescription(PrescriptionData $data, int $doctorId): Prescription
@@ -35,7 +38,17 @@ class PrescriptionService
                 ]);
             }
 
-            return $prescription->load(['patient.user', 'doctor.user', 'medications']);
+            $prescription->load(['patient.user', 'doctor.user', 'medications']);
+
+            $this->notificationService->createNotification(
+                $prescription->patient->user_id,
+                NotificationTypeEnum::PrescriptionIssued->value,
+                'Prescription Ready',
+                "Your prescription from {$prescription->doctor->user->name} is ready.",
+                ['prescription_id' => $prescription->id],
+            );
+
+            return $prescription;
         });
     }
 

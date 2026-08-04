@@ -3,10 +3,11 @@
 namespace App\Features\Auth\Mail;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class PasswordResetOtpMail extends Mailable
+class PasswordResetOtpMail extends Mailable implements ShouldQueueAfterCommit
 {
     use Queueable, SerializesModels;
 

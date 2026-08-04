@@ -3,6 +3,8 @@
 namespace App\Features\MedicalRecords\Services;
 
 use App\Features\MedicalRecords\Repositories\MedicalRecordRepository;
+use App\Features\Notifications\Enums\NotificationTypeEnum;
+use App\Features\Notifications\Services\NotificationService;
 use App\Models\MedicalRecord;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -20,11 +22,12 @@ class MedicalRecordService
 
     public function __construct(
         private readonly MedicalRecordRepository $medicalRecordRepository,
+        private readonly NotificationService $notificationService,
     ) {}
 
     public function createRecord(array $data, int $doctorId, ?UploadedFile $file = null): MedicalRecord
     {
-        return $this->medicalRecordRepository->create([
+        $record = $this->medicalRecordRepository->create([
             'patient_id' => $data['patient_id'],
             'doctor_id' => $doctorId,
             'appointment_id' => $data['appointment_id'] ?? null,
@@ -34,6 +37,18 @@ class MedicalRecordService
             'notes' => $data['notes'] ?? null,
             ...$this->fileAttributes($file, $data['file_path'] ?? null),
         ]);
+
+        $record->load(['patient', 'doctor.user']);
+
+        $this->notificationService->createNotification(
+            $record->patient->user_id,
+            NotificationTypeEnum::MedicalRecordAdded->value,
+            'Medical Record Ready',
+            "Your {$record->title} report from {$record->doctor->user->name} is ready.",
+            ['medical_record_id' => $record->id],
+        );
+
+        return $record;
     }
 
     /**

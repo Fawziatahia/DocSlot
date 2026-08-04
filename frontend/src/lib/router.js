@@ -41,9 +41,18 @@ function matchRoute(pathname) {
   return null;
 }
 
+// Matches the dynamic-import failure messages browsers throw when a chunk
+// request 404s or times out (e.g. Vite/Rollup's "Failed to fetch dynamically
+// imported module", Firefox's "error loading dynamically imported module"),
+// as opposed to a real error thrown from within a successfully-loaded module.
+function isChunkLoadError(err) {
+  return /dynamically imported module|importing a module script failed/i.test(err?.message || "");
+}
+
 async function render() {
   const { pathname } = window.location;
   const matched = matchRoute(pathname);
+  let hasRetried = false;
 
   if (!matched) {
     appEl().innerHTML = `<div class="container py-5 text-center"><h1>404</h1><p>Page not found.</p><a href="/" data-link>Go home</a></div>`;
@@ -72,14 +81,28 @@ async function render() {
   try {
     content = await matchedRoute.render(params);
   } catch (err) {
-    appEl().innerHTML = `
-      <div class="container py-5 text-center">
-        <h1 class="h4">Couldn't load this page</h1>
-        <p class="text-muted">${escapeHtml(err?.message || "Something went wrong.")}</p>
-        <a href="/dashboard" data-link class="btn btn-outline-primary">Back to dashboard</a>
-      </div>`;
-    console.error(`Failed to render ${pathname}:`, err);
-    return;
+    // A route's dynamic import() can fail on a transient network blip, or
+    // because a new deploy removed the chunk this page still has hashed in
+    // its URL — retrying once (with a cache-busting reload as a last resort)
+    // recovers both without bothering the user with an error page.
+    if (isChunkLoadError(err) && !hasRetried) {
+      hasRetried = true;
+      try {
+        content = await matchedRoute.render(params);
+      } catch {
+        window.location.reload();
+        return;
+      }
+    } else {
+      appEl().innerHTML = `
+        <div class="container py-5 text-center">
+          <h1 class="h4">Couldn't load this page</h1>
+          <p class="text-muted">${escapeHtml(err?.message || "Something went wrong.")}</p>
+          <a href="/dashboard" data-link class="btn btn-outline-primary">Back to dashboard</a>
+        </div>`;
+      console.error(`Failed to render ${pathname}:`, err);
+      return;
+    }
   }
 
   const output = matchedRoute.layout ? await matchedRoute.layout(content) : content;

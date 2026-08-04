@@ -49,7 +49,7 @@ export function renderSidebar(activePath) {
 
   return `
     <aside class="dashboard-sidebar">
-      <a href="/" data-link class="sidebar-brand"><img src="${logo}" alt="DocSlot" /></a>
+      <a href="/" data-link class="sidebar-brand"><img src="${logo}" alt="DocSlot" width="218" height="180" /></a>
       <nav class="sidebar-nav">${links}</nav>
     </aside>
   `;

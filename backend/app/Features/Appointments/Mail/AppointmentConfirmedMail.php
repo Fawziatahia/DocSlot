@@ -4,10 +4,11 @@ namespace App\Features\Appointments\Mail;
 
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class AppointmentConfirmedMail extends Mailable
+class AppointmentConfirmedMail extends Mailable implements ShouldQueueAfterCommit
 {
     use Queueable, SerializesModels;
 

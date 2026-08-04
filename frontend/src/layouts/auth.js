@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 function renderBrand(className = "") {
   return `
     <a href="/" data-link class="auth-brand ${className}">
-      <img src="${logo}" alt="DocSlot Health Care" />
+      <img src="${logo}" alt="DocSlot Health Care" width="218" height="180" />
     </a>
   `;
 }
