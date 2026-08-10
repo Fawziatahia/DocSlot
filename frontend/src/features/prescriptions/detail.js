@@ -46,7 +46,7 @@ export async function renderPrescriptionDetail({ id }) {
     <div class="section-card">
       <h3 class="h6 mb-3">Medications</h3>
       <div class="table-responsive">
-        <table class="table table-sm align-middle">
+        <table class="table align-middle">
           <thead><tr><th>Name</th><th>Dosage</th><th>Frequency</th><th>Duration</th><th>Instructions</th></tr></thead>
           <tbody>${medRows}</tbody>
         </table>

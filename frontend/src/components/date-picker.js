@@ -13,13 +13,24 @@ function todayISO() {
   return toISODate(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
+/** Weekdays (0=Sun..6=Sat) the doctor has no `is_available` schedule row for. */
+export function unavailableWeekdaysFromSchedules(schedules) {
+  const days = [0, 1, 2, 3, 4, 5, 6];
+  return days.filter((day) => {
+    const entry = schedules?.find((s) => s.day_of_week === day);
+    return !entry || !entry.is_available;
+  });
+}
+
 /**
  * Renders a month-grid calendar into `container`. Dates earlier than `minDate`
  * (inclusive lower bound) or later than `maxDate` (inclusive upper bound, optional,
  * both "YYYY-MM-DD") are shown greyed out and disabled; everything in between is
- * selectable. Calling `onSelect` fires with the chosen ISO date string.
+ * selectable. Weekdays listed in `unavailableWeekdays` (0=Sun..6=Sat) are shown
+ * with a distinct "doctor doesn't work this day" pattern and are also disabled.
+ * Calling `onSelect` fires with the chosen ISO date string.
  */
-export function createDatePicker(container, { minDate, maxDate = null, onSelect, selectedDate = null }) {
+export function createDatePicker(container, { minDate, maxDate = null, unavailableWeekdays = [], onSelect, selectedDate = null }) {
   let selected = selectedDate;
   const minDateObj = new Date(`${minDate}T00:00:00`);
   const maxDateObj = maxDate ? new Date(`${maxDate}T00:00:00`) : null;
@@ -40,12 +51,17 @@ export function createDatePicker(container, { minDate, maxDate = null, onSelect,
     }
     for (let day = 1; day <= daysInMonth; day++) {
       const iso = toISODate(viewYear, viewMonth, day);
-      const disabled = iso < minDate || (maxDate && iso > maxDate);
+      const weekday = (startWeekday + day - 1) % 7;
+      const outOfRange = iso < minDate || (maxDate && iso > maxDate);
+      const doctorOff = unavailableWeekdays.includes(weekday);
+      const disabled = outOfRange || doctorOff;
       const classes = ["dp-cell", "dp-day"];
-      if (disabled) classes.push("dp-disabled");
+      if (outOfRange) classes.push("dp-disabled");
+      if (doctorOff) classes.push("dp-unavailable");
       if (iso === selected) classes.push("dp-selected");
       if (iso === today) classes.push("dp-today");
-      cells += `<button type="button" class="${classes.join(" ")}" data-date="${iso}" ${disabled ? "disabled" : ""}>${day}</button>`;
+      const title = doctorOff ? ` title="Doctor is not available on this day"` : "";
+      cells += `<button type="button" class="${classes.join(" ")}" data-date="${iso}" ${disabled ? "disabled" : ""}${title}>${day}</button>`;
     }
 
     container.innerHTML = `
@@ -61,6 +77,11 @@ export function createDatePicker(container, { minDate, maxDate = null, onSelect,
         </div>
         <div class="dp-weekdays">${WEEKDAYS.map((w) => `<div class="dp-weekday">${w}</div>`).join("")}</div>
         <div class="dp-grid">${cells}</div>
+        ${
+          unavailableWeekdays.length
+            ? `<div class="dp-legend"><span class="dp-legend-swatch dp-legend-swatch--off"></span>Doctor unavailable this day</div>`
+            : ""
+        }
       </div>
     `;
 
@@ -82,7 +103,7 @@ export function createDatePicker(container, { minDate, maxDate = null, onSelect,
       render();
     });
 
-    container.querySelectorAll(".dp-day:not(.dp-disabled)").forEach((btn) => {
+    container.querySelectorAll(".dp-day:not(.dp-disabled):not(.dp-unavailable)").forEach((btn) => {
       btn.addEventListener("click", () => {
         selected = btn.dataset.date;
         onSelect(selected);

@@ -113,8 +113,8 @@ function renderWeeklySchedule(doctor) {
 
   return `
     <div class="section-card">
-      <h2 class="h6 mb-3">Weekly Schedule</h2>
-      <table class="table table-sm small mb-0">
+      <h2 class="h5 mb-3">Weekly Schedule</h2>
+      <table class="table schedule-table mb-0">
         <tbody>${rows}</tbody>
       </table>
     </div>
@@ -253,8 +253,8 @@ export async function renderDoctorDetail({ id }) {
 
         <div class="col-lg-5 col-xl-4">
           <div class="doctor-aside" id="book-panel">
-            ${bookingAside}
             ${renderWeeklySchedule(doctor)}
+            ${bookingAside}
           </div>
         </div>
       </div>

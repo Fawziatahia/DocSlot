@@ -1,12 +1,14 @@
-// Self-hosted fonts: latin subset only. The aggregate "@fontsource/poppins/400.css"
+// Self-hosted Google Fonts: latin subset only. The aggregate "@fontsource/*/400.css"
 // pulls latin + latin-ext + devanagari @font-face blocks (and ships all those woff
 // files); this app is English-only, so we import just the latin subset per weight.
-import "@fontsource/poppins/latin-300.css";
-import "@fontsource/poppins/latin-400.css";
-import "@fontsource/poppins/latin-500.css";
-import "@fontsource/poppins/latin-600.css";
-import "@fontsource/poppins/latin-700.css";
-import "@fontsource/poppins/latin-800.css";
+// Sora carries headings/display type; Inter carries body copy.
+import "@fontsource/sora/latin-600.css";
+import "@fontsource/sora/latin-700.css";
+import "@fontsource/sora/latin-800.css";
+import "@fontsource/inter/latin-400.css";
+import "@fontsource/inter/latin-500.css";
+import "@fontsource/inter/latin-600.css";
+import "@fontsource/inter/latin-700.css";
 // Custom Bootstrap build (see bootstrap.scss) — imports only the components and
 // utilities this app actually uses, instead of the full bootstrap.min.css.
 import "./bootstrap.scss";
@@ -22,6 +24,7 @@ import { route, startRouter, navigate } from "./lib/router.js";
 import { clearSession, hasRole } from "./lib/api.js";
 import { initNotificationBell } from "./lib/notifications.js";
 import { initFontScale } from "./lib/font-scale.js";
+import { isSidebarCollapsed, setSidebarCollapsed } from "./lib/sidebar-state.js";
 import { guestLayout } from "./layouts/guest.js";
 import { authLayout } from "./layouts/auth.js";
 import { dashboardLayout } from "./layouts/dashboard.js";
@@ -341,6 +344,18 @@ document.body.addEventListener("click", (e) => {
   if (e.target.closest("#logout-btn")) {
     clearSession();
     navigate("/login");
+  }
+
+  const toggleBtn = e.target.closest("[data-sidebar-toggle]");
+  if (toggleBtn) {
+    const collapsed = !isSidebarCollapsed();
+    setSidebarCollapsed(collapsed);
+    document.querySelector(".dashboard-shell")?.classList.toggle("dashboard-shell--collapsed", collapsed);
+
+    const label = collapsed ? "Expand sidebar" : "Collapse sidebar";
+    toggleBtn.title = label;
+    toggleBtn.setAttribute("aria-label", label);
+    toggleBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
   }
 });
 

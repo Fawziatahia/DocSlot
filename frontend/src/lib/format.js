@@ -1,5 +1,14 @@
 export function formatCurrency(amount) {
-  return new Intl.NumberFormat("en-BD", { style: "currency", currency: "BDT" }).format(amount || 0);
+  // "en-BD" falls back to a verbose "BDT 1,23,456.00" in browsers without full
+  // Bangladeshi locale data (lakh-style grouping, no symbol, forced cents).
+  // "en-US" + narrowSymbol gives the ৳ glyph and standard grouping everywhere,
+  // and stripIfInteger drops ".00" on whole amounts, so stat cards stay short.
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "BDT",
+    currencyDisplay: "narrowSymbol",
+    trailingZeroDisplay: "stripIfInteger",
+  }).format(amount || 0);
 }
 
 export function formatDate(value) {

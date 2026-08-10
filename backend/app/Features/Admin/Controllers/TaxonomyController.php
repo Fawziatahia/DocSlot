@@ -35,7 +35,7 @@ class TaxonomyController
         return $this->paginated($items, TaxonomyResource::class);
     }
 
-    public function show(string $resource, int $id): JsonResponse
+    public function show(int $id, string $resource): JsonResponse
     {
         $item = $this->modelClass($resource)::withCount('doctors')->findOrFail($id);
 
@@ -50,7 +50,7 @@ class TaxonomyController
         return $this->created(new TaxonomyResource($item), "{$this->label($resource)} created successfully.");
     }
 
-    public function update(UpdateTaxonomyRequest $request, string $resource, int $id): JsonResponse
+    public function update(UpdateTaxonomyRequest $request, int $id, string $resource): JsonResponse
     {
         $item = $this->modelClass($resource)::findOrFail($id);
         $oldValues = $item->getOriginal();
@@ -61,7 +61,7 @@ class TaxonomyController
         return $this->success(new TaxonomyResource($fresh), "{$this->label($resource)} updated successfully.");
     }
 
-    public function destroy(string $resource, int $id): JsonResponse
+    public function destroy(int $id, string $resource): JsonResponse
     {
         $item = $this->modelClass($resource)::findOrFail($id);
         $this->audit('deleted', $this->label($resource), $item->id, $item->toArray(), null);
@@ -70,7 +70,7 @@ class TaxonomyController
         return $this->noContent();
     }
 
-    public function toggleStatus(string $resource, int $id): JsonResponse
+    public function toggleStatus(int $id, string $resource): JsonResponse
     {
         $item = $this->modelClass($resource)::findOrFail($id);
         $oldValues = $item->getOriginal();

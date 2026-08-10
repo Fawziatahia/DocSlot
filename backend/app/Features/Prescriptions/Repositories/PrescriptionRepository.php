@@ -57,7 +57,13 @@ class PrescriptionRepository
 
     public function findOrFail(int $id): Prescription
     {
-        return Prescription::with(['patient.user', 'doctor.user', 'medications'])->findOrFail($id);
+        return Prescription::with([
+            'patient.user',
+            'doctor.user',
+            'doctor.specialization',
+            'doctor.department',
+            'medications',
+        ])->findOrFail($id);
     }
 
     public function create(array $data): Prescription

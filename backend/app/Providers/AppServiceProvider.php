@@ -21,9 +21,11 @@ use App\Models\MedicalRecord;
 use App\Models\Patient;
 use App\Models\Prescription;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\Process\Process;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -59,5 +61,22 @@ class AppServiceProvider extends ServiceProvider
 
             return "{$frontendUrl}/reset-password?token={$token}&email={$email}";
         });
+
+        // `php artisan serve` never starts a queue worker on its own, so queued
+        // mail/notifications silently pile up in the `jobs` table during local
+        // dev unless a worker is running separately. Spawn one alongside it in
+        // its own console window (it keeps running after `serve` stops — close
+        // its window or `taskkill` it manually when you're done).
+        if ($this->app->environment('local') && $this->app->runningInConsole()) {
+            Event::listen(CommandStarting::class, function (CommandStarting $event): void {
+                if ($event->command !== 'serve') {
+                    return;
+                }
+
+                $worker = new Process([PHP_BINARY, base_path('artisan'), 'queue:listen', '--tries=1', '--timeout=0']);
+                $worker->setOptions(['create_new_console' => true]);
+                $worker->start();
+            });
+        }
     }
 }

@@ -51,7 +51,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"D:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe artisan serve\" \"D:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe artisan queue:listen --tries=1 --timeout=0\" \"D:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#a3e635\" \"D:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe artisan serve\" \"D:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe artisan queue:listen --tries=1 --timeout=0\" \"D:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe artisan pail --timeout=0\" \"npm run dev\" \"npm --prefix ../frontend run dev\" --names=server,queue,logs,vite,frontend --kill-others"
         ],
         "test": [
             "@php artisan config:clear --ansi",

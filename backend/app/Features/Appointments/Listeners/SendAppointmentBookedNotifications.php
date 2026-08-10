@@ -40,7 +40,9 @@ class SendAppointmentBookedNotifications
             ['appointment_id' => $appointment->id],
         );
 
-        $this->email($appointment, $when, 'patient', $appointment->patient->user->email);
+        // The patient only gets an email once the doctor confirms the appointment
+        // (AppointmentConfirmedMail) — not at booking time. The in-app notification
+        // above still tells them it was booked; only the doctor gets emailed here.
         $this->email($appointment, $when, 'doctor', $appointment->doctor->user->email);
     }
 

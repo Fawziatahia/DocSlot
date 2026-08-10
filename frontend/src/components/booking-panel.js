@@ -2,7 +2,7 @@ import { api } from "../lib/api.js";
 import { navigate } from "../lib/router.js";
 import { formatCurrency, formatDate, formatTime, slotDurationMinutes } from "../lib/format.js";
 import { setSubmitting } from "../lib/forms.js";
-import { createDatePicker } from "./date-picker.js";
+import { createDatePicker, unavailableWeekdaysFromSchedules } from "./date-picker.js";
 import { escapeHtml } from "../lib/escape.js";
 import { refreshUnreadCount } from "../lib/notifications.js";
 import { showModal } from "../lib/modal.js";
@@ -28,6 +28,7 @@ function cancellationNote(cutoffMinutes) {
 export function renderBookingPanel(doctor, bookingSettings) {
   const minDate = addDays(new Date(), bookingSettings.min_booking_lead_days);
   const note = cancellationNote(bookingSettings.appointment_cutoff_minutes);
+  const unavailableWeekdays = unavailableWeekdaysFromSchedules(doctor.schedules).join(",");
 
   return `
     <div class="section-card booking-panel">
@@ -35,24 +36,36 @@ export function renderBookingPanel(doctor, bookingSettings) {
       <p class="text-muted small mb-3">Select a date and time slot</p>
       <div class="alert alert-danger d-none" data-form-alert role="alert"></div>
 
-      <div id="book-calendar" data-min-date="${minDate}" data-max-date="${bookingSettings.max_booking_date || ""}"></div>
-      ${
-        bookingSettings.min_booking_lead_days > 0
-          ? `<div class="form-text small">Must be booked at least ${bookingSettings.min_booking_lead_days} day${bookingSettings.min_booking_lead_days === 1 ? "" : "s"} in advance.</div>`
-          : ""
-      }
-      ${
-        bookingSettings.max_booking_date
-          ? `<div class="form-text small">Bookings are open through ${formatDate(bookingSettings.max_booking_date)}.</div>`
-          : ""
-      }
-
-      <div class="booking-label mt-3">Available time slots</div>
-      <div id="book-slots" class="slot-grid">
-        <div class="slot-empty"><i class="bi bi-calendar-week"></i>Pick a date to see available slots.</div>
+      <div id="book-calendar-step">
+        <div id="book-calendar" data-min-date="${minDate}" data-max-date="${bookingSettings.max_booking_date || ""}" data-unavailable-weekdays="${unavailableWeekdays}"></div>
+        ${
+          bookingSettings.min_booking_lead_days > 0
+            ? `<div class="form-text small">Must be booked at least ${bookingSettings.min_booking_lead_days} day${bookingSettings.min_booking_lead_days === 1 ? "" : "s"} in advance.</div>`
+            : ""
+        }
+        ${
+          bookingSettings.max_booking_date
+            ? `<div class="form-text small">Bookings are open through ${formatDate(bookingSettings.max_booking_date)}.</div>`
+            : ""
+        }
       </div>
 
-      <div class="booking-summary">
+      <div id="book-slots-step" class="d-none">
+        <div class="booking-slots-header">
+          <div>
+            <div class="booking-label mb-0">Available time slots</div>
+            <div class="booking-slots-date" data-slots-date></div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="book-change-date">
+            <i class="bi bi-calendar3 me-1"></i>Change date
+          </button>
+        </div>
+        <div id="book-slots" class="slot-grid slot-grid-lg">
+          <div class="slot-empty"><i class="bi bi-calendar-week"></i>Pick a date to see available slots.</div>
+        </div>
+      </div>
+
+      <div class="booking-summary mt-3">
         <div class="booking-label">Appointment Summary</div>
         <div class="booking-summary-row">
           <span>Doctor</span><strong>${escapeHtml(doctor.user.name)}</strong>
@@ -85,6 +98,10 @@ export function attachBookingPanel(doctorId) {
   const calendarEl = document.getElementById("book-calendar");
   if (!calendarEl) return;
 
+  const calendarStep = document.getElementById("book-calendar-step");
+  const slotsStep = document.getElementById("book-slots-step");
+  const slotsDateEl = document.querySelector("[data-slots-date]");
+  const changeDateBtn = document.getElementById("book-change-date");
   const slotsBox = document.getElementById("book-slots");
   const submitBtn = document.getElementById("book-submit");
   const alertBox = document.querySelector("[data-form-alert]");
@@ -92,6 +109,21 @@ export function attachBookingPanel(doctorId) {
   const timeSummary = document.querySelector('[data-summary="time"]');
   let selectedDate = null;
   let selectedSlot = null;
+
+  // Calendar and slots take turns owning the panel — picking a date swaps to
+  // slots-only so the calendar isn't fighting a narrow rail for space, and
+  // "Change date" swaps back without losing the calendar's own state.
+  const showSlotsStep = () => {
+    calendarStep.classList.add("d-none");
+    slotsStep.classList.remove("d-none");
+  };
+
+  const showCalendarStep = () => {
+    slotsStep.classList.add("d-none");
+    calendarStep.classList.remove("d-none");
+  };
+
+  changeDateBtn.addEventListener("click", showCalendarStep);
 
   const showError = (message) => {
     alertBox.textContent = message;
@@ -132,9 +164,12 @@ export function attachBookingPanel(doctorId) {
   createDatePicker(calendarEl, {
     minDate: calendarEl.dataset.minDate,
     maxDate: calendarEl.dataset.maxDate || null,
+    unavailableWeekdays: (calendarEl.dataset.unavailableWeekdays || "").split(",").filter(Boolean).map(Number),
     onSelect: (date) => {
       selectedDate = date;
       dateSummary.textContent = formatDate(date);
+      slotsDateEl.textContent = formatDate(date);
+      showSlotsStep();
       loadSlots(date);
     },
   });

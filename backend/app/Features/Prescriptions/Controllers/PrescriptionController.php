@@ -52,7 +52,16 @@ class PrescriptionController
         $prescription = $this->prescriptionRepository->findOrFail($id);
         $this->authorize('view', $prescription);
 
-        $pdf = Pdf::loadView('pdf.prescription', ['prescription' => $prescription]);
+        // Inlined as a data URI (rather than a public_path()/asset() reference)
+        // so it renders regardless of dompdf's enable_remote/chroot settings.
+        $logoDataUri = 'data:image/png;base64,'.base64_encode(
+            file_get_contents(resource_path('images/logo-mono.png'))
+        );
+
+        $pdf = Pdf::loadView('pdf.prescription', [
+            'prescription' => $prescription,
+            'logoDataUri' => $logoDataUri,
+        ]);
 
         return $pdf->download("prescription-{$prescription->id}.pdf");
     }

@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; color: #1f2937; margin: 0; padding: 0;">
-    <div style="max-width: 480px; margin: 0 auto; padding: 32px 24px;">
-        <h2 style="margin-bottom: 8px;">Reset your password</h2>
-        <p style="margin-top: 0;">Use the code below to reset your DocSlot account password.</p>
-        <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 24px 0;">
-            {{ $otp }}
-        </div>
-        <p>This code expires in {{ $expiresInMinutes }} minutes.</p>
-        <p style="color: #6b7280; font-size: 13px;">If you didn't request a password reset, you can safely ignore this email.</p>
+@component('emails.layout')
+    <div style="text-align: center; margin-bottom: 8px;">
+        <span style="display: inline-block; width: 56px; height: 56px; line-height: 56px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-size: 26px; font-weight: bold;">&#128274;</span>
     </div>
-</body>
-</html>
+    <h2 style="margin: 0 0 8px; text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 0.01em; color: #111827;">Reset your password</h2>
+    <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6; text-align: center;">Use the code below to reset your DocSlot account password.</p>
+    <div style="font-family: 'Sora', 'Segoe UI', Arial, sans-serif; font-size: 34px; font-weight: 800; letter-spacing: 8px; text-align: center; color: #1d4ed8; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 12px; padding: 22px; margin: 0 0 24px;">
+        {{ $otp }}
+    </div>
+    <p style="margin: 0 0 8px; font-size: 15px; text-align: center;">This code expires in {{ $expiresInMinutes }} minutes.</p>
+    <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center;">If you didn't request a password reset, you can safely ignore this email.</p>
+@endcomponent

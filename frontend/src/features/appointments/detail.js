@@ -2,7 +2,7 @@ import { api, hasRole } from "../../lib/api.js";
 import { navigate } from "../../lib/router.js";
 import { formatDate, formatTime, slotDurationMinutes, statusBadgeClass } from "../../lib/format.js";
 import { renderStarInput, bindStarInput } from "../../components/star-rating.js";
-import { createDatePicker } from "../../components/date-picker.js";
+import { createDatePicker, unavailableWeekdaysFromSchedules } from "../../components/date-picker.js";
 import { setSubmitting } from "../../lib/forms.js";
 import { escapeHtml } from "../../lib/escape.js";
 import { refreshUnreadCount } from "../../lib/notifications.js";
@@ -14,15 +14,21 @@ function addDays(date, days) {
 }
 
 export async function renderAppointmentDetail({ id }) {
-  const [{ data: a }, { data: bookingSettings }] = await Promise.all([
-    api.get(`/appointments/${id}`),
+  const { data: a } = await api.get(`/appointments/${id}`);
+  const canReschedule = ["pending", "confirmed"].includes(a.status);
+
+  const [{ data: bookingSettings }, doctorSchedules] = await Promise.all([
     api.get("/booking-settings"),
+    canReschedule && a.doctor?.public_id
+      ? api.get(`/doctors/${a.doctor.public_id}`).then((r) => r.data.schedules)
+      : Promise.resolve(null),
   ]);
+
   const minRescheduleDate = addDays(new Date(), bookingSettings.min_booking_lead_days);
+  const unavailableWeekdays = doctorSchedules ? unavailableWeekdaysFromSchedules(doctorSchedules).join(",") : "";
   const isPatientView = hasRole("patient");
   const isDoctorOrAdmin = hasRole("doctor") || hasRole("admin");
   const canCancel = ["pending", "confirmed"].includes(a.status);
-  const canReschedule = ["pending", "confirmed"].includes(a.status);
 
   return `
     <div class="container py-4" style="max-width: 40rem;">
@@ -75,7 +81,7 @@ export async function renderAppointmentDetail({ id }) {
         <div class="row g-3">
           <div class="col-sm-7">
             <label class="form-label small fw-semibold">Select a new date</label>
-            <div id="reschedule-calendar" data-min-date="${minRescheduleDate}" data-max-date="${bookingSettings.max_booking_date || ""}"></div>
+            <div id="reschedule-calendar" data-min-date="${minRescheduleDate}" data-max-date="${bookingSettings.max_booking_date || ""}" data-unavailable-weekdays="${unavailableWeekdays}"></div>
           </div>
           <div class="col-sm-5">
             <label class="form-label small fw-semibold">Available slots</label>
@@ -154,6 +160,7 @@ export function afterAppointmentDetail({ id }) {
     createDatePicker(calendarEl, {
       minDate: calendarEl.dataset.minDate,
       maxDate: calendarEl.dataset.maxDate || null,
+      unavailableWeekdays: (calendarEl.dataset.unavailableWeekdays || "").split(",").filter(Boolean).map(Number),
       onSelect: async (date) => {
         rescheduleDate = date;
         rescheduleSlot = null;

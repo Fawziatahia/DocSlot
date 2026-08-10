@@ -3,6 +3,7 @@ import { navigate } from "../../lib/router.js";
 import { clearFormErrors, applyFormErrors, setSubmitting } from "../../lib/forms.js";
 import { renderSearchBar, attachLiveSearch } from "../../components/live-search.js";
 import { escapeHtml } from "../../lib/escape.js";
+import { invalidateLookupsCache } from "../../lib/lookups.js";
 
 function currentPath() {
   return window.location.pathname + window.location.search;
@@ -85,6 +86,7 @@ export function createTaxonomyPages({ resource, label }) {
         } else if (action === "delete") {
           await api.delete(`/${resource}/${id}`);
         }
+        invalidateLookupsCache(resource);
         navigate(currentPath(), true);
       } catch (err) {
         alertBox.textContent = err.message || "Something went wrong.";
@@ -138,6 +140,7 @@ export function createTaxonomyPages({ resource, label }) {
 
       try {
         id ? await api.put(`/${resource}/${id}`, payload) : await api.post(`/${resource}`, payload);
+        invalidateLookupsCache(resource);
         navigate(`/admin/${resource}`);
       } catch (err) {
         applyFormErrors(form, err);

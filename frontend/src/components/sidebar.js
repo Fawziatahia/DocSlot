@@ -1,4 +1,5 @@
 import { getUser } from "../lib/api.js";
+import { isSidebarCollapsed } from "../lib/sidebar-state.js";
 import logo from "../assets/logo.png";
 
 export const NAV_BY_ROLE = {
@@ -40,16 +41,29 @@ export function renderSidebar(activePath) {
   const links = items
     .map(
       (item) => `
-      <a href="${item.href}" data-link class="sidebar-link ${activePath === item.href ? "active" : ""}">
+      <a href="${item.href}" data-link class="sidebar-link ${activePath === item.href ? "active" : ""}" title="${item.label}">
         <span class="sidebar-icon"><i class="bi ${item.icon}"></i></span>
-        <span>${item.label}</span>
+        <span class="sidebar-label">${item.label}</span>
       </a>`
     )
     .join("");
 
+  const collapsed = isSidebarCollapsed();
+
   return `
     <aside class="dashboard-sidebar">
-      <a href="/" data-link class="sidebar-brand"><img src="${logo}" alt="DocSlot" width="218" height="180" /></a>
+      <div class="sidebar-top">
+        <button
+          type="button"
+          class="sidebar-brand"
+          data-sidebar-toggle
+          title="${collapsed ? "Expand sidebar" : "Collapse sidebar"}"
+          aria-label="${collapsed ? "Expand sidebar" : "Collapse sidebar"}"
+          aria-expanded="${collapsed ? "false" : "true"}"
+        >
+          <img src="${logo}" alt="DocSlot" width="218" height="180" />
+        </button>
+      </div>
       <nav class="sidebar-nav">${links}</nav>
     </aside>
   `;
