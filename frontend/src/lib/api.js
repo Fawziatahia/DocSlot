@@ -1,7 +1,47 @@
+import { getCached, setCached, invalidateResource, clearAllCache } from "./cache.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
 const TOKEN_KEY = "docslot_token";
 const USER_KEY = "docslot_user";
+
+// How long a GET response stays fresh, keyed by resource. Frequently-changing
+// data (appointments, notifications) gets a short TTL; near-static reference
+// data (doctors, specializations, departments) gets a long one. Anything not
+// listed falls back to DEFAULT_CACHE_TTL_MS.
+const CACHE_TTL_MS = {
+  "/appointments": 60_000,
+  "/notifications": 30_000,
+  "/symptom-checks": 60_000,
+  "/prescriptions": 60_000,
+  "/medical-records": 60_000,
+  "/dashboard": 60_000,
+  "/reports": 60_000,
+  "/doctors": 10 * 60_000,
+  "/specializations": 10 * 60_000,
+  "/departments": 10 * 60_000,
+  "/patients": 5 * 60_000,
+  "/landing": 5 * 60_000,
+};
+const DEFAULT_CACHE_TTL_MS = 60_000;
+
+// Never cache auth endpoints (session/identity data has no business persisting
+// past the request that fetched it) or streaming endpoints (not simple JSON).
+const UNCACHEABLE_PREFIXES = ["/auth"];
+
+/** The route's first path segment — cache keys and invalidation are scoped to this. */
+function resourceRoot(path) {
+  const [first] = path.split("/").filter(Boolean);
+  return first ? `/${first}` : path;
+}
+
+function cacheTtlFor(resource) {
+  return CACHE_TTL_MS[resource] ?? DEFAULT_CACHE_TTL_MS;
+}
+
+function isCacheable(path) {
+  return !UNCACHEABLE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -27,6 +67,8 @@ export function updateStoredUser(partialUser) {
 export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  // Cached responses are only ever meant to live for the current session.
+  clearAllCache();
 }
 
 export function isAuthenticated() {
@@ -47,6 +89,13 @@ class ApiError extends Error {
 }
 
 export async function apiFetch(path, { method = "GET", body, params } = {}) {
+  const cacheable = method === "GET" && isCacheable(path);
+
+  if (cacheable) {
+    const cached = getCached(path, params);
+    if (cached !== null) return cached;
+  }
+
   const url = new URL(`${API_BASE_URL}${path}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -83,6 +132,14 @@ export async function apiFetch(path, { method = "GET", body, params } = {}) {
     throw new ApiError(data?.message || "Something went wrong.", response.status, data?.errors);
   }
 
+  if (cacheable) {
+    setCached(path, params, data, cacheTtlFor(resourceRoot(path)));
+  } else if (method !== "GET") {
+    // Any write invalidates its whole resource, not just this exact query —
+    // a POST to /appointments/5/cancel must also stale the /appointments list.
+    invalidateResource(resourceRoot(path));
+  }
+
   return data;
 }
 
@@ -111,6 +168,10 @@ export async function apiStream(path, body, onEvent) {
     const data = isJson ? await response.json() : null;
     throw new ApiError(data?.message || "Something went wrong.", response.status, data?.errors);
   }
+
+  // A streamed POST is still a write — it creates a record just like a
+  // regular apiFetch POST would, so the resource's cached GETs must go stale.
+  invalidateResource(resourceRoot(path));
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
