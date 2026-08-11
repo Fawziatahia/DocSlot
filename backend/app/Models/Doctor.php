@@ -78,4 +78,20 @@ class Doctor extends Model
     {
         return $this->status === DoctorStatusEnum::Active && (bool) $this->user->is_active;
     }
+
+    /**
+     * User-facing name with a "Dr." prefix, but only when the stored user
+     * name doesn't already carry a title (data is inconsistent: some already
+     * include "Dr.", "Prof. Dr.", etc.).
+     */
+    public function displayName(): string
+    {
+        $name = trim($this->user->name);
+
+        if (preg_match('/^(dr|prof)\b\.?\s*/i', $name)) {
+            return $name;
+        }
+
+        return "Dr. {$name}";
+    }
 }

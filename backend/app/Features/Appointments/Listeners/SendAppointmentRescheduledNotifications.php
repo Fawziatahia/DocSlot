@@ -24,7 +24,7 @@ class SendAppointmentRescheduledNotifications
             $appointment->patient->user_id,
             NotificationTypeEnum::AppointmentRescheduled->value,
             'Appointment Rescheduled',
-            "Your appointment with Dr. {$appointment->doctor->user->name} has been rescheduled to {$when}.",
+            "Your appointment with {$appointment->doctor->displayName()} has been rescheduled to {$when}.",
             ['appointment_id' => $appointment->id],
         );
 

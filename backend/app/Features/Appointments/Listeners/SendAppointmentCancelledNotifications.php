@@ -24,7 +24,7 @@ class SendAppointmentCancelledNotifications
             $appointment->patient->user_id,
             NotificationTypeEnum::AppointmentCancelled->value,
             'Appointment Cancelled',
-            "Your appointment with Dr. {$appointment->doctor->user->name} on {$when} has been cancelled.",
+            "Your appointment with {$appointment->doctor->displayName()} on {$when} has been cancelled.",
             ['appointment_id' => $appointment->id],
         );
 

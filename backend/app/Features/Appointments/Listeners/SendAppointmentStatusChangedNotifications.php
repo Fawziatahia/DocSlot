@@ -24,20 +24,20 @@ class SendAppointmentStatusChangedNotifications
     {
         $appointment = $event->appointment->loadMissing(['patient.user', 'doctor.user']);
         $when = $this->appointmentWindow($appointment);
-        $doctorName = $appointment->doctor->user->name;
+        $doctorName = $appointment->doctor->displayName();
         $patientName = $appointment->patient->user->name;
 
         [$type, $title, $patientMessage, $doctorMessage] = match ($appointment->status) {
             AppointmentStatusEnum::Confirmed => [
                 NotificationTypeEnum::AppointmentConfirmed,
                 'Appointment Confirmed',
-                "Your appointment with Dr. {$doctorName} on {$when} has been confirmed.",
+                "Your appointment with {$doctorName} on {$when} has been confirmed.",
                 "The appointment with {$patientName} on {$when} has been confirmed.",
             ],
             AppointmentStatusEnum::Completed => [
                 NotificationTypeEnum::AppointmentCompleted,
                 'Appointment Completed',
-                "Your appointment with Dr. {$doctorName} on {$when} is now marked as completed.",
+                "Your appointment with {$doctorName} on {$when} is now marked as completed.",
                 "The appointment with {$patientName} on {$when} is now marked as completed.",
             ],
             default => [null, null, null, null],

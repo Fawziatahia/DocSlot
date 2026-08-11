@@ -28,7 +28,7 @@ class SendAppointmentBookedNotifications
             $appointment->patient->user_id,
             NotificationTypeEnum::AppointmentBooked->value,
             'Appointment Booked',
-            "Your appointment with Dr. {$appointment->doctor->user->name} on {$when} has been booked.",
+            "Your appointment with {$appointment->doctor->displayName()} on {$when} has been booked.",
             ['appointment_id' => $appointment->id],
         );
 
