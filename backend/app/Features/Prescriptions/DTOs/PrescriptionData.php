@@ -9,6 +9,7 @@ readonly class PrescriptionData
         public ?int $appointmentId,
         public string $diagnosis,
         public ?string $notes,
+        public ?string $advice,
         public array $medications,
     ) {}
 
@@ -19,6 +20,7 @@ readonly class PrescriptionData
             appointmentId: isset($data['appointment_id']) ? (int) $data['appointment_id'] : null,
             diagnosis: $data['diagnosis'],
             notes: $data['notes'] ?? null,
+            advice: $data['advice'] ?? null,
             medications: $data['medications'] ?? [],
         );
     }

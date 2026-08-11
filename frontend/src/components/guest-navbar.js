@@ -21,6 +21,7 @@ export function renderGuestNavbar() {
           <ul class="navbar-nav mx-auto gap-lg-2">
             <li class="nav-item"><a class="nav-link ${path === "/" ? "active" : ""}" href="/" data-link>Home</a></li>
             <li class="nav-item"><a class="nav-link ${path === "/doctors" ? "active" : ""}" href="/doctors" data-link>Find a Doctor</a></li>
+            <li class="nav-item"><a class="nav-link ${path === "/symptom-checker" ? "active" : ""}" href="/symptom-checker" data-link>Symptom Checker</a></li>
             <li class="nav-item"><a class="nav-link ${path === "/features" ? "active" : ""}" href="/features" data-link>Features</a></li>
           </ul>
           <div class="d-flex gap-2 mt-3 mt-lg-0">${authLinks}</div>

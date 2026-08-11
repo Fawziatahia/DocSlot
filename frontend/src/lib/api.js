@@ -87,6 +87,63 @@ export async function apiFetch(path, { method = "GET", body, params } = {}) {
 }
 
 /**
+ * POSTs to a server-sent-events endpoint (the symptom tracker's AI answer,
+ * generated token-by-token) and invokes onEvent(eventName, payload) for each
+ * `data:` chunk as it streams in.
+ */
+export async function apiStream(path, body, onEvent) {
+  const headers = {
+    Accept: "text/event-stream",
+    "Content-Type": "application/json",
+  };
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) clearSession();
+    const isJson = response.headers.get("content-type")?.includes("application/json");
+    const data = isJson ? await response.json() : null;
+    throw new ApiError(data?.message || "Something went wrong.", response.status, data?.errors);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let eventEnd;
+    while ((eventEnd = buffer.indexOf("\n\n")) !== -1) {
+      const rawEvent = buffer.slice(0, eventEnd);
+      buffer = buffer.slice(eventEnd + 2);
+
+      let eventName = "message";
+      const dataLines = [];
+      for (const line of rawEvent.split("\n")) {
+        if (line.startsWith("event:")) eventName = line.slice(6).trim();
+        if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+      }
+      if (!dataLines.length) continue;
+
+      try {
+        onEvent(eventName, JSON.parse(dataLines.join("")));
+      } catch {
+        // Malformed chunk — skip it rather than breaking the whole stream.
+      }
+    }
+  }
+}
+
+/**
  * Fetch a private file (medical-record attachments) as a Blob. A plain <a href>
  * can't be used for these because the download route needs the bearer token.
  */
@@ -112,4 +169,5 @@ export const api = {
   patch: (path, body) => apiFetch(path, { method: "PATCH", body }),
   delete: (path) => apiFetch(path, { method: "DELETE" }),
   blob: apiBlob,
+  stream: apiStream,
 };

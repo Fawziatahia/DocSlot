@@ -36,9 +36,13 @@ export function renderTopDoctors(doctors = []) {
                 .map((part) => part.charAt(0).toUpperCase())
                 .join("");
 
+              const avatar = d.avatar
+                ? `<span class="top-doctor-avatar has-photo"><img src="${escapeHtml(d.avatar)}" alt="${escapeHtml(d.name)}" loading="lazy" /></span>`
+                : `<span class="top-doctor-avatar">${escapeHtml(initials || "?")}</span>`;
+
               return `
             <article class="top-doctor-card">
-              <span class="top-doctor-avatar">${escapeHtml(initials || "?")}</span>
+              ${avatar}
 
               ${
                 d.next_available

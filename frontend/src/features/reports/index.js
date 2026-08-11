@@ -5,11 +5,11 @@ import { escapeHtml } from "../../lib/escape.js";
 import { renderStatGrid } from "../../components/stat-card.js";
 
 const STATUS_META = {
-  pending: { label: "Pending", badge: "bg-warning-subtle text-warning-emphasis", bar: "#f59e0b" },
-  confirmed: { label: "Confirmed", badge: "bg-info-subtle text-info-emphasis", bar: "#0891b2" },
-  in_progress: { label: "In Progress", badge: "bg-primary-subtle text-primary-emphasis", bar: "#2563eb" },
-  completed: { label: "Completed", badge: "bg-success-subtle text-success-emphasis", bar: "#16a34a" },
-  cancelled: { label: "Cancelled", badge: "bg-danger-subtle text-danger-emphasis", bar: "#dc2626" },
+  pending: { label: "Pending", icon: "bi-hourglass-split", badge: "bg-warning-subtle text-warning-emphasis", bar: "#f59e0b", track: "#fef3c7" },
+  confirmed: { label: "Confirmed", icon: "bi-patch-check", badge: "bg-info-subtle text-info-emphasis", bar: "#0891b2", track: "#cffafe" },
+  in_progress: { label: "In Progress", icon: "bi-arrow-repeat", badge: "bg-primary-subtle text-primary-emphasis", bar: "#2563eb", track: "#dbeafe" },
+  completed: { label: "Completed", icon: "bi-check-circle-fill", badge: "bg-success-subtle text-success-emphasis", bar: "#16a34a", track: "#dcfce7" },
+  cancelled: { label: "Cancelled", icon: "bi-x-circle-fill", badge: "bg-danger-subtle text-danger-emphasis", bar: "#dc2626", track: "#fee2e2" },
 };
 
 const PRESETS = [
@@ -52,7 +52,15 @@ function presetRange(key) {
 }
 
 function statusMeta(status) {
-  return STATUS_META[status] || { label: status.replace("_", " "), badge: "bg-secondary-subtle text-secondary-emphasis", bar: "#94a3b8" };
+  return (
+    STATUS_META[status] || {
+      label: status.replace("_", " "),
+      icon: "bi-dot",
+      badge: "bg-secondary-subtle text-secondary-emphasis",
+      bar: "#94a3b8",
+      track: "#eef2f7",
+    }
+  );
 }
 
 function renderStatusBreakdown(byStatus, total) {
@@ -67,11 +75,16 @@ function renderStatusBreakdown(byStatus, total) {
         .map(([status, count]) => {
           const meta = statusMeta(status);
           const percent = total ? Math.round((count / total) * 100) : 0;
+
           return `
-            <div class="report-bar-row">
-              <span class="badge ${meta.badge} report-bar-label text-capitalize">${escapeHtml(meta.label)}</span>
-              <span class="report-bar-track"><span class="report-bar-fill" style="width: ${percent}%; background: ${meta.bar};"></span></span>
-              <span class="report-bar-value">${count} <span class="text-muted fw-normal">(${percent}%)</span></span>
+            <div class="report-bar-row" tabindex="0" title="${count} of ${total} appointments (${percent}%)">
+              <span class="badge ${meta.badge} report-bar-label">
+                <i class="bi ${meta.icon}"></i>${escapeHtml(meta.label)}
+              </span>
+              <span class="report-bar-track" style="background: ${meta.track};">
+                <span class="report-bar-fill" style="width: ${percent}%; background: ${meta.bar};"></span>
+              </span>
+              <span class="report-bar-value"><strong>${count}</strong> <span class="text-muted fw-normal">(${percent}%)</span></span>
             </div>
           `;
         })
@@ -88,8 +101,8 @@ function renderDoctorTable(doctors) {
   const sorted = [...doctors].sort((a, b) => b.total_appointments - a.total_appointments);
 
   return `
-    <div class="table-responsive">
-      <table class="table align-middle mb-0">
+    <div style="max-height: 20rem; overflow-y: auto; overflow-x: hidden;">
+      <table class="table align-middle mb-0 report-doctor-table">
         <thead>
           <tr>
             <th>Doctor</th>
@@ -202,7 +215,7 @@ export async function renderReports() {
     ${renderStatGrid([
       { icon: "bi-calendar-check", label: "Total Appointments", value: total, accent: "primary" },
       { icon: "bi-check-circle", label: `Completed (${completionRate}%)`, value: completed, accent: "success" },
-      { icon: "bi-cash-coin", label: "Revenue", value: formatCurrency(revenue.total_revenue), accent: "success" },
+      { icon: "bi-cash-coin", label: "Total Revenue", value: formatCurrency(revenue.total_revenue), accent: "success" },
       { icon: "bi-capsule", label: "Prescriptions", value: prescriptions.total_prescriptions, accent: "info" },
     ])}
 

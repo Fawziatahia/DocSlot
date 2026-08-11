@@ -19,6 +19,7 @@ use App\Features\Prescriptions\Controllers\PrescriptionController;
 use App\Features\Ratings\Controllers\RatingController;
 use App\Features\Referrals\Controllers\ReferralController;
 use App\Features\Reports\Controllers\ReportController;
+use App\Features\SymptomTracker\Controllers\SymptomTrackerController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -207,6 +208,16 @@ Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1'
 Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:60,1', 'role:admin'])->prefix('audit-logs')->group(function () {
     Route::get('/', [AuditLogController::class, 'index']);
     Route::get('/{id}', [AuditLogController::class, 'show']);
+});
+
+// ──────────────────────────────────────────
+// Symptom Tracker (AI-assisted, patients only)
+// ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'active', 'password-changed', 'throttle:20,1', 'role:patient'])->prefix('symptom-checks')->group(function () {
+    Route::get('/', [SymptomTrackerController::class, 'index']);
+    Route::get('/{id}', [SymptomTrackerController::class, 'show']);
+    Route::post('/', [SymptomTrackerController::class, 'store']);
+    Route::delete('/{id}', [SymptomTrackerController::class, 'destroy']);
 });
 
 // ──────────────────────────────────────────

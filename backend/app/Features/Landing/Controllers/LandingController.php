@@ -2,6 +2,7 @@
 
 namespace App\Features\Landing\Controllers;
 
+use App\Features\Landing\Support\LandingCacheBuster;
 use App\Features\Shared\Traits\ApiResponseTrait;
 use App\Models\Appointment;
 use App\Models\Doctor;
@@ -46,7 +47,9 @@ class LandingController
      */
     public function stats(): JsonResponse
     {
-        $stats = Cache::remember('landing.stats', self::CACHE_TTL_SECONDS, function () {
+        $version = LandingCacheBuster::version();
+
+        $stats = Cache::remember("landing.stats.v{$version}", self::CACHE_TTL_SECONDS, function () {
             // One pass over ratings for both the count and the average, instead
             // of two separate full-table aggregate scans.
             $ratingAgg = Rating::selectRaw('COUNT(*) as cnt, AVG(score) as avg_score')->first();
@@ -114,7 +117,9 @@ class LandingController
     {
         $limit = min((int) $request->input('limit', 3), self::FEATURED_POOL_SIZE);
 
-        $pool = Cache::remember('landing.featured.pool', self::CACHE_TTL_SECONDS, function () {
+        $version = LandingCacheBuster::version();
+
+        $pool = Cache::remember("landing.featured.pool.v{$version}", self::CACHE_TTL_SECONDS, function () {
             return $this->bookableDoctors()
                 ->with(['user', 'specialization', 'department'])
                 ->orderByDesc('total_reviews')
@@ -124,6 +129,7 @@ class LandingController
                 ->map(fn (Doctor $d) => [
                     'public_id' => $d->public_id,
                     'name' => $d->user->name,
+                    'avatar' => $d->user->avatarUrl(),
                     'specialization' => $d->specialization?->name,
                     'department' => $d->department?->name,
                     'consultation_fee' => (float) $d->consultation_fee,
@@ -152,8 +158,9 @@ class LandingController
     {
         $limit = min((int) $request->input('limit', 4), 12);
         $leadDays = (int) Setting::current()->min_booking_lead_days;
+        $version = LandingCacheBuster::version();
 
-        $doctors = Cache::remember("landing.top-rated.{$limit}.{$leadDays}", self::CACHE_TTL_SECONDS, function () use ($limit, $leadDays) {
+        $doctors = Cache::remember("landing.top-rated.{$limit}.{$leadDays}.v{$version}", self::CACHE_TTL_SECONDS, function () use ($limit, $leadDays) {
             return $this->bookableDoctors()
                 ->with(['user', 'specialization', 'department', 'schedules'])
                 ->where('reviews_enabled', true)
@@ -165,6 +172,7 @@ class LandingController
                 ->map(fn (Doctor $d) => [
                     'public_id' => $d->public_id,
                     'name' => $d->user->name,
+                    'avatar' => $d->user->avatarUrl(),
                     'specialization' => $d->specialization?->name,
                     'department' => $d->department?->name,
                     'consultation_fee' => (float) $d->consultation_fee,
@@ -197,7 +205,9 @@ class LandingController
     {
         $limit = min((int) $request->input('limit', 3), 12);
 
-        $testimonials = Cache::remember("landing.testimonials.{$limit}", self::CACHE_TTL_SECONDS, function () use ($limit) {
+        $version = LandingCacheBuster::version();
+
+        $testimonials = Cache::remember("landing.testimonials.{$limit}.v{$version}", self::CACHE_TTL_SECONDS, function () use ($limit) {
             return Rating::query()
                 ->whereNotNull('comment')
                 ->where('comment', '!=', '')

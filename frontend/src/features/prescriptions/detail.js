@@ -33,6 +33,7 @@ export async function renderPrescriptionDetail({ id }) {
         <dt class="col-3">Doctor</dt><dd class="col-9">${escapeHtml(p.doctor?.name)}</dd>
         <dt class="col-3">Diagnosis</dt><dd class="col-9">${escapeHtml(p.diagnosis)}</dd>
         <dt class="col-3">Notes</dt><dd class="col-9">${escapeHtml(p.notes || "—")}</dd>
+        <dt class="col-3">Advice</dt><dd class="col-9">${escapeHtml(p.advice || "—")}</dd>
         <dt class="col-3">Status</dt><dd class="col-9"><span class="badge ${statusBadgeClass(p.status)}">${escapeHtml(p.status)}</span></dd>
         <dt class="col-3">Date</dt><dd class="col-9">${formatDate(p.created_at)}</dd>
       </dl>

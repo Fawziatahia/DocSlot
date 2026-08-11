@@ -12,18 +12,18 @@ export function renderLogin() {
     <form id="login-form" novalidate>
       <div class="mb-3">
         <label class="form-label" for="email">Email Address</label>
-        <input type="email" class="form-control" id="email" name="email" placeholder="your@email.com" required autofocus />
+        <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="your@email.com" required autofocus />
         <div class="invalid-feedback" data-server="email"></div>
       </div>
       <div class="mb-2">
         <label class="form-label" for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required />
+        <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="Enter your password" required />
         <div class="invalid-feedback" data-server="password"></div>
       </div>
       <div class="d-flex justify-content-end mb-4">
         <a href="/forgot-password" data-link class="small">Forgot password?</a>
       </div>
-      <button type="submit" class="btn btn-primary w-100" id="login-submit">Sign In to DocSlot</button>
+      <button type="submit" class="btn btn-primary btn-lg w-100" id="login-submit">Sign In to DocSlot</button>
     </form>
     <p class="auth-note">
       <i class="bi bi-shield-lock"></i> Secure, encrypted sign-in.

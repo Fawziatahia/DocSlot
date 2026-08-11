@@ -4,6 +4,7 @@ import { formatDate, formatTime, statusBadgeClass } from "../../lib/format.js";
 import { renderDataTable, pageHrefBuilder } from "../../components/data-table.js";
 import { renderSearchBar, attachLiveSearch } from "../../components/live-search.js";
 import { escapeHtml } from "../../lib/escape.js";
+import { confirmCancelAppointment } from "./cancel-modal.js";
 
 const STATUS_TABS = ["", "pending", "confirmed", "in_progress", "completed", "cancelled"];
 
@@ -100,29 +101,31 @@ export function afterAppointmentsList() {
     render: fetchResults,
   });
 
-  document.getElementById("appointment-results")?.addEventListener("click", async (e) => {
+  document.getElementById("appointment-results")?.addEventListener("click", (e) => {
     const button = e.target.closest("button[data-action]");
     if (!button) return;
 
     const { action, id } = button.dataset;
-    let payload = {};
-
-    if (action === "cancel") {
-      const reason = window.prompt("Reason for cancellation (optional):") || "";
-      payload = { cancellation_reason: reason };
-    }
-
     // Re-queried per click: the alert lives inside the container that each
     // search replaces.
     const alertBox = document.querySelector("[data-list-alert]");
-    button.disabled = true;
-    try {
-      await api.post(`/appointments/${id}/${action}`, payload);
-      navigate(currentPath(), true);
-    } catch (err) {
-      alertBox.textContent = err.message || "Couldn't complete that action.";
-      alertBox.classList.remove("d-none");
-      button.disabled = false;
+
+    const run = async (payload = {}) => {
+      button.disabled = true;
+      try {
+        await api.post(`/appointments/${id}/${action}`, payload);
+        navigate(currentPath(), true);
+      } catch (err) {
+        alertBox.textContent = err.message || "Couldn't complete that action.";
+        alertBox.classList.remove("d-none");
+        button.disabled = false;
+      }
+    };
+
+    if (action === "cancel") {
+      confirmCancelAppointment((reason) => run({ cancellation_reason: reason }));
+    } else {
+      run();
     }
   });
 }

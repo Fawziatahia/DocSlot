@@ -9,12 +9,14 @@ export function showModal({
   variant = "success",
   title = "",
   message = "",
+  body = "",
   primaryLabel = "OK",
   onPrimary,
   secondaryLabel,
   onSecondary,
 } = {}) {
-  const icon = { success: "bi-check-lg", info: "bi-info-lg", warning: "bi-exclamation-lg" }[variant] || "bi-check-lg";
+  const icon = { success: "bi-check-lg", info: "bi-info-lg", warning: "bi-exclamation-lg", danger: "bi-trash" }[variant] || "bi-check-lg";
+  const primaryClass = variant === "danger" ? "btn-danger" : "btn-primary";
 
   const overlay = document.createElement("div");
   overlay.className = "app-modal-overlay";
@@ -23,9 +25,10 @@ export function showModal({
       <div class="app-modal-icon"><i class="bi ${icon}"></i></div>
       <h2 class="app-modal-title">${escapeHtml(title)}</h2>
       <p class="app-modal-text">${escapeHtml(message)}</p>
+      ${body}
       <div class="app-modal-actions">
         ${secondaryLabel ? `<button type="button" class="btn btn-outline-secondary" data-modal-secondary>${escapeHtml(secondaryLabel)}</button>` : ""}
-        <button type="button" class="btn btn-primary" data-modal-primary>${escapeHtml(primaryLabel)}</button>
+        <button type="button" class="btn ${primaryClass}" data-modal-primary>${escapeHtml(primaryLabel)}</button>
       </div>
     </div>`;
 
@@ -44,12 +47,12 @@ export function showModal({
   document.addEventListener("keydown", onKey);
 
   overlay.querySelector("[data-modal-primary]").addEventListener("click", () => {
+    onPrimary?.(overlay);
     close();
-    onPrimary?.();
   });
   overlay.querySelector("[data-modal-secondary]")?.addEventListener("click", () => {
+    onSecondary?.(overlay);
     close();
-    onSecondary?.();
   });
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) close();

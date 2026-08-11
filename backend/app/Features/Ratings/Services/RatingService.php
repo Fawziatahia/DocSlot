@@ -3,6 +3,7 @@
 namespace App\Features\Ratings\Services;
 
 use App\Features\Appointments\Enums\AppointmentStatusEnum;
+use App\Features\Landing\Support\LandingCacheBuster;
 use App\Features\Ratings\Repositories\RatingRepository;
 use App\Features\Shared\Exceptions\ApiException;
 use App\Models\Appointment;
@@ -44,6 +45,7 @@ class RatingService
         ]);
 
         $this->recalculateDoctorRating($doctor);
+        LandingCacheBuster::bust();
 
         return $rating->load('patient.user');
     }

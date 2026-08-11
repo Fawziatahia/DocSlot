@@ -18,6 +18,7 @@ class StorePrescriptionRequest extends FormRequest
             'appointment_id' => ['nullable', 'integer', 'exists:appointments,id'],
             'diagnosis' => ['required', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'advice' => ['nullable', 'string', 'max:5000'],
             'medications' => ['required', 'array', 'min:1'],
             'medications.*.medication_name' => ['required', 'string', 'max:255'],
             'medications.*.dosage' => ['required', 'string', 'max:100'],

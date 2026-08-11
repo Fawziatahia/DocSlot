@@ -317,6 +317,14 @@ route("/admin/settings", {
   after: () => import("./features/admin/settings.js").then((m) => m.afterSettings()),
 });
 
+route("/symptom-checker", {
+  auth: true,
+  roles: ["patient"],
+  layout: (content) => dashboardLayout(content, { title: "Symptom Checker", activePath: "/symptom-checker" }),
+  render: () => import("./features/symptom-tracker/index.js").then((m) => m.renderSymptomTracker()),
+  after: () => import("./features/symptom-tracker/index.js").then((m) => m.afterSymptomTracker()),
+});
+
 route("/notifications", {
   auth: true,
   layout: (content) => dashboardLayout(content, { title: "Notifications", activePath: "/notifications" }),

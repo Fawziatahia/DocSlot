@@ -6,6 +6,7 @@ import { createDatePicker, unavailableWeekdaysFromSchedules } from "../../compon
 import { setSubmitting } from "../../lib/forms.js";
 import { escapeHtml } from "../../lib/escape.js";
 import { refreshUnreadCount } from "../../lib/notifications.js";
+import { confirmCancelAppointment } from "./cancel-modal.js";
 
 function addDays(date, days) {
   const d = new Date(date);
@@ -128,12 +129,9 @@ export function afterAppointmentDetail({ id }) {
   };
 
   document.querySelectorAll("button[data-action]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const action = button.dataset.action;
-      let payload = {};
-      if (action === "cancel") {
-        payload = { cancellation_reason: window.prompt("Reason for cancellation (optional):") || "" };
-      }
+    const action = button.dataset.action;
+
+    const run = async (payload = {}) => {
       button.disabled = true;
       try {
         await api.post(`/appointments/${id}/${action}`, payload);
@@ -142,6 +140,14 @@ export function afterAppointmentDetail({ id }) {
       } catch (err) {
         showError(err);
         button.disabled = false;
+      }
+    };
+
+    button.addEventListener("click", () => {
+      if (action === "cancel") {
+        confirmCancelAppointment((reason) => run({ cancellation_reason: reason }));
+      } else {
+        run();
       }
     });
   });

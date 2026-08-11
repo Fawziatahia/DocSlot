@@ -54,6 +54,11 @@ export async function renderPrescriptionForm({ id } = {}) {
           <textarea class="form-control" id="notes" name="notes" rows="2">${escapeHtml(existing?.notes)}</textarea>
           <div class="invalid-feedback" data-server="notes"></div>
         </div>
+        <div class="mb-3">
+          <label class="form-label" for="advice">Advice</label>
+          <textarea class="form-control" id="advice" name="advice" rows="2" placeholder="e.g. diet, rest, follow-up guidance for the patient">${escapeHtml(existing?.advice)}</textarea>
+          <div class="invalid-feedback" data-server="advice"></div>
+        </div>
 
         ${
           id
@@ -125,6 +130,7 @@ export function afterPrescriptionForm({ id } = {}) {
       const payload = {
         diagnosis: form.diagnosis.value,
         notes: form.notes.value || undefined,
+        advice: form.advice.value || undefined,
         medications,
       };
       if (!id) {

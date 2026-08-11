@@ -5,6 +5,9 @@ import { getCachedUnreadCount } from "../lib/notifications.js";
 export function renderTopbar(title = "") {
   const user = getUser();
   const unreadCount = getCachedUnreadCount();
+  const avatar = user?.avatar
+    ? `<span class="topbar-avatar has-photo"><img src="${escapeHtml(user.avatar)}" alt="${escapeHtml(user?.name)}" loading="lazy" /></span>`
+    : `<span class="topbar-avatar">${escapeHtml((user?.name || "?").charAt(0).toUpperCase())}</span>`;
 
   return `
     <header class="dashboard-topbar">
@@ -32,7 +35,7 @@ export function renderTopbar(title = "") {
         </div>
         <div class="dropdown">
           <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
-            <span class="topbar-avatar">${escapeHtml((user?.name || "?").charAt(0).toUpperCase())}</span>
+            ${avatar}
             <span class="d-none d-sm-inline">${escapeHtml(user?.name)}</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">

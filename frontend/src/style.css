@@ -392,6 +392,19 @@ h6,
   justify-content: center;
 }
 
+.finder-avatar.has-photo {
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.finder-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
 .finder-doctor-id {
   min-width: 0;
 }
@@ -545,6 +558,19 @@ h6,
   font-weight: 800;
   letter-spacing: 0.02em;
   margin-bottom: 0.9rem;
+}
+
+.top-doctor-avatar.has-photo {
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.top-doctor-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
 }
 
 .availability-pill {
@@ -1282,7 +1308,7 @@ h6,
 }
 
 .auth-card h1 {
-  font-size: 1.65rem;
+  font-size: 1.9rem;
   font-weight: 800;
   margin-bottom: 0.25rem;
 }
@@ -1392,6 +1418,98 @@ h6,
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* Decorative icon cluster that fills the open space below the checklist. */
+.auth-panel-illustration {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 8rem;
+  padding: 0.5rem 0;
+}
+
+/* A fixed, self-contained box — every badge below is positioned relative to
+   ITS edges (never negative), so nothing can be pushed past .auth-panel's
+   own overflow:hidden regardless of how much space the flex parent gives it. */
+.auth-illustration-stage {
+  position: relative;
+  width: 10rem;
+  height: 10rem;
+  flex-shrink: 0;
+}
+
+.auth-illustration-ring {
+  position: absolute;
+  inset: 0.75rem;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0.35);
+}
+
+.auth-illustration-badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  animation: auth-badge-float 6s ease-in-out infinite;
+}
+
+.auth-illustration-badge-1 {
+  width: 3.25rem;
+  height: 3.25rem;
+  font-size: 1.4rem;
+  top: 0;
+  left: 3.4rem;
+  animation-delay: 0s;
+}
+
+.auth-illustration-badge-2 {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.2rem;
+  top: 3.5rem;
+  right: 0;
+  animation-delay: 1.2s;
+}
+
+.auth-illustration-badge-3 {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.3rem;
+  bottom: 0;
+  left: 3.5rem;
+  animation-delay: 2.4s;
+}
+
+.auth-illustration-badge-4 {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.1rem;
+  top: 3.75rem;
+  left: 0;
+  animation-delay: 3.6s;
+}
+
+@keyframes auth-badge-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.3rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-illustration-badge {
+    animation: none;
+  }
+}
+
 .auth-card-split {
   position: relative;
   max-width: none;
@@ -1438,11 +1556,11 @@ h6,
 /* Short forms (sign-in) read better as a contained card than as a form
    stretched across the whole panel. */
 .auth-card-framed .auth-card-inner {
-  max-width: 24rem;
+  max-width: 29rem;
   margin: 0 auto;
   border: 1px solid #e5e7eb;
   border-radius: 0.9rem;
-  padding: 2rem;
+  padding: 2.75rem;
   box-shadow: 0 6px 20px rgba(17, 24, 39, 0.05);
 }
 
@@ -1487,6 +1605,10 @@ h6,
   .auth-panel {
     gap: 1.75rem;
     padding: 2rem;
+  }
+
+  .auth-panel-illustration {
+    display: none;
   }
 
   .auth-panel-title {
@@ -1642,9 +1764,9 @@ h6,
 .app-modal {
   background: #fff;
   border-radius: 1rem;
-  padding: 2rem 1.75rem 1.75rem;
+  padding: 2rem 2rem 1.75rem;
   width: 100%;
-  max-width: 25rem;
+  max-width: 28rem;
   text-align: center;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
   transform: translateY(8px) scale(0.98);
@@ -1679,6 +1801,11 @@ h6,
 .app-modal-warning .app-modal-icon {
   background: #fef3c7;
   color: #d97706;
+}
+
+.app-modal-danger .app-modal-icon {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .app-modal-title {
@@ -2631,23 +2758,47 @@ h6,
   gap: 0.65rem;
 }
 
+.report-doctor-table thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
 .report-bar-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   font-size: 0.8rem;
   color: #374151;
+  padding: 0.3rem 0.4rem;
+  border-radius: 0.5rem;
+  margin: 0 -0.4rem;
+  transition: background-color 0.15s ease;
+}
+
+.report-bar-row:hover,
+.report-bar-row:focus-visible {
+  background: #f8f9fb;
+  outline: none;
 }
 
 .report-bar-label {
-  width: 6.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 6.75rem;
   flex-shrink: 0;
-  text-align: center;
+  white-space: nowrap;
+}
+
+.report-bar-label i {
+  font-size: 0.7rem;
 }
 
 .report-bar-track {
   flex: 1;
-  height: 0.5rem;
+  height: 0.55rem;
   border-radius: 999px;
   background: #eef2f7;
   overflow: hidden;
@@ -2668,10 +2819,11 @@ h6,
 
 .report-bar-value {
   flex-shrink: 0;
-  min-width: 3.4rem;
+  min-width: 3.75rem;
   text-align: right;
   font-weight: 600;
   color: #111827;
+  font-variant-numeric: tabular-nums;
 }
 
 .report-rank {
@@ -2909,6 +3061,19 @@ h6,
   justify-content: center;
   font-weight: 700;
   font-size: 0.9rem;
+}
+
+.topbar-avatar.has-photo {
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.topbar-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
 }
 
 .dashboard-content {

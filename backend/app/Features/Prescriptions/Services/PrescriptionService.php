@@ -25,6 +25,7 @@ class PrescriptionService
                 'appointment_id' => $data->appointmentId,
                 'diagnosis' => $data->diagnosis,
                 'notes' => $data->notes,
+                'advice' => $data->advice,
                 'status' => 'active',
             ]);
 

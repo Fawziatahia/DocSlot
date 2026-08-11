@@ -14,6 +14,7 @@ class Prescription extends Model
         'appointment_id',
         'diagnosis',
         'notes',
+        'advice',
         'status',
     ];
 

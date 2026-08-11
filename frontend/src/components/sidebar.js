@@ -26,6 +26,7 @@ export const NAV_BY_ROLE = {
   ],
   patient: [
     { href: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
+    { href: "/symptom-checker", label: "Symptom Checker", icon: "bi-clipboard2-pulse" },
     { href: "/doctors", label: "Find a Doctor", icon: "bi-heart-pulse" },
     { href: "/appointments", label: "My Appointments", icon: "bi-calendar-check" },
     { href: "/prescriptions", label: "Prescriptions", icon: "bi-capsule" },

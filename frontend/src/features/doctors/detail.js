@@ -136,7 +136,7 @@ export async function renderDoctorDetail({ id }) {
 
   const actions = [];
   if (bookable) {
-    actions.push(`<a href="#book-panel" class="btn btn-primary" data-scroll-to="book-panel"><i class="bi bi-calendar-plus me-1"></i>Book Now</a>`);
+    actions.push(`<a href="#book-panel" class="btn btn-outline-primary" data-scroll-to="book-panel"><i class="bi bi-calendar-plus me-1"></i>Book Now</a>`);
   }
   if (canManage) {
     actions.push(`<a href="/doctors/${doctor.public_id}/edit" data-link class="btn btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Edit Profile</a>`);

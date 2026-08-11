@@ -24,6 +24,7 @@ class PrescriptionResource extends JsonResource
             'appointment_id' => $this->appointment_id,
             'diagnosis' => $this->diagnosis,
             'notes' => $this->notes,
+            'advice' => $this->advice,
             'status' => $this->status,
             'medications' => $this->whenLoaded('medications', fn () =>
                 $this->medications->map(fn ($m) => [

@@ -61,6 +61,15 @@ export function authLayout(content, options = {}) {
             ${panel.subtitle ? `<p class="auth-panel-subtitle">${escapeHtml(panel.subtitle)}</p>` : ""}
             ${points ? `<ul class="auth-panel-points">${points}</ul>` : ""}
           </div>
+          <div class="auth-panel-illustration" aria-hidden="true">
+            <div class="auth-illustration-stage">
+              <span class="auth-illustration-ring"></span>
+              <span class="auth-illustration-badge auth-illustration-badge-1"><i class="bi bi-heart-pulse-fill"></i></span>
+              <span class="auth-illustration-badge auth-illustration-badge-2"><i class="bi bi-calendar2-check-fill"></i></span>
+              <span class="auth-illustration-badge auth-illustration-badge-3"><i class="bi bi-shield-fill-check"></i></span>
+              <span class="auth-illustration-badge auth-illustration-badge-4"><i class="bi bi-chat-heart-fill"></i></span>
+            </div>
+          </div>
           <span class="auth-panel-blob" aria-hidden="true"></span>
         </aside>
         <div class="auth-card auth-card-split ${framed ? "auth-card-framed" : ""}">

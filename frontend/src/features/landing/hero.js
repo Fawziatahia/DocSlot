@@ -12,6 +12,9 @@ export function renderFinderDoctor(doctor) {
 
   const initial = (doctor.name || "?").charAt(0).toUpperCase();
   const rated = doctor.reviews_enabled && doctor.total_reviews > 0;
+  const avatar = doctor.avatar
+    ? `<span class="finder-avatar has-photo"><img src="${escapeHtml(doctor.avatar)}" alt="${escapeHtml(doctor.name)}" loading="lazy" /></span>`
+    : `<span class="finder-avatar">${escapeHtml(initial)}</span>`;
 
   const facts = [
     doctor.department ? `<span class="finder-tag"><i class="bi bi-building"></i>${escapeHtml(doctor.department)}</span>` : "",
@@ -25,7 +28,7 @@ export function renderFinderDoctor(doctor) {
 
   return `
     <div class="finder-doctor-head">
-      <span class="finder-avatar">${escapeHtml(initial)}</span>
+      ${avatar}
       <div class="finder-doctor-id">
         <h3 class="finder-doctor-name">${escapeHtml(doctor.name)}</h3>
         <p class="finder-doctor-role">${escapeHtml(doctor.specialization || "Specialist")}</p>
@@ -34,8 +37,8 @@ export function renderFinderDoctor(doctor) {
     </div>
     <div class="finder-tags">${facts}</div>
     <div class="finder-actions">
-      <a href="/doctors/${encodeURIComponent(doctor.public_id)}" data-link class="btn btn-primary flex-fill">Book Appointment</a>
-      <a href="/doctors" data-link class="btn btn-outline-primary">See all</a>
+      <a href="/doctors/${encodeURIComponent(doctor.public_id)}" data-link class="btn btn-outline-primary flex-fill">View Profile</a>
+      <a href="/doctors" data-link class="btn btn-outline-secondary">See all</a>
     </div>
   `;
 }

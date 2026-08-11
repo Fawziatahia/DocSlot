@@ -121,6 +121,11 @@
                         <div class="section-title" style="margin-top: 16px;">Notes</div>
                         <div class="box">{{ $prescription->notes }}</div>
                     @endif
+
+                    @if ($prescription->advice)
+                        <div class="section-title" style="margin-top: 16px;">Advice</div>
+                        <div class="box">{{ $prescription->advice }}</div>
+                    @endif
                 </td>
                 <td class="col-right">
                     <div class="section-title">Medicines</div>

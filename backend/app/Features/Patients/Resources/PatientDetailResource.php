@@ -29,7 +29,7 @@ class PatientDetailResource extends JsonResource
                 'name' => $this->user->name,
                 'email' => $this->user->email,
                 'phone' => $this->user->phone,
-                'avatar' => $this->user->avatar,
+                'avatar' => $this->user->avatarUrl(),
             ],
             'date_of_birth' => $this->date_of_birth?->format('Y-m-d'),
             'gender' => $this->gender,

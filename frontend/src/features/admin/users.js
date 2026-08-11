@@ -7,6 +7,12 @@ import { escapeHtml } from "../../lib/escape.js";
 
 const ROLES = ["", "admin", "doctor", "patient"];
 
+const ROLE_BADGE = {
+  admin: "bg-primary-subtle text-primary-emphasis",
+  doctor: "bg-success-subtle text-success-emphasis",
+  patient: "bg-info-subtle text-info-emphasis",
+};
+
 function currentPath() {
   return window.location.pathname + window.location.search;
 }
@@ -21,7 +27,7 @@ async function fetchResults(params) {
         <tr>
           <td>${escapeHtml(u.name)}</td>
           <td>${escapeHtml(u.email)}</td>
-          <td>${(u.roles || []).map((r) => `<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">${escapeHtml(r)}</span>`).join("")}</td>
+          <td>${(u.roles || []).map((r) => `<span class="badge ${ROLE_BADGE[r] || "bg-secondary-subtle text-secondary-emphasis"} me-1">${escapeHtml(r)}</span>`).join("")}</td>
           <td><span class="badge ${u.is_active ? "bg-success-subtle text-success-emphasis" : "bg-danger-subtle text-danger-emphasis"}">${u.is_active ? "Active" : "Inactive"}</span></td>
           <td>${u.last_login_at ? formatDate(u.last_login_at) : "Never"}</td>
           <td class="d-flex gap-1 flex-wrap">
