@@ -190,6 +190,7 @@ export function attachBookingPanel(doctorId) {
     setSubmitting(submitBtn, true, "Confirm Booking");
 
     try {
+      const bookedStart = selectedSlot.start;
       const { data } = await api.post("/appointments", {
         doctor_id: doctorId,
         appointment_date: selectedDate,
@@ -198,11 +199,19 @@ export function attachBookingPanel(doctorId) {
         reason: document.getElementById("book-reason").value || undefined,
       });
       refreshUnreadCount();
+
+      // The slot is now taken — drop it from the list immediately so it can't
+      // be picked again if the success modal is dismissed without navigating away.
+      slotsBox.querySelector(`.slot-btn[data-start="${bookedStart}"]`)?.remove();
+      if (!slotsBox.querySelector(".slot-btn")) {
+        slotsBox.innerHTML = `<div class="slot-empty"><i class="bi bi-calendar-x"></i>No slots available on this date.</div>`;
+      }
+      clearSlotSelection();
       setSubmitting(submitBtn, false, "Confirm Booking");
       showModal({
         variant: "success",
         title: "Booking Successful",
-        message: `Your appointment on ${formatDate(selectedDate)} at ${formatTime(selectedSlot.start)} has been booked and is now pending the doctor's confirmation.`,
+        message: `Your appointment on ${formatDate(selectedDate)} at ${formatTime(bookedStart)} has been booked and is now pending the doctor's confirmation.`,
         primaryLabel: "View Appointment",
         onPrimary: () => navigate(`/appointments/${data.id}`),
         secondaryLabel: "Done",

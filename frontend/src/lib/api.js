@@ -29,6 +29,13 @@ const DEFAULT_CACHE_TTL_MS = 60_000;
 // past the request that fetched it) or streaming endpoints (not simple JSON).
 const UNCACHEABLE_PREFIXES = ["/auth"];
 
+// Writing one resource can make another resource's cached reads stale even
+// though it lives under a different path — booking/cancelling an appointment
+// changes which slots a doctor has free, but slots are served under /doctors.
+const CROSS_INVALIDATES = {
+  "/appointments": ["/doctors"],
+};
+
 /** The route's first path segment — cache keys and invalidation are scoped to this. */
 function resourceRoot(path) {
   const [first] = path.split("/").filter(Boolean);
@@ -137,7 +144,9 @@ export async function apiFetch(path, { method = "GET", body, params } = {}) {
   } else if (method !== "GET") {
     // Any write invalidates its whole resource, not just this exact query —
     // a POST to /appointments/5/cancel must also stale the /appointments list.
-    invalidateResource(resourceRoot(path));
+    const resource = resourceRoot(path);
+    invalidateResource(resource);
+    CROSS_INVALIDATES[resource]?.forEach(invalidateResource);
   }
 
   return data;
